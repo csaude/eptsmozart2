@@ -54,5 +54,7 @@
 
     <properties>
         <openmrsPlatformVersion>2.3.0</openmrsPlatformVersion>
+		<javaCompilerSource>1.8</javaCompilerSource>
+		<javaCompilerTarget>1.8</javaCompilerTarget>
     </properties>
 </project>

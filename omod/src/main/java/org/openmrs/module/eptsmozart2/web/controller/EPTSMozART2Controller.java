@@ -9,37 +9,32 @@
  */
 package org.openmrs.module.eptsmozart2.web.controller;
 
-import java.util.List;
-
-import javax.servlet.http.HttpSession;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.openmrs.User;
-import org.openmrs.api.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.openmrs.module.eptsmozart2.GeneratorTask;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import javax.servlet.http.HttpSession;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+
 /**
  * This class configured as controller using annotation and mapped with the URL of
- * 'module/${rootArtifactid}/${rootArtifactid}Link.form'.
+ * 'module/eptsmozart2/eptsmozart2Link.form'.
  */
-@Controller("${rootrootArtifactid}.EPTSMozART2Controller")
-@RequestMapping(value = "module/${rootArtifactid}/${rootArtifactid}.form")
+@Controller("eptsmozart2.EPTSMozART2Controller")
+@RequestMapping(value = "module/eptsmozart2/eptsmozart2.form")
 public class EPTSMozART2Controller {
 	
 	/** Logger for this class and subclasses */
 	protected final Log log = LogFactory.getLog(getClass());
 	
-	@Autowired
-	UserService userService;
-	
 	/** Success form view name */
-	private final String VIEW = "/module/${rootArtifactid}/${rootArtifactid}";
+	private final String VIEW = "/module/eptsmozart2/eptsmozart2";
 	
 	/**
 	 * Initially called after the getUsers method to get the landing form name
@@ -67,21 +62,9 @@ public class EPTSMozART2Controller {
 			// return error view
 		}
 		
+		//		FutureTask<Void> task = new FutureTask<>(new GeneratorTask());
+		//		Executors.newSingleThreadExecutor().submit(task);
+		new GeneratorTask().execute();
 		return VIEW;
 	}
-	
-	/**
-	 * This class returns the form backing object. This can be a string, a boolean, or a normal java
-	 * pojo. The bean name defined in the ModelAttribute annotation and the type can be just defined
-	 * by the return type of this method
-	 */
-	@ModelAttribute("users")
-	protected List<User> getUsers() throws Exception {
-		List<User> users = userService.getAllUsers();
-		
-		// this object will be made available to the jsp page under the variable name
-		// that is defined in the @ModuleAttribute tag
-		return users;
-	}
-	
 }

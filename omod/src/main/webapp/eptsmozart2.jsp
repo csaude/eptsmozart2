@@ -5,17 +5,8 @@
 <h2><spring:message code="eptsmozart2.title" /></h2>
 
 <br/>
-<table>
-  <tr>
-   <th>User Id</th>
-   <th>Username</th>
-  </tr>
-  <c:forEach var="user" items="${users}">
-      <tr>
-        <td>${user.userId}</td>
-        <td>${user.systemId}</td>
-      </tr>		
-  </c:forEach>
-</table>
+<form method="post" action="eptsmozart2.form">
+    <input type="submit" value="Generate Mozart2"/>
+</form>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>
