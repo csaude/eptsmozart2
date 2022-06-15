@@ -1,5 +1,6 @@
 package org.openmrs.module.eptsmozart2;
 
+import org.openmrs.module.eptsmozart2.etl.PatientTableGenerator;
 import org.openmrs.scheduler.Task;
 import org.openmrs.scheduler.TaskDefinition;
 
@@ -26,7 +27,7 @@ public class GeneratorTask implements Task, Callable<Void> {
 		
 		try {
 			DbUtils.createNewDatabase();
-			new FormTableGenerator().call();
+			new PatientTableGenerator().call();
 		}
 		catch (SQLException e) {
 			e.printStackTrace();

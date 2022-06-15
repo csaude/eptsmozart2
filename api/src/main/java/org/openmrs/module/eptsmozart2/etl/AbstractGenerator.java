@@ -1,5 +1,7 @@
-package org.openmrs.module.eptsmozart2;
+package org.openmrs.module.eptsmozart2.etl;
 
+import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,20 +93,20 @@ public abstract class AbstractGenerator implements Callable<Void> {
             LOGGER.info("MozART II {} table generation duration: {} ms", getTable(), System.currentTimeMillis() - startTime);
         }
     }
-
+	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException;
 	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException;
-
+	
 	protected abstract String getTable();
-
+	
 	protected abstract String getCreateTableSql() throws IOException;
 	
 	protected abstract String countQuery();
 	
 	protected abstract String fetchQuery(Integer start, Integer batchSize);
-
-    private void createTable() throws IOException {
+	
+	private void createTable() throws IOException {
         String createSql = getCreateTableSql();
 
         try(Connection connection = ConnectionPool.getConnection();

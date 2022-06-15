@@ -1,5 +1,8 @@
-package org.openmrs.module.eptsmozart2;
+package org.openmrs.module.eptsmozart2.etl;
 
+import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,12 +19,12 @@ public class FormTableGenerator extends AbstractGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormTableGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "form.sql";
-
+	
 	@Override
 	protected String getCreateTableSql() throws IOException {
 		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
 	}
-
+	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
 		return prepareInsertStatement(resultSet, null);
