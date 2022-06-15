@@ -150,5 +150,4 @@ public abstract class AbstractGenerator implements Callable<Void> {
 			}
 		}
 	}
-	
 }

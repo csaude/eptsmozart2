@@ -4,7 +4,7 @@ CREATE TABLE `identifier` (
   `patient_uuid` char(38) DEFAULT NULL,
   `identifier_type` int(11) DEFAULT NULL,
   `identifier_type_name` varchar(255) DEFAULT NULL,
-  `identifier_vaule` varchar(255) DEFAULT NULL,
+  `identifier_value` varchar(255) DEFAULT NULL,
   `primary` tinyint(4) DEFAULT NULL,
   `identifier_uuid` varchar(38) DEFAULT NULL,
   `source_database` varchar(255) DEFAULT NULL,
