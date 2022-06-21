@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
 import org.openmrs.module.eptsmozart2.etl.IdentifierTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.MedicationsTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientTableGenerator;
 import org.openmrs.scheduler.Task;
 import org.openmrs.scheduler.TaskDefinition;
@@ -28,7 +29,7 @@ public class GeneratorTask implements Task, Callable<Void> {
 		
 		try {
 			DbUtils.createNewDatabase();
-			new IdentifierTableGenerator().call();
+			new MedicationsTableGenerator().call();
 		}
 		catch (SQLException e) {
 			e.printStackTrace();

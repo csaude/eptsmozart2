@@ -66,7 +66,7 @@ public abstract class AbstractGenerator implements Callable<Void> {
             LOGGER.debug("Done inserting {} records for table {}", countToMove, getTable());
             return null;
         } catch (SQLException e) {
-            LOGGER.error("An error has occured while inserting records for table {}, running SQL: {}", getTable(), e);
+            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertStatement.getParameterMetaData().getParameterCount(), e);
             throw e;
         } finally {
             if(resultSet != null) {
