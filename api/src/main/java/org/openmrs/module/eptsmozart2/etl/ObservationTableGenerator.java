@@ -29,7 +29,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
-		return null;
+		return prepareInsertStatement(resultSet, null);
 	}
 	
 	@Override
