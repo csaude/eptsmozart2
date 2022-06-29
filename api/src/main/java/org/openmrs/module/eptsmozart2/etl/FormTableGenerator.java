@@ -81,7 +81,8 @@ public class FormTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".encounter WHERE !voided");
+		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(
+		    ".encounter WHERE !voided");
 	}
 	
 	@Override

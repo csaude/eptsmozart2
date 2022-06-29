@@ -110,7 +110,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		        .append(".obs o JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(CONCEPT_IDS)).append(" ORDER BY o.obs_id");
+		        .append(inClause(CONCEPT_IDS));
 		return sb.toString();
 	}
 	

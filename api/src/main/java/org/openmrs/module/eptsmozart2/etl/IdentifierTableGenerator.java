@@ -74,7 +74,8 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".patient_identifier WHERE !voided");
+		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(
+		    ".patient_identifier WHERE !voided");
 	}
 	
 	@Override
