@@ -17,4 +17,13 @@ public class Utils {
 		}
 		return IOUtils.toString(ip, "utf8");
 	}
+	
+	public static String inClause(Integer[] numbers) {
+		StringBuilder sb = new StringBuilder("(");
+		int i = 0;
+		for (; i < numbers.length - 1; i++) {
+			sb.append(numbers[i].toString()).append(",");
+		}
+		return sb.append(numbers[i].toString()).append(")").toString();
+	}
 }

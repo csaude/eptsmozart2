@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import static org.openmrs.module.eptsmozart2.Utils.inClause;
+
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/15/22.
  */
@@ -391,15 +393,6 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		}
 		
 		return sb.toString();
-	}
-	
-	private String inClause(Integer[] numbers) {
-		StringBuilder sb = new StringBuilder("(");
-		int i = 0;
-		for (; i < numbers.length - 1; i++) {
-			sb.append(numbers[i].toString()).append(",");
-		}
-		return sb.append(numbers[i].toString()).append(")").toString();
 	}
 	
 	private void setEmptyPositions(Set<Integer> positionsNotSet) throws SQLException {
