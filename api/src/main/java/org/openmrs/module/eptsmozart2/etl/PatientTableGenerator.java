@@ -69,7 +69,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 	}
 	
 	@Override
-	protected String getTable() {
+	public String getTable() {
 		return "patient";
 	}
 	

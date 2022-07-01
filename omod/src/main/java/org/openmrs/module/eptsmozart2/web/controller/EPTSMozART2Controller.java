@@ -12,22 +12,28 @@ package org.openmrs.module.eptsmozart2.web.controller;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.eptsmozart2.GeneratorTask;
+import org.openmrs.module.eptsmozart2.StatusInfo;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 
 /**
  * This class configured as controller using annotation and mapped with the URL of
  * 'module/eptsmozart2/eptsmozart2Link.form'.
  */
 @Controller("eptsmozart2.EPTSMozART2Controller")
-@RequestMapping(value = "module/eptsmozart2/eptsmozart2.form")
 public class EPTSMozART2Controller {
 	
 	/** Logger for this class and subclasses */
@@ -35,15 +41,31 @@ public class EPTSMozART2Controller {
 	
 	/** Success form view name */
 	private final String VIEW = "/module/eptsmozart2/eptsmozart2";
-	
-	/**
-	 * Initially called after the getUsers method to get the landing form name
-	 * 
-	 * @return String form view name
-	 */
-	@RequestMapping(method = RequestMethod.GET)
-	public String onGet() {
-		return VIEW;
+
+	private static final GeneratorTask GENERATOR_TASK = new GeneratorTask();
+	private static final Map<String, StatusInfo> statuses = new LinkedHashMap<>();
+	private static final ExecutorService SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
+
+	static {
+		statuses.put("patient", new StatusInfo("patient", 0, 0));
+		statuses.put("patient_state", new StatusInfo("patient_state", 0, 0));
+		statuses.put("form", new StatusInfo("form", 0, 0));
+		statuses.put("identifier", new StatusInfo("identifier", 0, 0));
+		statuses.put("observation", new StatusInfo("observation", 0, 0));
+		statuses.put("medications", new StatusInfo("medications", 0, 0));
+		statuses.put("laboratory", new StatusInfo("laboratory", 0, 0));
+		statuses.put("clinical_consultation", new StatusInfo("clinical_consultation", 0, 0));
+	}
+
+	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2.form", method = RequestMethod.GET)
+	public ModelAndView onGet() {
+		ModelAndView modalAndView = new ModelAndView(VIEW);
+		if(GENERATOR_TASK.GENERATORS.isEmpty()) {
+			modalAndView.getModelMap().addAttribute("statuses", getListOfStatuses(statuses));
+		} else {
+			modalAndView.getModelMap().addAttribute("statuses", getListOfStatuses(generateStatusInfo()));
+		}
+		return modalAndView;
 	}
 	
 	/**
@@ -54,17 +76,52 @@ public class EPTSMozART2Controller {
 	 * @param errors
 	 * @return
 	 */
-	@RequestMapping(method = RequestMethod.POST)
-	public String onPost(HttpSession httpSession, @ModelAttribute("anyRequestObject") Object anyRequestObject,
+	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2.json", method = RequestMethod.POST, produces = "application/json")
+	@ResponseBody
+	public List<StatusInfo> onPost(HttpSession httpSession, @ModelAttribute("anyRequestObject") Object anyRequestObject,
 	        BindingResult errors) {
-		
-		if (errors.hasErrors()) {
-			// return error view
+		if(!GENERATOR_TASK.isExecuting()) {
+			SINGLE_THREAD_EXECUTOR.submit(GENERATOR_TASK);
+			try {
+				// Wait 7 seconds
+				Thread.sleep(7000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		} else {
+			log.debug("Generator Task already running");
 		}
-		
-		//		FutureTask<Void> task = new FutureTask<>(new GeneratorTask());
-		//		Executors.newSingleThreadExecutor().submit(task);
-		new GeneratorTask().execute();
-		return VIEW;
+		return getListOfStatuses(generateStatusInfo());
+	}
+
+	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2cancel.json", method = RequestMethod.GET, produces = "application/json")
+	@ResponseBody
+	public List<StatusInfo> cancelMozartGeneration() {
+		if(GENERATOR_TASK.isExecuting()) {
+			log.debug("Stopping Mozart2 generation");
+			GENERATOR_TASK.shutdown();
+			SINGLE_THREAD_EXECUTOR.shutdownNow();
+		} else {
+			log.debug("Mozart2 generation already finished, can't stop it");
+		}
+		return getListOfStatuses(generateStatusInfo());
+	}
+
+	private Map<String, StatusInfo> generateStatusInfo() {
+		if(!GENERATOR_TASK.GENERATORS.isEmpty()) {
+			GENERATOR_TASK.GENERATORS.stream().forEach(generator -> {
+				statuses.put(generator.getTable(),
+						new StatusInfo(generator.getTable(), generator.getCurrentlyGenerated(), generator.getToBeGenerated()));
+			});
+		}
+		return statuses;
+	}
+
+	private static List<StatusInfo> getListOfStatuses(Map<String, StatusInfo> statusesMap) {
+		List<StatusInfo> list = new ArrayList<>();
+		for(Map.Entry<String, StatusInfo> entry: statusesMap.entrySet()) {
+			list.add(entry.getValue());
+		}
+		return list;
 	}
 }

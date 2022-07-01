@@ -71,7 +71,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	}
 	
 	@Override
-	protected String getTable() {
+	public String getTable() {
 		return "clinical_consultation";
 	}
 	
@@ -85,7 +85,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter WHERE !voided AND encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
 		        .append(" AND patient_id IN (SELECT patient_id FROM ")
-				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient )");
+		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient )");
 		return sb.toString();
 	}
 	
@@ -100,7 +100,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		        .append(".person pe ON ").append("e.patient_id = pe.person_id")
 		        .append(" WHERE !e.voided AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
 		        .append(" AND e.patient_id IN (SELECT patient_id FROM ")
-				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
 		        .append(" ORDER BY e.encounter_id");
 		
 		if (start != null) {
