@@ -81,7 +81,7 @@ public class FormTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".encounter");
+		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".encounter WHERE !voided");
 	}
 	
 	@Override
@@ -98,7 +98,7 @@ public class FormTableGenerator extends AbstractGenerator {
 		        .append(".encounter_type as et on e.encounter_type = et.encounter_type_id ").append("left join ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on e.patient_id = pe.person_id ")
 		        .append("left join ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".location l on e.location_id = l.location_id order by e.encounter_id");
+		        .append(".location l on e.location_id = l.location_id WHERE !e.voided order by e.encounter_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

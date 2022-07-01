@@ -73,7 +73,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".patient");
+		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".patient WHERE !voided");
 	}
 	
 	@Override
@@ -82,7 +82,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 		        .append("pe.birthdate_estimated, pe.dead, pe.death_date, p.date_created ").append("FROM ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".patient p inner join ")
 		        .append(AppProperties.getInstance().getDatabaseName())
-		        .append(".person pe on p.patient_id = pe.person_id order by p.patient_id");
+		        .append(".person pe on p.patient_id = pe.person_id WHERE !p.voided ORDER BY p.patient_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

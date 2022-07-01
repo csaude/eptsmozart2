@@ -74,7 +74,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".patient_identifier");
+		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(".patient_identifier WHERE !voided");
 	}
 	
 	@Override
@@ -86,7 +86,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on pi.patient_id = pe.person_id ")
-		        .append("ORDER BY pi.patient_identifier_id");
+		        .append("WHERE !pi.voided ORDER BY pi.patient_identifier_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
