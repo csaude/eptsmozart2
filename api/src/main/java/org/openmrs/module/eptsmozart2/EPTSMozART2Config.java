@@ -17,5 +17,5 @@ import org.springframework.stereotype.Component;
 @Component("eptsmozart2.EPTSMozART2Config")
 public class EPTSMozART2Config {
 	
-	public final static String MODULE_PRIVILEGE = "EPTS MozART 2 Privilege";
+	public final static String MODULE_PRIVILEGE = "Generate MozART2";
 }

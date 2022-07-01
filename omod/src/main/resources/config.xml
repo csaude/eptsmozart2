@@ -38,13 +38,10 @@
 	 /AOP -->
 	
 	
-	<!-- Required Privileges 
 	<privilege>
-		<name>Form Entry</name>
-		<description>Allows user to access Form Entry pages/functions</description>
+		<name>Generate Mozart2</name>
+		<description>Allows user to access Mozart2 Generate Page</description>
 	</privilege>
-	 /Required Privileges -->
-
 
 	<!-- Required Global Properties 
 	<globalProperty>

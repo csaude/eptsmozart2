@@ -155,7 +155,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
     }
 	
 	@Override
-	protected String getTable() {
+	public String getTable() {
 		return "laboratory";
 	}
 	

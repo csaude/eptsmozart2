@@ -17,7 +17,7 @@ import java.util.concurrent.Callable;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public abstract class AbstractGenerator implements Callable<Void> {
+public abstract class AbstractGenerator implements Generator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
@@ -25,46 +25,51 @@ public abstract class AbstractGenerator implements Callable<Void> {
 	
 	protected PreparedStatement selectStatement;
 	
+	private Integer toBeGenerated = 0;
+	
+	private Integer currentlyGenerated = 0;
+	
 	@Override
     public Void call() throws SQLException, IOException {
         ResultSet resultSet = null;
         long startTime = System.currentTimeMillis();
+        currentlyGenerated = 0;
         try (Connection connection = ConnectionPool.getConnection(); Statement statement = connection.createStatement()) {
             createTable();
             resultSet = statement.executeQuery(countQuery());
             resultSet.next();
-            int countToMove = resultSet.getInt(1);
+            toBeGenerated = resultSet.getInt(1);
             resultSet.close();
             int batchSize = AppProperties.getInstance().getBatchSize();
-            if(countToMove > batchSize) {
-                LOGGER.debug("Generating {} records for table {} in batches of {}", countToMove, getTable(), batchSize);
-                int temp = countToMove;
+            if(toBeGenerated > batchSize) {
+                LOGGER.debug("Generating {} records for table {} in batches of {}", toBeGenerated, getTable(), batchSize);
+                int temp = toBeGenerated;
                 int start = 0;
                 int batchCount = 1;
-                int totalCopied = 0;
                 while (temp % batchSize > 0) {
                     if (temp / batchSize > 0) {
                         LOGGER.debug("Inserting batch # {} of {} table, inserted:  {}, inserting: {}, remaining: {}",
-                                batchCount++, getTable(), totalCopied, batchSize, countToMove - totalCopied);
+                                batchCount++, getTable(), currentlyGenerated, batchSize, toBeGenerated - currentlyGenerated);
                         etl(start, batchSize);
                         temp -= batchSize;
                         start += batchSize;
-                        totalCopied += batchSize;
+                        currentlyGenerated += batchSize;
                     } else {
                         LOGGER.debug("Inserting batch # {} of {} table, inserted:  {}, inserting: {}, remaining: {}",
-                                batchCount++, getTable(), totalCopied, temp, countToMove - totalCopied);
+                                batchCount++, getTable(), currentlyGenerated, temp, toBeGenerated - currentlyGenerated);
                         etl(start, temp);
+                        currentlyGenerated += temp;
                         temp = 0;
-                        totalCopied += temp;
                     }
                 }
             } else {
                 // few records to move.
                 LOGGER.debug("Running ETL for {}", getTable());
                 int[] inserted = etl(null, null);
+                currentlyGenerated += toBeGenerated;
             }
 
-            LOGGER.debug("Done inserting {} records for table {}", countToMove, getTable());
+            LOGGER.debug("Done inserting {} records for table {}", toBeGenerated, getTable());
             return null;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertStatement.getParameterMetaData().getParameterCount(), e);
@@ -95,11 +100,19 @@ public abstract class AbstractGenerator implements Callable<Void> {
         }
     }
 	
+	@Override
+	public Integer getCurrentlyGenerated() {
+		return currentlyGenerated;
+	}
+	
+	@Override
+	public Integer getToBeGenerated() {
+		return toBeGenerated;
+	}
+	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException;
 	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException;
-	
-	protected abstract String getTable();
 	
 	protected abstract String getCreateTableSql() throws IOException;
 	
