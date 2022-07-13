@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.Callable;
 
+import static org.openmrs.module.eptsmozart2.Utils.getArtPatientListQuery;
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
@@ -80,7 +81,10 @@ public class PatientStateTableGenerator implements Callable<Void> {
                 .append(AppProperties.getInstance().getDatabaseName())
                 .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state AND pws.program_workflow_state_id != 6 INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName()).append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
-                .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred WHERE !pe.voided").toString();
+                .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred WHERE !pe.voided")
+                .append(" AND pe.person_id IN (SELECT patient_id FROM ")
+                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+                .toString();
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
@@ -110,7 +114,8 @@ public class PatientStateTableGenerator implements Callable<Void> {
 
         sb.append(" INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
                 .append(".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred ")
-                .append("WHERE !pe.voided");
+                .append("WHERE !pe.voided").append(" AND pe.person_id IN (SELECT patient_id FROM ")
+                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)");
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
@@ -126,7 +131,9 @@ public class PatientStateTableGenerator implements Callable<Void> {
                 .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, source_database) ")
                 .append("SELECT pe.person_id, pe.uuid, 1 as source_id,'Demographic' as source_type, 1366 as state_id, ")
                 .append("'PATIENT HAS DIED' as state, death_date, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ").append(AppProperties.getInstance().getDatabaseName()).append(".person pe where dead=1")
+                .append("' AS source_database FROM ").append(AppProperties.getInstance().getDatabaseName())
+                .append(".person pe where dead = 1").append(" AND pe.person_id IN (SELECT patient_id FROM ")
+                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
                 .toString();
 
         try(Connection connection = ConnectionPool.getConnection();

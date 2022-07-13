@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import static org.openmrs.module.eptsmozart2.Utils.getArtPatientListQuery;
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
@@ -109,8 +110,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(CONCEPT_IDS));
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+				.append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS));
 		return sb.toString();
 	}
 	
@@ -122,7 +124,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		        .append("cn1.name as value_coded_name FROM ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+				.append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".person pe on o.person_id = pe.person_id LEFT JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")

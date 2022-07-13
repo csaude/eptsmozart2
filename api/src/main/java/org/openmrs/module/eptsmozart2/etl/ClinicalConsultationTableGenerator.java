@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.openmrs.module.eptsmozart2.Utils.getArtPatientListQuery;
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
@@ -83,7 +84,9 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".encounter WHERE !voided AND encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS));
+		        .append(".encounter WHERE !voided AND encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient )");
 		return sb.toString();
 	}
 	
@@ -95,8 +98,10 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".person pe ON ").append("e.patient_id = pe.person_id ")
-		        .append("WHERE !e.voided AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(".person pe ON ").append("e.patient_id = pe.person_id")
+		        .append(" WHERE !e.voided AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
 		        .append(" ORDER BY e.encounter_id");
 		
 		if (start != null) {

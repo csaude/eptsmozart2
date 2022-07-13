@@ -2,6 +2,7 @@ package org.openmrs.module.eptsmozart2.etl;
 
 import org.openmrs.module.eptsmozart2.AppProperties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,7 +103,7 @@ public abstract class AbstractGenerator implements Callable<Void> {
 	
 	protected abstract String getCreateTableSql() throws IOException;
 	
-	protected abstract String countQuery();
+	protected abstract String countQuery() throws IOException;
 	
 	protected abstract String fetchQuery(Integer start, Integer batchSize);
 	

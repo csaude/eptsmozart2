@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.openmrs.module.eptsmozart2.Utils.getArtPatientListQuery;
+
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/15/22.
  */
@@ -74,8 +76,9 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName()).concat(
-		    ".patient_identifier WHERE !voided");
+		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName())
+		        .concat(".patient_identifier WHERE !voided AND patient_id IN (SELECT patient_id FROM ")
+				.concat(AppProperties.getInstance().getNewDatabaseName()).concat(".patient)");
 	}
 	
 	@Override
@@ -87,7 +90,9 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on pi.patient_id = pe.person_id ")
-		        .append("WHERE !pi.voided ORDER BY pi.patient_identifier_id");
+		        .append("WHERE !pi.voided AND pi.patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient) ")
+		        .append("ORDER BY pi.patient_identifier_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

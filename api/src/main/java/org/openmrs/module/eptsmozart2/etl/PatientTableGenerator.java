@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.openmrs.module.eptsmozart2.Utils.getArtPatientListQuery;
+
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/14/22.
  */
@@ -74,7 +76,8 @@ public class PatientTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName())
-		        .concat(".patient WHERE !voided");
+		        .concat(".patient WHERE !voided").concat(" AND patient_id IN (").concat(getArtPatientListQuery())
+		        .concat(")");
 	}
 	
 	@Override
@@ -83,7 +86,8 @@ public class PatientTableGenerator extends AbstractGenerator {
 		        .append("pe.birthdate_estimated, pe.dead, pe.death_date, p.date_created ").append("FROM ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".patient p inner join ")
 		        .append(AppProperties.getInstance().getDatabaseName())
-		        .append(".person pe on p.patient_id = pe.person_id WHERE !p.voided ORDER BY p.patient_id");
+		        .append(".person pe on p.patient_id = pe.person_id WHERE !p.voided ").append(" AND p.patient_id IN (")
+		        .append(getArtPatientListQuery()).append(")").append("ORDER BY p.patient_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
