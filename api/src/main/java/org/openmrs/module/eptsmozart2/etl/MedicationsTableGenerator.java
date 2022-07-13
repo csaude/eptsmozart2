@@ -1,14 +1,11 @@
 package org.openmrs.module.eptsmozart2.etl;
 
 import org.apache.commons.collections.map.HashedMap;
-import org.apache.commons.collections.map.LinkedMap;
 import org.openmrs.module.eptsmozart2.AppProperties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -363,8 +360,10 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(REGIMEN_CONCEPT_IDS)).append(" ORDER BY o.obs_id");
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+				.append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
+		        .append(" ORDER BY o.obs_id");
 		return sb.toString();
 	}
 	
@@ -377,7 +376,9 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+				.append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".person pe on o.person_id = pe.person_id LEFT JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")

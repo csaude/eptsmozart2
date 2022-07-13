@@ -14,7 +14,10 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
+import java.util.IllegalFormatException;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/21/21.
@@ -28,7 +31,9 @@ public class AppProperties {
 	public final static String DB_PASSWORD_PROP = "db.password";
 	
 	public final static String DB_USERNAME_PROP = "db.username";
-	
+
+	public final static String LOCATIONS_IDS_PROP = "locations.ids";
+
 	public final static String END_DATE_PROP = "end.date";
 	
 	public final static String END_DATE_PATTERN_PROP = "end.date.pattern";
@@ -64,6 +69,10 @@ public class AppProperties {
 	private Boolean dropNewDbAfter;
 	
 	private Integer batchSize;
+
+	private String locationsIdsString;
+
+	private Set<Integer> locationsIds = new HashSet<>();
 	
 	private AppProperties() {
 	}
@@ -79,6 +88,18 @@ public class AppProperties {
                     // TODO: We have a problem
                 }
                 APP_PROPS.load(OpenmrsUtil.getResourceInputStream(mozart2PropFile.toURI().toURL()));
+
+				String[] locIds = APP_PROPS.getProperty(LOCATIONS_IDS_PROP).split(",");
+				for(String locId: locIds) {
+					try {
+						appProperties.locationsIds.add(Integer.parseInt(locId.trim()));
+					} catch (NumberFormatException e) {
+						String em = String.format("The provided location Id %s is invalid, please use numbers", locId);
+						LOGGER.error(em);
+						throw new IllegalStateException(em);
+					}
+				}
+				appProperties.locationsIdsString = APP_PROPS.getProperty(LOCATIONS_IDS_PROP);
 
                 try {
                     String datePattern = APP_PROPS.getProperty(END_DATE_PATTERN_PROP, DEFAULT_END_DATE_PATTERN);
@@ -162,7 +183,15 @@ public class AppProperties {
 			return endDate.format(DateTimeFormatter.ofPattern(pattern));
 		}
 	}
-	
+
+	public String getLocationsIdsString() {
+		return locationsIdsString;
+	}
+
+	public Set<Integer> getLocationsIds() {
+		return locationsIds;
+	}
+
 	public String getLogLevel() {
 		return APP_PROPS.getProperty(LOG_LEVEL_PROP, "TRACE").toUpperCase();
 	}

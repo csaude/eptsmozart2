@@ -1,6 +1,9 @@
 package org.openmrs.module.eptsmozart2;
 
 import org.apache.commons.io.IOUtils;
+import org.openmrs.module.eptsmozart2.etl.AbstractGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,6 +12,10 @@ import java.io.InputStream;
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/13/22.
  */
 public class Utils {
+	
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
+	
+	private static final String ART_PATIENT_LIST_QUERY_FILE = "art_patient_list_query.sql";
 	
 	public static String readFileToString(String path) throws IOException {
 		InputStream ip = Utils.class.getClassLoader().getResourceAsStream(path);
@@ -25,5 +32,20 @@ public class Utils {
 			sb.append(numbers[i].toString()).append(",");
 		}
 		return sb.append(numbers[i].toString()).append(")").toString();
+	}
+	
+	public static String getArtPatientListQuery() {
+		try {
+			return Utils
+			        .readFileToString(ART_PATIENT_LIST_QUERY_FILE)
+			        .replace("sourceDatabase", AppProperties.getInstance().getDatabaseName())
+			        .replace(":locations", AppProperties.getInstance().getLocationsIdsString())
+			        .replace(":endDate",
+			            String.format("'%s'", AppProperties.getInstance().getFormattedEndDate("yyyy-MM-dd")));
+		}
+		catch (IOException e) {
+			LOGGER.error("An error occured while reading ART patients' list query file", e);
+			throw new RuntimeException(e);
+		}
 	}
 }
