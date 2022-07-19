@@ -1,7 +1,6 @@
 package org.openmrs.module.eptsmozart2;
 
 
-import org.openmrs.module.eptsmozart2.etl.AbstractGenerator;
 import org.openmrs.module.eptsmozart2.etl.ClinicalConsultationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.FormTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.Generator;

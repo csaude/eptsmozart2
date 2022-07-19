@@ -11,6 +11,7 @@
 <script type="text/javascript">
     var localOpenmrsContextPath = '${pageContext.request.contextPath}';
     var progressUpdateSchedule = null;
+    var TIME_INTERVAL_BETWEEN_STATUS_CHECK = 20000;
 
     class HttpError extends Error {
         constructor(response) {
@@ -33,14 +34,13 @@
             clearTimeout(progressUpdateSchedule);
         }
         $j('#mozart2-cancel-button').prop('disabled', true);
-        var requestHeaders = new Headers({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        });
 
         var requestOptions = {
             method: 'GET',
-            headers: requestHeaders,
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }),
         };
 
         fetch(localOpenmrsContextPath + "/module/eptsmozart2/eptsmozart2cancel.json", requestOptions)
@@ -67,14 +67,13 @@
     function requestMozart2Generation() {
         $j('#mozart2-button').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'visible');
-        var requestHeaders = new Headers({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        });
 
         var requestOptions = {
             method: 'POST',
-            headers: requestHeaders,
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }),
         };
 
         fetch(localOpenmrsContextPath + "/module/eptsmozart2/eptsmozart2.json", requestOptions)
@@ -96,9 +95,13 @@
                     tableProgress(tableEntry);
                 });
                 if(continueCheckingProgress) {
-                    progressUpdateSchedule = setTimeout(requestMozart2Generation, 10000);
+                    progressUpdateSchedule = setTimeout(requestStatusAndUpgradeProgress, TIME_INTERVAL_BETWEEN_STATUS_CHECK);
                 } else {
+                    if(progressUpdateSchedule) {
+                        clearTimeout(progressUpdateSchedule);
+                    }
                     $j('#mozart2-button').prop('disabled', false);
+                    $j('#mozart2-cancel-button').css('visibility', 'hidden');
                 }
             }).catch(error => {
                 console.log(error);
@@ -115,14 +118,13 @@
     function initialStatusRequest() {
         $j('#mozart2-button').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'hidden');
-        var requestHeaders = new Headers({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        });
 
         var requestOptions = {
             method: 'GET',
-            headers: requestHeaders,
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }),
         };
 
         fetch(localOpenmrsContextPath + "/module/eptsmozart2/eptsmozart2status.json", requestOptions)
@@ -135,13 +137,6 @@
             })
             .then(data => {
                 console.log('Initial status data:', data);
-                var progressTableVisible = false;
-                for(let i=0; i < data.length; i++) {
-                    if(data[i]['generated'] > 0) {
-                        progressTableVisible = true;
-                        break;
-                    }
-                }
                 var progressTableVisible = false;
                 var continueCheckingProgress = false;
                 data.forEach(tableEntry => {
@@ -174,8 +169,51 @@
 
                 if(continueCheckingProgress) {
                     $j('#mozart2-cancel-button').css('visibility', 'visible');
-                    progressUpdateSchedule = setTimeout(requestMozart2Generation, 10000);
+                    progressUpdateSchedule = setTimeout(requestStatusAndUpgradeProgress, TIME_INTERVAL_BETWEEN_STATUS_CHECK);
                 } else {
+                    if(progressUpdateSchedule) {
+                        clearTimeout(progressUpdateSchedule);
+                    }
+                    $j('#mozart2-button').prop('disabled', false);
+                }
+            }).catch(error => {
+                console.log(error);
+            });
+    }
+
+    function requestStatusAndUpgradeProgress() {
+        var requestOptions = {
+            method: 'GET',
+            headers: new Headers({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }),
+        };
+
+        fetch(localOpenmrsContextPath + "/module/eptsmozart2/eptsmozart2status.json", requestOptions)
+            .then(response => {
+                if(response.status !== 200) {
+                    throw new HttpError(response);
+                } else {
+                    return response.json()
+                }
+            })
+            .then(data => {
+                console.log('Status data:', data);
+                var continueCheckingProgress = false;
+                data.forEach(tableEntry => {
+                    if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
+                        continueCheckingProgress = true;
+                    }
+                    tableProgress(tableEntry);
+                });
+
+                if(continueCheckingProgress) {
+                    progressUpdateSchedule = setTimeout(requestStatusAndUpgradeProgress, TIME_INTERVAL_BETWEEN_STATUS_CHECK);
+                } else {
+                    if(progressUpdateSchedule) {
+                        clearTimeout(progressUpdateSchedule);
+                    }
                     $j('#mozart2-button').prop('disabled', false);
                 }
             }).catch(error => {

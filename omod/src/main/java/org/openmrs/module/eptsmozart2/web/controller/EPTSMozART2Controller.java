@@ -102,7 +102,7 @@ public class EPTSMozART2Controller {
     }
 
 	private Map<String, StatusInfo> generateStatusInfo() {
-		if(GENERATOR_TASK.isExecuting() && !GENERATOR_TASK.GENERATORS.isEmpty()) {
+		if(!GENERATOR_TASK.GENERATORS.isEmpty()) {
             Map<String, StatusInfo> progressStatuses = new LinkedHashMap<>(INITIAL_STATUSES);
 			GENERATOR_TASK.GENERATORS.stream().forEach(generator -> {
 				progressStatuses.replace(generator.getTable(),
