@@ -99,7 +99,8 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		        .append(SCHEDULED_DATE_CONCEPT).append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".person pe ON ").append("e.patient_id = pe.person_id")
 		        .append(" WHERE !e.voided AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" AND e.patient_id IN (SELECT patient_id FROM ")
+		        .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString())
+		        .append(") AND e.patient_id IN (SELECT patient_id FROM ")
 		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
 		        .append(" ORDER BY e.encounter_id");
 		
