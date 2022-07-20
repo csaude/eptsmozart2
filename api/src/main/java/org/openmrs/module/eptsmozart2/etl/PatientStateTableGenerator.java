@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -31,7 +30,7 @@ public class PatientStateTableGenerator implements Generator {
 	public Void call() throws SQLException, IOException {
 		long startTime = System.currentTimeMillis();
 		try {
-			createTable();
+			createTable(getCreateTableSql());
 			etlPersonDeathState();
 			etlProgramBasedRecords();
 			
@@ -67,35 +66,7 @@ public class PatientStateTableGenerator implements Generator {
 		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
 	}
 	
-	private void createTable() throws IOException, SQLException {
-        String createSql = getCreateTableSql();
-
-        try(Connection connection = ConnectionPool.getConnection();
-            Statement statement = connection.createStatement()) {
-            statement.addBatch("USE ".concat(AppProperties.getInstance().getNewDatabaseName()));
-            statement.addBatch("DROP TABLE IF EXISTS ".concat(getTable()));
-            statement.addBatch(createSql);
-            statement.executeBatch();
-        } catch (SQLException e) {
-            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), createSql, e);
-            throw e;
-        }
-    }
-	
 	private void etlProgramBasedRecords() throws SQLException {
-	    String countQuery = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName()).append(".person pe ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName()).append(".patient_program pg ON ")
-                .append("pe.person_id = pg.patient_id AND !pg.voided AND pg.program_id = 2 INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state AND pws.program_workflow_state_id != 6 INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
-                .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred WHERE !pe.voided")
-                .append(" AND pe.person_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-                .toString();
-
         String insertStatement = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
                 .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, state_uuid, source_database) ")
                 .append("SELECT pe.person_id as patient_id, pe.uuid as patient_uuid, 2 as source_id, 'Program enrolment' as source_type, cn.concept_id,")
@@ -113,40 +84,18 @@ public class PatientStateTableGenerator implements Generator {
                 .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
                 .toString();
 
-        ResultSet resultSet = null;
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
-
-            resultSet = statement.executeQuery(countQuery);
-            resultSet.next();
-            int moreToGo = resultSet.getInt(1);
-
+            int moreToGo = statement.executeUpdate(insertStatement);
             toBeGenerated += moreToGo;
-            statement.execute(insertStatement);
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertStatement, e);
             throw e;
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.getStatement().close();
-                    resultSet.close();
-                } catch (SQLException e) {
-                }
-            }
         }
     }
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
-	    StringBuilder countQuery = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName()).append(".person pe ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".encounter e on pe.person_id = e.patient_id AND !e.voided AND e.encounter_type IN ").append(inClause(encounterTypes))
-                .append(" LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".form f ON f.form_id = e.form_id ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ").append(inClause(concepts));
-
         StringBuilder sb = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
                 .append(".patient_state(patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, state_uuid, source_database) ")
                 .append("SELECT pe.person_id, pe.uuid, e.form_id, f.name, ")
@@ -160,50 +109,26 @@ public class PatientStateTableGenerator implements Generator {
                 .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ").append(inClause(concepts));
 
         if(valueCoded != null) {
-            countQuery.append(" AND o.value_coded IN ").append(inClause(valueCoded));
             sb.append(" AND o.value_coded IN ").append(inClause(valueCoded));
         }
-
-        countQuery.append(" INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred ")
-                .append("WHERE !pe.voided").append(" AND pe.person_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)");
 
         sb.append(" INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
                 .append(".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred ")
                 .append("WHERE !pe.voided").append(" AND pe.person_id IN (SELECT patient_id FROM ")
                 .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)");
 
-        ResultSet resultSet = null;
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
-            resultSet = statement.executeQuery(countQuery.toString());
-            resultSet.next();
-            int moreToGo = resultSet.getInt(1);
-
+            int moreToGo = statement.executeUpdate(sb.toString());
             toBeGenerated += moreToGo;
-            statement.execute(sb.toString());
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), sb.toString(), e);
             throw e;
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.getStatement().close();
-                    resultSet.close();
-                } catch (SQLException e) {
-                }
-            }
         }
     }
 	
 	private void etlPersonDeathState() throws SQLException {
-	    String countQuery = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".person pe where dead = 1").append(" AND pe.person_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-                .toString();
-
         String insert = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
                 .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, source_database) ")
                 .append("SELECT pe.person_id, pe.uuid, 1 as source_id,'Demographic' as source_type, 1366 as state_id, ")
@@ -213,27 +138,14 @@ public class PatientStateTableGenerator implements Generator {
                 .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
                 .toString();
 
-        ResultSet resultSet = null;
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
-            resultSet = statement.executeQuery(countQuery.toString());
-            resultSet.next();
-            int moreToGo = resultSet.getInt(1);
-
+            int moreToGo = statement.executeUpdate(insert);
             toBeGenerated += moreToGo;
-            statement.execute(insert);
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insert, e);
             throw e;
-        } finally {
-            if (resultSet != null) {
-                try {
-                    resultSet.getStatement().close();
-                    resultSet.close();
-                } catch (SQLException e) {
-                }
-            }
         }
     }
 }
