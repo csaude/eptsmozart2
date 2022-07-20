@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.openmrs.module.eptsmozart2.Utils.inClause;
+
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
@@ -19,6 +21,8 @@ public class FormTableGenerator extends AbstractGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormTableGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "form.sql";
+	
+	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 7, 9, 13, 18, 21, 28, 34, 35, 51, 52, 53, 60 };
 	
 	@Override
 	protected String getCreateTableSql() throws IOException {
@@ -101,7 +105,8 @@ public class FormTableGenerator extends AbstractGenerator {
 		        .append(".encounter_type as et on e.encounter_type = et.encounter_type_id ").append("left join ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on e.patient_id = pe.person_id ")
 		        .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".location l on e.location_id = l.location_id WHERE !e.voided ").append(" AND e.location_id IN (")
+		        .append(".location l on e.location_id = l.location_id WHERE !e.voided ").append("AND e.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
 		        .append(AppProperties.getInstance().getLocationsIdsString())
 		        .append(") AND e.patient_id IN (SELECT patient_id FROM ")
 		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
