@@ -6,6 +6,7 @@ import org.openmrs.module.eptsmozart2.etl.FormTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.Generator;
 import org.openmrs.module.eptsmozart2.etl.IdentifierTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.LaboratoryGenerator;
+import org.openmrs.module.eptsmozart2.etl.LocationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.MedicationsTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.ObservationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientStateTableGenerator;
@@ -16,7 +17,6 @@ import org.openmrs.scheduler.TaskDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,11 +51,18 @@ public class GeneratorTask implements Task, Callable<Void> {
 
 			initializeVariables();
 
-			Generator generator = new PatientTableGenerator();
-			GENERATORS.add(generator);
-			generator.call();
-			
 			List<Generator> toBeInvoked = new ArrayList<>(10);
+			Generator generator = new PatientTableGenerator();
+			toBeInvoked.add(generator);
+
+			generator = new LocationTableGenerator();
+			toBeInvoked.add(generator);
+
+			GENERATORS.addAll(toBeInvoked);
+			service.invokeAll(toBeInvoked);
+
+			toBeInvoked.clear();
+
 			generator = new ObservationTableGenerator();
 			toBeInvoked.add(generator);
 
@@ -90,11 +97,7 @@ public class GeneratorTask implements Task, Callable<Void> {
 		}
 		catch (SQLException e) {
 			e.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		} 
-		catch (Exception e) {
+		} catch (Exception e) {
 			service.shutdownNow();
 			e.printStackTrace();
 		} finally {
