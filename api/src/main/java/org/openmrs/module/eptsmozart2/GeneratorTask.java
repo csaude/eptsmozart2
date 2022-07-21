@@ -10,6 +10,7 @@ import org.openmrs.module.eptsmozart2.etl.MedicationsTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.ObservationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientStateTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.ProgramTableGenerator;
 import org.openmrs.scheduler.Task;
 import org.openmrs.scheduler.TaskDefinition;
 import org.slf4j.Logger;
@@ -59,6 +60,9 @@ public class GeneratorTask implements Task, Callable<Void> {
 			toBeInvoked.add(generator);
 
 			generator = new PatientStateTableGenerator();
+			toBeInvoked.add(generator);
+
+			generator = new ProgramTableGenerator();
 			toBeInvoked.add(generator);
 
 			generator = new FormTableGenerator();

@@ -50,6 +50,7 @@ public class EPTSMozART2Controller {
 	static {
 		INITIAL_STATUSES.put("patient", new StatusInfo("patient", 0, 0));
 		INITIAL_STATUSES.put("patient_state", new StatusInfo("patient_state", 0, 0));
+		INITIAL_STATUSES.put("program", new StatusInfo("program", 0, 0));
 		INITIAL_STATUSES.put("form", new StatusInfo("form", 0, 0));
 		INITIAL_STATUSES.put("identifier", new StatusInfo("identifier", 0, 0));
 		INITIAL_STATUSES.put("observation", new StatusInfo("observation", 0, 0));
