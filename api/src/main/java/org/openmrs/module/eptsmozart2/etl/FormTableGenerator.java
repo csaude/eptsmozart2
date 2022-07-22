@@ -8,8 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
@@ -65,74 +66,74 @@ public class FormTableGenerator implements Generator {
 	}
 	
 	private void etlEncounterDatetimeBasedRecords() throws SQLException {
-        String insertSql = new StringBuilder("INSERT INTO ")
-                .append(AppProperties.getInstance().getNewDatabaseName())
-                .append(".form (encounter_id, encounter_uuid, form_id, form_name, ")
-                .append("encounter_type, encounter_type_name, patient_id, patient_uuid, created_date, encounter_date, change_date, location_id, ")
-                .append("location_uuid, source_database) SELECT e.encounter_id, e.form_id, e.uuid as encounter_uuid, e.encounter_type, e.patient_id, ")
-                .append("e.date_created, e.date_changed, e.encounter_datetime, e.location_id, f.name as form_name, et.name as encounter_type_name, ")
-                .append("pe.uuid as patient_uuid, l.uuid as location_uuid, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".encounter as e left join ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".form as f on e.form_id = f.form_id left join ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".encounter_type as et on e.encounter_type = et.encounter_type_id ").append("left join ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on e.patient_id = pe.person_id ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".location l on e.location_id = l.location_id WHERE !e.voided ").append("AND e.encounter_type IN ")
-                .append(inClause(ENCOUNTER_DATETIME_BASED_ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-                .append(AppProperties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
-                .append(AppProperties.getInstance().getFormattedEndDate(null))
-                .append("' AND e.patient_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-                .append(" ORDER BY e.encounter_id").toString();
-
-        try(Connection connection = ConnectionPool.getConnection();
-            Statement statement = connection.createStatement()) {
-            int moreToGo = statement.executeUpdate(insertSql);
-            toBeGenerated += moreToGo;
-            currentlyGenerated += moreToGo;
-        } catch (SQLException e) {
-            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertSql, e);
-            throw e;
-        }
-    }
+		String insertSql = new StringBuilder("INSERT INTO ")
+		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(
+		            ".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, patient_id, ")
+		        .append(
+		            "patient_uuid, created_date, encounter_date, change_date, location_id, location_uuid, source_database) ")
+		        .append(
+		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
+		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.location_id, l.uuid, '")
+		        .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided ").append("AND e.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_DATETIME_BASED_ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
+		        .append(AppProperties.getInstance().getLocationsIdsString())
+		        .append(") AND e.encounter_datetime <= ?  JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(".form f on f.form_id = e.form_id JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(".encounter_type et on e.encounter_type = et.encounter_type_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id ").append(" ORDER BY e.encounter_id").toString();
+		
+		runSql(insertSql);
+	}
 	
 	private void etlValueDatetimeBasedRecords() throws SQLException {
-        String insertSql = new StringBuilder("INSERT INTO ")
-                .append(AppProperties.getInstance().getNewDatabaseName())
-                .append(".form (encounter_id, encounter_uuid, form_id, form_name, ")
-                .append("encounter_type, encounter_type_name, patient_id, patient_uuid, created_date, encounter_date, change_date, location_id, ")
-                .append("location_uuid, source_database) SELECT e.encounter_id, e.form_id, e.uuid as encounter_uuid, e.encounter_type, e.patient_id, ")
-                .append("e.date_created, e.date_changed, e.encounter_datetime, e.location_id, f.name as form_name, et.name as encounter_type_name, ")
-                .append("pe.uuid as patient_uuid, l.uuid as location_uuid, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".encounter as e left join ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".form as f on e.form_id = f.form_id left join ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".encounter_type as et on e.encounter_type = et.encounter_type_id ").append("left join ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on e.patient_id = pe.person_id ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".location l on e.location_id = l.location_id AND !l.retired INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
-                .append(".obs o on e.encounter_id = e.encounter_id AND !o.voided AND o.concept_id IN (23891,23866) AND o.value_datetime <= '")
-                .append(AppProperties.getInstance().getFormattedEndDate(null)).append("' WHERE !e.voided ")
-                .append("AND e.encounter_type IN ").append(inClause(VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS))
-                .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString())
-                .append(") AND e.patient_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-                .append(" ORDER BY e.encounter_id").toString();
-
-        try(Connection connection = ConnectionPool.getConnection();
-            Statement statement = connection.createStatement()) {
-            int moreToGo = statement.executeUpdate(insertSql);
-            toBeGenerated += moreToGo;
-            currentlyGenerated += moreToGo;
-        } catch (SQLException e) {
-            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertSql, e);
-            throw e;
-        }
-    }
+		String insertSql = new StringBuilder("INSERT INTO ")
+		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(
+		            ".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, patient_id, ")
+		        .append(
+		            "patient_uuid, created_date, encounter_date, change_date, location_id, location_uuid, source_database) ")
+		        .append(
+		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
+		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.location_id, l.uuid, '")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append("' AS source_database FROM ")
+		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(".patient p JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
+		        .append(inClause(VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.location_id IN (")
+		        .append(AppProperties.getInstance().getLocationsIdsString())
+		        .append(") JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".form f on f.form_id = e.form_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".encounter_type et on e.encounter_type = et.encounter_type_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(
+		            ".obs o on e.encounter_id = e.encounter_id AND !o.voided AND o.concept_id IN (23891,23866) AND o.value_datetime <= ? ")
+		        .append("ORDER BY e.encounter_id").toString();
+		
+		runSql(insertSql);
+	}
+	
+	private void runSql(String sql) throws SQLException {
+		try(Connection connection = ConnectionPool.getConnection();
+			PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setDate(1, Date.valueOf(AppProperties.getInstance().getEndDate()));
+			int moreToGo = ps.executeUpdate();
+			toBeGenerated += moreToGo;
+			currentlyGenerated += moreToGo;
+		} catch (SQLException e) {
+			LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), sql, e);
+			throw e;
+		}
+	}
 }
