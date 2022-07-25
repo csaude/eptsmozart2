@@ -43,7 +43,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		        .append(
 		            "concept_id, concept_name, observation_date, value_numeric, value_coded, value_coded_name, value_text, ")
 		        .append(
-		            "value_datetime, date_created, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		            "value_datetime, date_created, source_database, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		        .toString();
 		try {
 			if (insertStatement == null) {
@@ -82,6 +82,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				insertStatement.setDate(14, results.getDate("value_datetime"));
 				insertStatement.setDate(15, results.getDate("date_created"));
 				insertStatement.setString(16, AppProperties.getInstance().getDatabaseName());
+				insertStatement.setString(17, results.getString("uuid"));
 				
 				insertStatement.addBatch();
 				++count;
