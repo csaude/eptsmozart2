@@ -21,12 +21,12 @@ public class FormTableGenerator implements Generator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormTableGenerator.class);
 	
-	private static final String CREATE_TABLE_FILE_NAME = "form.sql";
+	public static final String CREATE_TABLE_FILE_NAME = "form.sql";
 	
-	private static final Integer[] ENCOUNTER_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 7, 9, 13, 18, 21, 28,
+	public static final Integer[] ENCOUNTER_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 7, 9, 13, 18, 21, 28,
 	        34, 35, 51, 60 };
 	
-	private static final Integer[] VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 52, 53 };
+	public static final Integer[] VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 52, 53 };
 	
 	private Integer toBeGenerated = 0;
 	
@@ -91,6 +91,7 @@ public class FormTableGenerator implements Generator {
 	}
 	
 	private void etlValueDatetimeBasedRecords() throws SQLException {
+		final Integer[] CONCEPTS = new Integer[] { 23891, 23866 };
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(AppProperties.getInstance().getNewDatabaseName())
 		        .append(
@@ -100,26 +101,21 @@ public class FormTableGenerator implements Generator {
 		        .append(
 		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
 		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.location_id, l.uuid, '")
-		        .append(AppProperties.getInstance().getDatabaseName())
-		        .append("' AS source_database FROM ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
-		        .append(".patient p JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
-		        .append(inClause(VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS))
-		        .append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString())
-		        .append(") JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
-		        .append(".form f on f.form_id = e.form_id JOIN ")
+		        .append(inClause(VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
+		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName()).append(".form f on f.form_id = e.form_id JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter_type et on e.encounter_type = et.encounter_type_id JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
-		        .append(
-		            ".obs o on e.encounter_id = e.encounter_id AND !o.voided AND o.concept_id IN (23891,23866) AND o.value_datetime <= ? ")
-		        .append("ORDER BY e.encounter_id").toString();
+		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ")
+		        .append(inClause(CONCEPTS)).append(" AND o.value_datetime <= ? ").append("ORDER BY e.encounter_id")
+		        .toString();
 		
 		runSql(insertSql);
 	}
