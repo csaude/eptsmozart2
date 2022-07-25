@@ -22,9 +22,9 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "clinical_consultation.sql";
 	
-	private static final Integer SCHEDULED_DATE_CONCEPT = 1410;
+	public static final Integer SCHEDULED_DATE_CONCEPT = 1410;
 	
-	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9 };
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
@@ -83,9 +83,12 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".encounter WHERE !voided AND encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" AND patient_id IN (SELECT patient_id FROM ")
-		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient )");
+		        .append(".encounter e JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
+		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.location_id IN (399) AND e.patient_id IN (SELECT patient_id FROM ")
+		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)");
 		return sb.toString();
 	}
 	
@@ -93,7 +96,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder(
 		        "SELECT e.*, o.obs_datetime, o.concept_id, o.value_datetime, o.obs_datetime, pe.uuid as patient_uuid FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".encounter e LEFT JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName()).append(".encounter e JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
