@@ -54,11 +54,12 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 .append(AppProperties.getInstance().getNewDatabaseName())
                 .append(".laboratory (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, patient_uuid, ")
                 .append("concept_id, concept_name, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
-                .append("result_qualitative_name, result_numeric, result_units, result_comment, date_created, source_database) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+                .append("result_qualitative_name, result_numeric, result_units, result_comment, date_created, source_database, ")
+                .append("specimen_type_id, specimen_type, labtest_uuid) ")
+                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
-        PreparedStatement orderDateStatement = null;
-        ResultSet orderDateResults = null;
+        PreparedStatement orderDateSpecimenStatement = null;
+        ResultSet orderDateSpecimenTypeResults = null;
         try {
             if (insertStatement == null) {
                 insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -66,12 +67,17 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 insertStatement.clearParameters();
             }
             int count = 0;
-            String orderDateQuery = new StringBuilder("SELECT * FROM ").append(AppProperties.getInstance().getDatabaseName()).append(".obs ")
-                    .append("WHERE concept_id IN (6246,23821) and encounter_id = ?").toString();
-            orderDateStatement = ConnectionPool.getConnection().prepareStatement(orderDateQuery);
+            String orderDateSpecimenQuery = new StringBuilder("SELECT o.*, cn.name as value_coded_name, ")
+                    .append("cn1.name as value_coded_name FROM ")
+                    .append(AppProperties.getInstance().getDatabaseName()).append(".obs o LEFT JOIN ")
+                    .append(AppProperties.getInstance().getDatabaseName())
+                    .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
+                    .append("cn.locale_preferred WHERE !o.voided and o.concept_id IN (6246, 23821, 23832) and encounter_id = ?").toString();
+
+            orderDateSpecimenStatement = ConnectionPool.getConnection().prepareStatement(orderDateSpecimenQuery);
             Set<Integer> positionsNotSet = new HashSet<>();
             while (results.next() && count < batchSize) {
-                positionsNotSet.addAll(Arrays.asList(10,11,12,13,14,15,16));
+                positionsNotSet.addAll(Arrays.asList(10,11,12,13,14,15,16, 20, 21));
                 Integer encounterType = results.getInt("encounter_type");
                 insertStatement.setInt(1, results.getInt("encounter_id"));
                 insertStatement.setString(2, results.getString("encounter_uuid"));
@@ -92,19 +98,24 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 boolean orderResultDateSet = false;
                 if(encounterType == 13 || encounterType == 51) {
-                    orderDateStatement.setInt(1, results.getInt("encounter_id"));
-                    orderDateResults = orderDateStatement.executeQuery();
+                    orderDateSpecimenStatement.setInt(1, results.getInt("encounter_id"));
+                    orderDateSpecimenTypeResults = orderDateSpecimenStatement.executeQuery();
 
-                    while(orderDateResults.next()) {
-                        int resultConceptId = orderDateResults.getInt("concept_id");
+                    while(orderDateSpecimenTypeResults.next()) {
+                        int resultConceptId = orderDateSpecimenTypeResults.getInt("concept_id");
                         if(resultConceptId == 6246) {
-                            insertStatement.setDate(10, orderDateResults.getDate("value_datetime"));
+                            insertStatement.setDate(10, orderDateSpecimenTypeResults.getDate("value_datetime"));
                             positionsNotSet.remove(10);
                             orderResultDateSet = true;
                         } else if(resultConceptId == 23821) {
-                            insertStatement.setDate(11, orderDateResults.getDate("value_datetime"));
+                            insertStatement.setDate(11, orderDateSpecimenTypeResults.getDate("value_datetime"));
                             positionsNotSet.remove(11);
                             orderResultDateSet = true;
+                        } else if(resultConceptId == 23832) {
+                            positionsNotSet.remove(20);
+                            positionsNotSet.remove(21);
+                            insertStatement.setInt(20, orderDateSpecimenTypeResults.getInt("value_coded"));
+                            insertStatement.setString(21, orderDateSpecimenTypeResults.getString("value_coded_name"));
                         }
                     }
                 }
@@ -134,6 +145,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 insertStatement.setString(17, results.getString("comments"));
                 insertStatement.setDate(18, results.getDate("date_created"));
                 insertStatement.setString(19, AppProperties.getInstance().getDatabaseName());
+                insertStatement.setString(22, results.getString("uuid"));
 
                 setEmptyPositions(positionsNotSet);
                 insertStatement.addBatch();
@@ -145,11 +157,11 @@ public class LaboratoryGenerator extends AbstractGenerator {
             LOGGER.error("Error preparing insert statement for table {}", getTable());
             throw e;
         } finally {
-            if(orderDateResults != null) {
-                orderDateResults.close();
+            if(orderDateSpecimenTypeResults != null) {
+                orderDateSpecimenTypeResults.close();
             }
-            if(orderDateStatement != null) {
-                orderDateStatement.close();
+            if(orderDateSpecimenStatement != null) {
+                orderDateSpecimenStatement.close();
             }
         }
     }
@@ -172,7 +184,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
                 .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
                 .append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(LAB_CONCEPT_IDS)).append(" ORDER BY o.obs_id");
+		        .append(inClause(LAB_CONCEPT_IDS));
 		return sb.toString();
 	}
 	
