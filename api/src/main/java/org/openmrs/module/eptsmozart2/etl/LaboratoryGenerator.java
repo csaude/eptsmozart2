@@ -68,7 +68,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
             }
             int count = 0;
             String orderDateSpecimenQuery = new StringBuilder("SELECT o.*, cn.name as value_coded_name, ")
-                    .append("cn1.name as value_coded_name FROM ")
+                    .append("cn.name as value_coded_name FROM ")
                     .append(AppProperties.getInstance().getDatabaseName()).append(".obs o LEFT JOIN ")
                     .append(AppProperties.getInstance().getDatabaseName())
                     .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
@@ -179,29 +179,25 @@ public class LaboratoryGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
+                .append(".patient p ON o.person_id = p.patient_id JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-                .append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(LAB_CONCEPT_IDS));
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
+                .append(AppProperties.getInstance().getLocationsIdsString()).append(")")
+                .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS));
 		return sb.toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder("SELECT o.*, ")
-		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, ")
-		        .append("pe.uuid as patient_uuid, e.encounter_datetime as encounter_date, cn.name as concept_name, ")
-		        .append("cn1.name as value_coded_name FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS))
-                .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString())
-                .append(") AND e.patient_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-                .append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".person pe on o.person_id = pe.person_id LEFT JOIN ")
+		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, p.patient_uuid, ")
+		        .append("e.encounter_datetime as encounter_date, cn.name as concept_name, cn1.name as value_coded_name FROM ")
+		        .append(AppProperties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p ON o.person_id = p.patient_id JOIN ")
+                .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
+                .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString()).append(") JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")
 		        .append("cn.locale_preferred LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())

@@ -83,29 +83,28 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".encounter e JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append(".encounter e JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e.patient_id = p.patient_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" AND e.location_id IN (399) AND e.patient_id IN (SELECT patient_id FROM ")
-		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)");
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
+		        .append(AppProperties.getInstance().getLocationsIdsString()).append(")");
 		return sb.toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder(
-		        "SELECT e.*, o.obs_datetime, o.concept_id, o.value_datetime, o.obs_datetime, pe.uuid as patient_uuid FROM ")
+		        "SELECT e.*, o.obs_datetime, o.concept_id, o.value_datetime, o.obs_datetime, p.patient_uuid FROM ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".encounter e JOIN ")
+		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e.patient_id = p.patient_id JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
-		        .append(SCHEDULED_DATE_CONCEPT).append(" JOIN ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".person pe ON ").append("e.patient_id = pe.person_id")
-		        .append(" WHERE !e.voided AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString())
-		        .append(") AND e.patient_id IN (SELECT patient_id FROM ")
-		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-		        .append(" ORDER BY e.encounter_id");
+		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
+		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") ORDER BY e.encounter_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

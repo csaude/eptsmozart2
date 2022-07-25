@@ -74,23 +74,30 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName())
-		        .concat(".patient_identifier WHERE !voided AND patient_id IN (SELECT patient_id FROM ")
-		        .concat(AppProperties.getInstance().getNewDatabaseName()).concat(".patient)");
+		return new StringBuilder("SELECT COUNT(*) FROM ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(".patient_identifier pi JOIN ")
+		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON pi.patient_id = p.patient_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(
+		            ".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id AND !pit.retired ")
+		        .append("WHERE !pi.voided").toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder(
-		        "SELECT pi.patient_id, pe.uuid as patient_uuid, pi.identifier_type, pit.name, pi.identifier, ")
+		        "SELECT pi.patient_id, p.patient_uuid, pi.identifier_type, pit.name, pi.identifier, ")
 		        .append("pi.preferred as 'primary', pi.uuid as identifier_uuid FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".patient_identifier pi JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
-		        .append(".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".person pe on pi.patient_id = pe.person_id ")
-		        .append("WHERE !pi.voided AND pi.patient_id IN (SELECT patient_id FROM ")
-		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient) ")
-		        .append("ORDER BY pi.patient_identifier_id");
+		        .append(".patient_identifier pi JOIN ")
+		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON pi.patient_id = p.patient_id JOIN ")
+		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(
+		            ".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id AND !pit.retired ")
+		        .append("WHERE !pi.voided ORDER BY pi.patient_identifier_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

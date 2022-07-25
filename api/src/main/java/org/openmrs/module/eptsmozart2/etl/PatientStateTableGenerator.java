@@ -69,19 +69,17 @@ public class PatientStateTableGenerator implements Generator {
 	private void etlProgramBasedRecords() throws SQLException {
         String insertStatement = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
                 .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, state_uuid, source_database) ")
-                .append("SELECT pe.person_id as patient_id, pe.uuid as patient_uuid, 2 as source_id, 'Program enrolment' as source_type, cn.concept_id,")
+                .append("SELECT p.patient_id, p.patient_uuid, 2 as source_id, 'Program enrolment' as source_type, cn.concept_id,")
                 .append("cn.name, ps.start_date, ps.uuid, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ").append(AppProperties.getInstance().getDatabaseName()).append(".person pe ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName()).append(".patient_program pg ON ")
-                .append("pe.person_id = pg.patient_id AND !pg.voided AND pg.program_id = 2 INNER JOIN ")
+                .append("' AS source_database FROM ").append(AppProperties.getInstance().getNewDatabaseName())
+                .append(".patient p INNER JOIN ").append(AppProperties.getInstance().getDatabaseName()).append(".patient_program pg ON ")
+                .append("p.patient_id = pg.patient_id AND !pg.voided AND pg.program_id = 2 INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName())
                 .append(".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName())
                 .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state AND pws.program_workflow_state_id != 6 INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName()).append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
-                .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred WHERE !pe.voided")
-                .append(" AND pe.person_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+                .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred")
                 .toString();
 
         try(Connection connection = ConnectionPool.getConnection();
@@ -98,13 +96,13 @@ public class PatientStateTableGenerator implements Generator {
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
         StringBuilder sb = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
                 .append(".patient_state(patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, state_uuid, source_database) ")
-                .append("SELECT pe.person_id, pe.uuid, e.form_id, f.name, ")
-                .append("o.value_coded, cn.name, o.obs_datetime, o.uuid, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ").append(AppProperties.getInstance().getDatabaseName()).append(".person pe ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".encounter e on pe.person_id = e.patient_id AND !e.voided AND e.encounter_type IN ").append(inClause(encounterTypes))
-                .append(" LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".form f ON f.form_id = e.form_id ")
+                .append("SELECT p.patient_id, p.patient_uuid, e.form_id, f.name, o.value_coded, cn.name, o.obs_datetime, o.uuid, '")
+                .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
+                .append(AppProperties.getInstance().getDatabaseName())
+                .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ").append(inClause(encounterTypes))
+                .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString()).append(") LEFT JOIN ")
+                .append(AppProperties.getInstance().getDatabaseName()).append(".form f ON f.form_id = e.form_id ")
                 .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
                 .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ").append(inClause(concepts));
 
@@ -113,9 +111,7 @@ public class PatientStateTableGenerator implements Generator {
         }
 
         sb.append(" INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred ")
-                .append("WHERE !pe.voided").append(" AND pe.person_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)");
+                .append(".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred");
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
