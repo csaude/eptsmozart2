@@ -1,9 +1,10 @@
-${moduleName}
+EPTS MozART II
 ==========================
 
 Description
 -----------
-This is a very basic module which can be used as a starting point in creating a new module.
+This module facilitates the generation of MozART II from OpenMRS user interface. Making it easy for any user with access
+to the administration page of OpenMRS able to generate the database.
 
 Building from Source
 --------------------
@@ -28,3 +29,46 @@ If uploads are not allowed from the web (changable via a runtime property), you 
 into the ~/.OpenMRS/modules folder.  (Where ~/.OpenMRS is assumed to be the Application 
 Data Directory that the running openmrs is currently using.)  After putting the file in there 
 simply restart OpenMRS/tomcat and the module will be loaded and started.
+
+Running
+-------
+Once the module is deployed one needs to provide a properties file with a name _mozart2.properties_ . Place this file in
+the OpenMRS data directory. The content of file are as follows.
+```properties
+# jdbc url is mysql connection string via JDBC
+# example -> jdbc.url=jdbc:mysql://localhost:3306/openmrs?autoReconnect=true
+jdbc.url=jdbc:mysql://<host>:<port>/<database>?autoReconnect=true
+ 
+# db.username is the mysql user who has read access to database
+# replace <username> with an actual user account in the database.
+db.username=<username>
+ 
+# db.password is the password the defined user above connects to mysql with.
+# Replace <password> with an actual password
+db.password=<password>
+ 
+# The new mozart2 database
+# Replace <new database to be created> with an actual value.
+newDb.name=<new database to be created>
+ 
+# Comma separated list of Locations IDs of the locations for which you wish to extract patient data.
+# Replace <locations IDs> with the actual values of the locations IDs you wish to extract.
+# For example locations.ids=12,23,45
+locations.ids=<locations IDS>
+    
+# The end date to extract records. If this value is not specified the date of the day when the application
+# is run is the default end date. Replace <end date> with an actual date or leave it blank to let default 
+# take effect.
+end.date=<end date>
+ 
+# The pattern of the provided date in the end.date property, if not provided the assumed default is dd-MM-yyyy
+# Replace <end date pattern> with the actual pattern or leave blank to use the default.
+end.date.pattern=<end date patter>
+ 
+
+# Whether to drop the newly created database after backup to sql dump file.
+drop.newDb.after=true
+    
+# The batch sizes to optimize the procedure when the records to be generated are too many. (default is 20000)
+batch.size=20000
+```
