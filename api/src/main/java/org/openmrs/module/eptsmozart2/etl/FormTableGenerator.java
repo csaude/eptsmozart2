@@ -100,7 +100,7 @@ public class FormTableGenerator implements Generator {
 		            "patient_uuid, created_date, encounter_date, change_date, location_id, location_uuid, source_database) ")
 		        .append(
 		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
-		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.location_id, l.uuid, '")
+		        .append("e.date_created, o.value_datetime, e.date_changed, l.location_id, l.uuid, '")
 		        .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
 		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
