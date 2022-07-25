@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -21,7 +23,7 @@ public class ProgramTableGenerator implements Generator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "program.sql";
 	
-	private static Integer[] PROGRAM_IDS = new Integer[] { 1, 2, 3 };
+	private static Integer[] PROGRAM_IDS = new Integer[] { 1, 2, 8 };
 	
 	private Integer toBeGenerated = 0;
 	
@@ -66,13 +68,13 @@ public class ProgramTableGenerator implements Generator {
                 .append(AppProperties.getInstance().getDatabaseName()).append(".program ON pg.program_id = program.program_id JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName()).append(".location l ON l.location_id=pg.location_id ")
                 .append("WHERE !pg.voided AND pg.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString())
-                .append(") AND pg.program_id IN ").append(inClause(PROGRAM_IDS)).append(" AND pg.date_enrolled <= '")
-                .append(AppProperties.getInstance().getFormattedEndDate(null))
-                .append("' ORDER BY pg.patient_program_id").toString();
+                .append(") AND pg.program_id IN ").append(inClause(PROGRAM_IDS)).append(" AND pg.date_enrolled <= ? ")
+				.append("ORDER BY pg.patient_program_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();
-            Statement statement = connection.createStatement()) {
-            int moreToGo = statement.executeUpdate(insertSql);
+            PreparedStatement statement = connection.prepareStatement(insertSql)) {
+        	statement.setDate(1, Date.valueOf(AppProperties.getInstance().getEndDate()));
+            int moreToGo = statement.executeUpdate();
             toBeGenerated += moreToGo;
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
