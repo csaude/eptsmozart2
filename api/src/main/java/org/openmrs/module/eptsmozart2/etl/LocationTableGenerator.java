@@ -56,7 +56,8 @@ public class LocationTableGenerator implements Generator {
                 .append(".location (location_id,location_uuid, name, province_name, province_district, source_database) ")
                 .append("SELECT location_id,uuid,name,state_province,county_district, '")
                 .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".location WHERE !retired ORDER BY location_id").toString();
+                .append(AppProperties.getInstance().getDatabaseName()).append(".location WHERE location_id IN (")
+				.append(AppProperties.getInstance().getLocationsIdsString()).append(") ORDER BY location_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
