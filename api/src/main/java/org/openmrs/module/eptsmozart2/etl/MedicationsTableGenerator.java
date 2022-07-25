@@ -50,8 +50,8 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append("formulation, formulation_concept, formulation_drug, quantity, dosage, next_pickup_date, ")
 				.append("mode_dispensation, mode_dispensation_concept, med_line, med_line_concept, type_dispensation, type_dispensation_concept, ")
 		        .append("alternative_line, alternative_line_concept, regimen_change_reason, regimen_change_reason_concept, ")
-				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, source_database, regimen_id) VALUES ")
-		        .append("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, source_database, regimen_id, medication_uuid) ")
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
 		positionsNotSet.addAll(Arrays.asList(8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27));
@@ -88,9 +88,11 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				parameterCache.put(6, results.getString("regimen"));
 				insertStatement.setString(6, results.getString("regimen"));
 				insertStatement.setInt(7, results.getInt("value_coded"));
-				insertStatement.setInt(29, results.getInt("concept_id"));
+
 				insertStatement.setString(28, AppProperties.getInstance().getDatabaseName());
-				
+				insertStatement.setInt(29, results.getInt("concept_id"));
+				insertStatement.setString(30, results.getString("medication_uuid"));
+
 				fetchMedsDetailsStatement.clearParameters();
 				fetchMedsDetailsStatement.setInt(1, currentEncounterId);
 				medObsResults = fetchMedsDetailsStatement.executeQuery();
@@ -362,15 +364,14 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.patient_id IN (SELECT patient_id FROM ")
 		        .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
-		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" ORDER BY o.obs_id");
+		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS));
 		return sb.toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder(
-		        "SELECT o.obs_id, o.obs_group_id, o.concept_id, o.value_coded, o.encounter_id, ")
+		        "SELECT o.obs_id, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, o.value_coded, o.encounter_id, ")
 		        .append("e.uuid as encounter_uuid, o.person_id as patient_id, ")
 		        .append("pe.uuid as patient_uuid, e.encounter_datetime as encounter_date, cn.name as regimen FROM ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".obs o JOIN ")

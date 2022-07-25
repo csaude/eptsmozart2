@@ -28,6 +28,7 @@ CREATE TABLE `medications` (
   `arv_side_effects` varchar(255) DEFAULT NULL,
   `adherence_concept` int(11) DEFAULT NULL,
   `adherence` varchar(255) DEFAULT NULL,
+  `medication_uuid` char(38) DEFAULT NULL,
   `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `medication_encounter_id` (`encounter_id`),
