@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,6 +25,8 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
 	private static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1982, 6332, 165174, 23703, 23710 };
+	
+	private static final int VALUE_DATETIME_CONCEPT = 1190;
 	
 	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 35, 53 };
 	
@@ -107,6 +110,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
+		Date endDate = Date.valueOf(AppProperties.getInstance().getEndDate());
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
@@ -114,12 +118,16 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
 		        .append(AppProperties.getInstance().getLocationsIdsString())
-		        .append(") WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS));
+		        .append(") WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS))
+		        .append(" AND CASE WHEN o.concept_id = ").append(VALUE_DATETIME_CONCEPT)
+		        .append(" THEN o.value_datetime <= '").append(endDate).append("' ELSE o.obs_datetime <= '").append(endDate)
+		        .append("' END");
 		return sb.toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
+		Date endDate = Date.valueOf(AppProperties.getInstance().getEndDate());
 		StringBuilder sb = new StringBuilder("SELECT o.*, ")
 		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, ")
 		        .append("p.patient_uuid, e.encounter_datetime as encounter_date, cn.name as concept_name, ")
@@ -135,7 +143,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		        .append("cn.locale_preferred LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
 		        .append("cn1.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS))
-		        .append(" ORDER BY o.obs_id");
+		        .append(" AND CASE WHEN o.concept_id = ").append(VALUE_DATETIME_CONCEPT)
+		        .append(" THEN o.value_datetime <= '").append(endDate).append("' ELSE o.obs_datetime <= '").append(endDate)
+		        .append("' END ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
