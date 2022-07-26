@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -184,7 +185,8 @@ public class LaboratoryGenerator extends AbstractGenerator {
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
                 .append(AppProperties.getInstance().getLocationsIdsString()).append(")")
-                .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS));
+                .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS))
+                .append(" AND o.obs_datetime <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("'");
 		return sb.toString();
 	}
 	
@@ -203,7 +205,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 		        .append("cn.locale_preferred LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
 		        .append("cn1.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS))
-		        .append(" ORDER BY o.obs_id");
+		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
