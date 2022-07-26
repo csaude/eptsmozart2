@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -89,7 +90,8 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString()).append(")");
+		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
+		        .append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("'");
 		return sb.toString();
 	}
 	
@@ -104,7 +106,8 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") ORDER BY e.encounter_id");
+		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
+		        .append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("' ORDER BY e.encounter_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
