@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -75,7 +76,8 @@ public class PatientStateTableGenerator implements Generator {
                 .append(".patient p INNER JOIN ").append(AppProperties.getInstance().getDatabaseName()).append(".patient_program pg ON ")
                 .append("p.patient_id = pg.patient_id AND !pg.voided AND pg.program_id = 2 INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName())
-                .append(".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided INNER JOIN ")
+                .append(".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided AND ps.start_date <= '")
+				.append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("' INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName())
                 .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state AND pws.program_workflow_state_id != 6 INNER JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName()).append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
@@ -104,7 +106,8 @@ public class PatientStateTableGenerator implements Generator {
                 .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString()).append(") LEFT JOIN ")
                 .append(AppProperties.getInstance().getDatabaseName()).append(".form f ON f.form_id = e.form_id ")
                 .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ").append(inClause(concepts));
+                .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ").append(inClause(concepts))
+				.append(" AND o.obs_datetime <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("'");
 
         if(valueCoded != null) {
             sb.append(" AND o.value_coded IN ").append(inClause(valueCoded));
@@ -130,8 +133,9 @@ public class PatientStateTableGenerator implements Generator {
                 .append("SELECT pe.person_id, pe.uuid, 1 as source_id,'Demographic' as source_type, 1366 as state_id, ")
                 .append("'PATIENT HAS DIED' as state, death_date, '").append(AppProperties.getInstance().getDatabaseName())
                 .append("' AS source_database FROM ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".person pe where dead = 1").append(" AND pe.person_id IN (SELECT patient_id FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+                .append(".person pe WHERE pe.dead = 1 AND pe.death_date <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate()))
+				.append("' AND pe.person_id IN (SELECT patient_id FROM ")
+				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
                 .toString();
 
         try(Connection connection = ConnectionPool.getConnection();
