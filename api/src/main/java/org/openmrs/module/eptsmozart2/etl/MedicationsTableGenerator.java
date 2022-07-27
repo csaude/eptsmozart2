@@ -46,7 +46,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(AppProperties.getInstance().getNewDatabaseName())
-		        .append(".medications (encounter_id, encounter_uuid, patient_id, patient_uuid, encounter_date, regimen, regimen_concept, ")
+		        .append(".medications (encounter_id, encounter_uuid, patient_id, patient_uuid, medication_pickup_date, regimen, regimen_concept, ")
 		        .append("formulation, formulation_concept, formulation_drug, quantity, dosage, next_pickup_date, ")
 				.append("mode_dispensation, mode_dispensation_concept, med_line, med_line_concept, type_dispensation, type_dispensation_concept, ")
 		        .append("alternative_line, alternative_line_concept, regimen_change_reason, regimen_change_reason_concept, ")
