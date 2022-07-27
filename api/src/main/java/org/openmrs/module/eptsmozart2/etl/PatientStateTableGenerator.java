@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -68,19 +68,19 @@ public class PatientStateTableGenerator implements Generator {
 	}
 	
 	private void etlProgramBasedRecords() throws SQLException {
-        String insertStatement = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
+        String insertStatement = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, state_uuid, source_database) ")
                 .append("SELECT p.patient_id, p.patient_uuid, 2 as source_id, 'Program enrolment' as source_type, cn.concept_id,")
-                .append("cn.name, ps.start_date, ps.uuid, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ").append(AppProperties.getInstance().getNewDatabaseName())
-                .append(".patient p INNER JOIN ").append(AppProperties.getInstance().getDatabaseName()).append(".patient_program pg ON ")
+                .append("cn.name, ps.start_date, ps.uuid, '").append(Mozart2Properties.getInstance().getDatabaseName())
+                .append("' AS source_database FROM ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+                .append(".patient p INNER JOIN ").append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient_program pg ON ")
                 .append("p.patient_id = pg.patient_id AND !pg.voided AND pg.program_id = 2 INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
+                .append(Mozart2Properties.getInstance().getDatabaseName())
                 .append(".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided AND ps.start_date <= '")
-				.append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("' INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' INNER JOIN ")
+                .append(Mozart2Properties.getInstance().getDatabaseName())
                 .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state AND pws.program_workflow_state_id != 6 INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
+                .append(Mozart2Properties.getInstance().getDatabaseName()).append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
                 .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred")
                 .toString();
 
@@ -96,24 +96,24 @@ public class PatientStateTableGenerator implements Generator {
     }
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
-        StringBuilder sb = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
+        StringBuilder sb = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".patient_state(patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, state_uuid, source_database) ")
                 .append("SELECT p.patient_id, p.patient_uuid, e.form_id, f.name, o.value_coded, cn.name, o.obs_datetime, o.uuid, '")
-                .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
+                .append(Mozart2Properties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+                .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
+                .append(Mozart2Properties.getInstance().getDatabaseName())
                 .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ").append(inClause(encounterTypes))
-                .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString()).append(") LEFT JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".form f ON f.form_id = e.form_id ")
-                .append("INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
+                .append(" AND e.location_id IN (").append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") LEFT JOIN ")
+                .append(Mozart2Properties.getInstance().getDatabaseName()).append(".form f ON f.form_id = e.form_id ")
+                .append("INNER JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
                 .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ").append(inClause(concepts))
-				.append(" AND o.obs_datetime <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("'");
+				.append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
 
         if(valueCoded != null) {
             sb.append(" AND o.value_coded IN ").append(inClause(valueCoded));
         }
 
-        sb.append(" INNER JOIN ").append(AppProperties.getInstance().getDatabaseName())
+        sb.append(" INNER JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
                 .append(".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred");
 
         try(Connection connection = ConnectionPool.getConnection();
@@ -128,14 +128,14 @@ public class PatientStateTableGenerator implements Generator {
     }
 	
 	private void etlPersonDeathState() throws SQLException {
-        String insert = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
+        String insert = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date, source_database) ")
                 .append("SELECT pe.person_id, pe.uuid, 1 as source_id,'Demographic' as source_type, 1366 as state_id, ")
-                .append("'PATIENT HAS DIED' as state, death_date, '").append(AppProperties.getInstance().getDatabaseName())
-                .append("' AS source_database FROM ").append(AppProperties.getInstance().getDatabaseName())
-                .append(".person pe WHERE pe.dead = 1 AND pe.death_date <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate()))
+                .append("'PATIENT HAS DIED' as state, death_date, '").append(Mozart2Properties.getInstance().getDatabaseName())
+                .append("' AS source_database FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+                .append(".person pe WHERE pe.dead = 1 AND pe.death_date <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 				.append("' AND pe.person_id IN (SELECT patient_id FROM ")
-				.append(AppProperties.getInstance().getNewDatabaseName()).append(".patient)")
+				.append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient)")
                 .toString();
 
         try(Connection connection = ConnectionPool.getConnection();

@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -52,12 +52,12 @@ public class LocationTableGenerator implements Generator {
 	}
 	
 	private void locationEtl() throws SQLException {
-        String insertSql = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
+        String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".location (location_id,location_uuid, name, province_name, province_district, source_database) ")
                 .append("SELECT location_id,uuid,name,state_province,county_district, '")
-                .append(AppProperties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
-                .append(AppProperties.getInstance().getDatabaseName()).append(".location WHERE location_id IN (")
-				.append(AppProperties.getInstance().getLocationsIdsString()).append(") ORDER BY location_id").toString();
+                .append(Mozart2Properties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+                .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location WHERE location_id IN (")
+				.append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") ORDER BY location_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
@@ -85,8 +85,8 @@ public class LocationTableGenerator implements Generator {
     }
 	
 	private String getUpdateCodeQuery(String codeColumn, int attributeTypeId) {
-		return new StringBuilder("UPDATE ").append(AppProperties.getInstance().getNewDatabaseName()).append(".location l,")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".location_attribute la ").append("SET l.")
+		return new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".location l,")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location_attribute la ").append("SET l.")
 		        .append(codeColumn)
 		        .append(" = la.value_reference WHERE l.location_id=la.location_id AND la.attribute_type_id = ")
 		        .append(attributeTypeId).append(" AND !la.voided").toString();

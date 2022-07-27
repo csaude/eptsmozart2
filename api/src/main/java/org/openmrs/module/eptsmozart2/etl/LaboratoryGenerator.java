@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
         if (batchSize == null)
             batchSize = Integer.MAX_VALUE;
         String insertSql = new StringBuilder("INSERT INTO ")
-                .append(AppProperties.getInstance().getNewDatabaseName())
+                .append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".laboratory (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, patient_uuid, ")
                 .append("concept_id, concept_name, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
                 .append("result_qualitative_name, result_numeric, result_units, result_comment, date_created, source_database, ")
@@ -70,8 +70,8 @@ public class LaboratoryGenerator extends AbstractGenerator {
             int count = 0;
             String orderDateSpecimenQuery = new StringBuilder("SELECT o.*, cn.name as value_coded_name, ")
                     .append("cn.name as value_coded_name FROM ")
-                    .append(AppProperties.getInstance().getDatabaseName()).append(".obs o LEFT JOIN ")
-                    .append(AppProperties.getInstance().getDatabaseName())
+                    .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o LEFT JOIN ")
+                    .append(Mozart2Properties.getInstance().getDatabaseName())
                     .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
                     .append("cn.locale_preferred WHERE !o.voided and o.concept_id IN (6246, 23821, 23832) and encounter_id = ?").toString();
 
@@ -145,7 +145,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 insertStatement.setString(17, results.getString("comments"));
                 insertStatement.setDate(18, results.getDate("date_created"));
-                insertStatement.setString(19, AppProperties.getInstance().getDatabaseName());
+                insertStatement.setString(19, Mozart2Properties.getInstance().getDatabaseName());
                 insertStatement.setString(22, results.getString("uuid"));
 
                 setEmptyPositions(positionsNotSet);
@@ -179,14 +179,14 @@ public class LaboratoryGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
-                .append(".patient p ON o.person_id = p.patient_id JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+                .append(".patient p ON o.person_id = p.patient_id JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-                .append(AppProperties.getInstance().getLocationsIdsString()).append(")")
+                .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(")")
                 .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS))
-                .append(" AND o.obs_datetime <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("'");
+                .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
 		return sb.toString();
 	}
 	
@@ -195,17 +195,17 @@ public class LaboratoryGenerator extends AbstractGenerator {
 		StringBuilder sb = new StringBuilder("SELECT o.*, ")
 		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, p.patient_uuid, ")
 		        .append("e.encounter_datetime as encounter_date, cn.name as concept_name, cn1.name as value_coded_name FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".obs o JOIN ")
-                .append(AppProperties.getInstance().getNewDatabaseName()).append(".patient p ON o.person_id = p.patient_id JOIN ")
-                .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+                .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p ON o.person_id = p.patient_id JOIN ")
+                .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
-                .append(" AND e.location_id IN (").append(AppProperties.getInstance().getLocationsIdsString()).append(") JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+                .append(" AND e.location_id IN (").append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")
-		        .append("cn.locale_preferred LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append("cn.locale_preferred LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
 		        .append("cn1.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
+		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

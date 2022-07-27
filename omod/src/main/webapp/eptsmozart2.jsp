@@ -29,6 +29,14 @@
         }
     }
 
+    function formatDateToISO(date) {
+        var month = date.getMonth() + 1;
+        if(month < 10) {
+            month = '0' + month;
+        }
+        return date.getFullYear() + '-' + month + '-' + date.getDate();
+    }
+
     function cancelMozart2Generation() {
         if(progressUpdateSchedule) {
             clearTimeout(progressUpdateSchedule);
@@ -73,10 +81,12 @@
             headers: new Headers({
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
-            }),
+            })
         };
+        var reqUrl = localOpenmrsContextPath + '/module/eptsmozart2/eptsmozart2.json?endDate='
+                + formatDateToISO($j('#end-date-picker').datepicker('getDate'));
 
-        fetch(localOpenmrsContextPath + "/module/eptsmozart2/eptsmozart2.json", requestOptions)
+        fetch(reqUrl, requestOptions)
             .then(response => {
                 if(response.status !== 200) {
                     throw new HttpError(response);
@@ -222,10 +232,20 @@
     }
 
     $j(document).ready(function() {
-        initialStatusRequest()
+        initialStatusRequest();
+        
+        $j('#end-date-picker').datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'dd-mm-yy',
+            maxDate: new Date()
+        });
+
+        $j('#end-date-picker').datepicker('setDate', new Date());
     });
 </script>
-<button id = "mozart2-button" onclick="requestMozart2Generation()">Generate Mozart2</button>
+<label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate"/>
+<button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
 <br/>
 <div id="progress-table" style = "visibility: hidden;">
     <table cellpadding="5" border="0" cellspacing="5" width="80%">
@@ -244,6 +264,6 @@
     </table>
 </div>
 <div>
-    <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;">Cancel Mozart2</button>
+    <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;"><openmrs:message code="eptsmozart2.cancel.mozart2.button.label"/></button>
 </div>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

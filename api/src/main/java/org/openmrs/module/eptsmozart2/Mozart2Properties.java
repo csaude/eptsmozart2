@@ -5,26 +5,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.HashSet;
-import java.util.IllegalFormatException;
 import java.util.Properties;
 import java.util.Set;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/21/21.
  */
-public class AppProperties {
+public class Mozart2Properties {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(AppProperties.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Mozart2Properties.class);
 	
 	public final static String JDBC_URL_PROP = "jdbc.url";
 	
@@ -52,7 +47,7 @@ public class AppProperties {
 	
 	private static final int DEFAULT_BATCH_SIZE = 20000;
 	
-	private static AppProperties appProperties = null;
+	private static Mozart2Properties mozart2Properties = null;
 	
 	private static final Properties APP_PROPS = new Properties();
 	
@@ -74,12 +69,12 @@ public class AppProperties {
 
 	private Set<Integer> locationsIds = new HashSet<>();
 	
-	private AppProperties() {
+	private Mozart2Properties() {
 	}
 	
-	public static AppProperties getInstance() {
-        if(appProperties == null) {
-            appProperties = new AppProperties();
+	public static Mozart2Properties getInstance() {
+        if(mozart2Properties == null) {
+            mozart2Properties = new Mozart2Properties();
             try {
                 String dataDirectory = OpenmrsUtil.getApplicationDataDirectory();
                 Path path = Paths.get(dataDirectory, MOZART2_PROPERTIES_FILENAME);
@@ -92,19 +87,19 @@ public class AppProperties {
 				String[] locIds = APP_PROPS.getProperty(LOCATIONS_IDS_PROP).split(",");
 				for(String locId: locIds) {
 					try {
-						appProperties.locationsIds.add(Integer.parseInt(locId.trim()));
+						mozart2Properties.locationsIds.add(Integer.parseInt(locId.trim()));
 					} catch (NumberFormatException e) {
 						String em = String.format("The provided location Id %s is invalid, please use numbers", locId);
 						LOGGER.error(em);
 						throw new IllegalStateException(em);
 					}
 				}
-				appProperties.locationsIdsString = APP_PROPS.getProperty(LOCATIONS_IDS_PROP);
+				mozart2Properties.locationsIdsString = APP_PROPS.getProperty(LOCATIONS_IDS_PROP);
 
                 try {
                     String datePattern = APP_PROPS.getProperty(END_DATE_PATTERN_PROP, DEFAULT_END_DATE_PATTERN);
-                    appProperties.endDateFormatter = DateTimeFormatter.ofPattern(datePattern);
-                    appProperties.endDate = LocalDate.parse(APP_PROPS.getProperty(END_DATE_PROP), appProperties.endDateFormatter);
+                    mozart2Properties.endDateFormatter = DateTimeFormatter.ofPattern(datePattern);
+                    mozart2Properties.endDate = LocalDate.parse(APP_PROPS.getProperty(END_DATE_PROP), mozart2Properties.endDateFormatter);
                 } catch (DateTimeParseException|NullPointerException e) {
                     if(APP_PROPS.containsKey(END_DATE_PROP) && APP_PROPS.getProperty(END_DATE_PROP) != null) {
                         LOGGER.error("Invalid value set for property {}", END_DATE_PROP);
@@ -112,28 +107,28 @@ public class AppProperties {
                     } else {
                         // Just use now.
                         LOGGER.info("{} property not set, defaulting to current date", END_DATE_PROP);
-                        appProperties.endDate = LocalDate.now();
+                        mozart2Properties.endDate = LocalDate.now();
                     }
                 }
 
-                appProperties.dropNewDbAfter = Boolean.valueOf(APP_PROPS.getProperty(DROP_NEW_DB_AFTER_PROP, "FALSE"));
+                mozart2Properties.dropNewDbAfter = Boolean.valueOf(APP_PROPS.getProperty(DROP_NEW_DB_AFTER_PROP, "FALSE"));
 
 
                 try {
-                    appProperties.batchSize = Integer.valueOf(APP_PROPS.getProperty(BATCH_SIZE_PROP));
+                    mozart2Properties.batchSize = Integer.valueOf(APP_PROPS.getProperty(BATCH_SIZE_PROP));
                 } catch (NumberFormatException e) {
                     LOGGER.debug("Invalid value set for {}, ignoring and using default of {}", BATCH_SIZE_PROP, DEFAULT_BATCH_SIZE);
-                    appProperties.batchSize = DEFAULT_BATCH_SIZE;
+                    mozart2Properties.batchSize = DEFAULT_BATCH_SIZE;
                 }
                 //Host and port
-                appProperties.determineMysqlHostAndPortFromJdbcUrl();
+                mozart2Properties.determineMysqlHostAndPortFromJdbcUrl();
             } catch (Exception e) {
                 LOGGER.error("An error occured during reading of app properties (this most likely is a result of invalid application.properties file or lack thereof)");
                 LOGGER.error("The passed properties are: {} ", APP_PROPS, e);
             }
         }
 
-        return appProperties;
+        return mozart2Properties;
     }
 	
 	public String getJdbcUrl() {
@@ -224,5 +219,9 @@ public class AppProperties {
 				this.databaseName = hostToEnd.substring(indexOfSlashAfterHost);
 			}
 		}
+	}
+
+	public void setEndDate(LocalDate endDate) {
+		this.endDate = endDate;
 	}
 }

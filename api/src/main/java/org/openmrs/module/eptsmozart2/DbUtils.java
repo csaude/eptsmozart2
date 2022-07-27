@@ -15,7 +15,7 @@ public class DbUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbUtils.class);
 	
 	public static void createNewDatabase() throws SQLException {
-        String sql = "CREATE DATABASE IF NOT EXISTS " + AppProperties.getInstance().getNewDatabaseName();
+        String sql = "CREATE DATABASE IF NOT EXISTS " + Mozart2Properties.getInstance().getNewDatabaseName();
         try (Connection connection = ConnectionPool.getConnection();
              Statement s = connection.createStatement()) {
             s.execute(sql);

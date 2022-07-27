@@ -1,8 +1,7 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
-import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +11,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.concurrent.Callable;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
@@ -40,7 +38,7 @@ public abstract class AbstractGenerator implements Generator {
             resultSet.next();
             toBeGenerated = resultSet.getInt(1);
             resultSet.close();
-            int batchSize = AppProperties.getInstance().getBatchSize();
+            int batchSize = Mozart2Properties.getInstance().getBatchSize();
             if(toBeGenerated > batchSize) {
                 LOGGER.debug("Generating {} records for table {} in batches of {}", toBeGenerated, getTable(), batchSize);
                 int temp = toBeGenerated;
@@ -125,7 +123,7 @@ public abstract class AbstractGenerator implements Generator {
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {
-            statement.addBatch("USE ".concat(AppProperties.getInstance().getNewDatabaseName()));
+            statement.addBatch("USE ".concat(Mozart2Properties.getInstance().getNewDatabaseName()));
             statement.addBatch("DROP TABLE IF EXISTS ".concat(getTable()));
             statement.addBatch(createSql);
             statement.executeBatch();

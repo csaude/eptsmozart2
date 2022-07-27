@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".clinical_consultation (encounter_id, encounter_uuid, encounter_type, patient_id, patient_uuid, ")
 		        .append(
 		            "consultation_date, scheduled_date, observation_date, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
@@ -58,7 +58,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 				insertStatement.setDate(6, results.getDate("encounter_datetime"));
 				insertStatement.setDate(7, results.getDate("value_datetime"));
 				insertStatement.setDate(8, results.getDate("obs_datetime"));
-				insertStatement.setString(9, AppProperties.getInstance().getDatabaseName());
+				insertStatement.setString(9, Mozart2Properties.getInstance().getDatabaseName());
 				
 				insertStatement.addBatch();
 				++count;
@@ -83,15 +83,15 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".encounter e JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".encounter e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id LEFT JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
-		        .append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("'");
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
 		return sb.toString();
 	}
 	
@@ -99,15 +99,15 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder(
 		        "SELECT e.*, o.obs_datetime, o.concept_id, o.value_datetime, o.obs_datetime, p.patient_uuid FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".encounter e JOIN ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter e JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id LEFT JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
-		        .append(Date.valueOf(AppProperties.getInstance().getEndDate())).append("' ORDER BY e.encounter_id");
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") AND e.encounter_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY e.encounter_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

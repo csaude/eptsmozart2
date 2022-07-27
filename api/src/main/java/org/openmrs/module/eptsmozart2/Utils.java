@@ -38,10 +38,10 @@ public class Utils {
 		try {
 			return Utils
 			        .readFileToString(ART_PATIENT_LIST_QUERY_FILE)
-			        .replace("sourceDatabase", AppProperties.getInstance().getDatabaseName())
-			        .replace(":locations", AppProperties.getInstance().getLocationsIdsString())
+			        .replace("sourceDatabase", Mozart2Properties.getInstance().getDatabaseName())
+			        .replace(":locations", Mozart2Properties.getInstance().getLocationsIdsString())
 			        .replace(":endDate",
-			            String.format("'%s'", AppProperties.getInstance().getFormattedEndDate("yyyy-MM-dd")));
+			            String.format("'%s'", Mozart2Properties.getInstance().getFormattedEndDate("yyyy-MM-dd")));
 		}
 		catch (IOException e) {
 			LOGGER.error("An error occured while reading ART patients' list query file", e);

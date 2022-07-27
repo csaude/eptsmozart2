@@ -11,19 +11,20 @@ package org.openmrs.module.eptsmozart2.web.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.GeneratorTask;
 import org.openmrs.module.eptsmozart2.StatusInfo;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpSession;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,9 +74,18 @@ public class EPTSMozART2Controller {
 
 	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2.json", method = RequestMethod.POST, produces = "application/json")
 	@ResponseBody
-	public List<StatusInfo> onPost() {
+	public List<StatusInfo> onPost(@RequestParam(value = "endDate", required = false) String endDateString) {
 		if(!GENERATOR_TASK.isExecuting()) {
 		    log.debug("Submitting Mozart2 Generation Task to Executor thread.");
+			LocalDate endDate = null;
+			if(StringUtils.hasText(endDateString)) {
+				endDate = LocalDate.parse(endDateString, DateTimeFormatter.ISO_DATE);
+			}
+
+			if(endDate != null) {
+		    	log.debug(String.format("Using end date %s for mozart2 generation", endDate.toString()));
+				Mozart2Properties.getInstance().setEndDate(endDate);
+			}
 			SINGLE_THREAD_EXECUTOR.submit(GENERATOR_TASK);
 		} else {
 			log.debug("Generator Task already running");

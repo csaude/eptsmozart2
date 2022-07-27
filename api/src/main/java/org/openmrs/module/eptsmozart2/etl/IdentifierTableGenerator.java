@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
 		            ".identifier (patient_id, patient_uuid, identifier_type, identifier_type_name, identifier_value, `primary`, ")
 		        .append("identifier_uuid, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").toString();
@@ -49,7 +49,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 				insertStatement.setString(5, results.getString("identifier"));
 				insertStatement.setBoolean(6, results.getBoolean("primary"));
 				insertStatement.setString(7, results.getString("identifier_uuid"));
-				insertStatement.setString(8, AppProperties.getInstance().getDatabaseName());
+				insertStatement.setString(8, Mozart2Properties.getInstance().getDatabaseName());
 				
 				insertStatement.addBatch();
 				++count;
@@ -75,11 +75,11 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		return new StringBuilder("SELECT COUNT(*) FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_identifier pi JOIN ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON pi.patient_id = p.patient_id JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(
 		            ".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id AND !pit.retired ")
 		        .append("WHERE !pi.voided").toString();
@@ -90,11 +90,11 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		StringBuilder sb = new StringBuilder(
 		        "SELECT pi.patient_id, p.patient_uuid, pi.identifier_type, pit.name, pi.identifier, ")
 		        .append("pi.preferred as 'primary', pi.uuid as identifier_uuid FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_identifier pi JOIN ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON pi.patient_id = p.patient_id JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(
 		            ".patient_identifier_type pit on pi.identifier_type = pit.patient_identifier_type_id AND !pit.retired ")
 		        .append("WHERE !pi.voided ORDER BY pi.patient_identifier_id");

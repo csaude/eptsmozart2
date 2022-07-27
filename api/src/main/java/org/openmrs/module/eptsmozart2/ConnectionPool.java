@@ -31,9 +31,9 @@ public class ConnectionPool {
 		catch (PropertyVetoException pve) {
 			pve.printStackTrace();
 		}
-		cpds.setJdbcUrl(AppProperties.getInstance().getJdbcUrl());
-		cpds.setUser(AppProperties.getInstance().getDbUsername());
-		cpds.setPassword(AppProperties.getInstance().getDbPassword());
+		cpds.setJdbcUrl(Mozart2Properties.getInstance().getJdbcUrl());
+		cpds.setUser(Mozart2Properties.getInstance().getDbUsername());
+		cpds.setPassword(Mozart2Properties.getInstance().getDbPassword());
 		cpds.setMinPoolSize(5);
 		cpds.setAcquireIncrement(5);
 		cpds.setMaxPoolSize(MAX_CONNECTIONS);
@@ -45,8 +45,8 @@ public class ConnectionPool {
 			return pooledDataSource.getConnection();
 		}
 		catch (SQLException sqle) {
-			LOGGER.error("Error connecting to the database using url: {}, username: {} and password: {}", AppProperties
-			        .getInstance().getJdbcUrl(), AppProperties.getInstance().getDbUsername(), AppProperties.getInstance()
+			LOGGER.error("Error connecting to the database using url: {}, username: {} and password: {}", Mozart2Properties
+			        .getInstance().getJdbcUrl(), Mozart2Properties.getInstance().getDbUsername(), Mozart2Properties.getInstance()
 			        .getDbPassword());
 			throw sqle;
 		}

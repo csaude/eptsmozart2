@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ").append(AppProperties.getInstance().getNewDatabaseName())
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient (patient_id, patient_uuid, gender, birthdate, birthdate_estimated, dead, death_date, ")
 		        .append("date_created, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
@@ -55,7 +55,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 				insertStatement.setBoolean(6, results.getBoolean("dead"));
 				insertStatement.setDate(7, results.getDate("death_date"));
 				insertStatement.setDate(8, results.getDate("date_created"));
-				insertStatement.setString(9, AppProperties.getInstance().getDatabaseName());
+				insertStatement.setString(9, Mozart2Properties.getInstance().getDatabaseName());
 				
 				insertStatement.addBatch();
 				++count;
@@ -75,7 +75,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		return "SELECT COUNT(*) FROM ".concat(AppProperties.getInstance().getDatabaseName())
+		return "SELECT COUNT(*) FROM ".concat(Mozart2Properties.getInstance().getDatabaseName())
 		        .concat(".patient WHERE !voided").concat(" AND patient_id IN (").concat(getArtPatientListQuery())
 		        .concat(")");
 	}
@@ -84,8 +84,8 @@ public class PatientTableGenerator extends AbstractGenerator {
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder("SELECT p.patient_id, pe.uuid as patient_uuid, pe.gender, pe.birthdate, ")
 		        .append("pe.birthdate_estimated, pe.dead, pe.death_date, p.date_created ").append("FROM ")
-		        .append(AppProperties.getInstance().getDatabaseName()).append(".patient p inner join ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient p inner join ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".person pe on p.patient_id = pe.person_id WHERE !p.voided ").append(" AND p.patient_id IN (")
 		        .append(getArtPatientListQuery()).append(")").append("ORDER BY p.patient_id");
 		

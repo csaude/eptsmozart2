@@ -1,6 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.AppProperties;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(AppProperties.getInstance().getNewDatabaseName())
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
 		            ".observation (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, patient_uuid, ")
 		        .append(
@@ -84,7 +84,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				insertStatement.setString(13, results.getString("value_text"));
 				insertStatement.setDate(14, results.getDate("value_datetime"));
 				insertStatement.setDate(15, results.getDate("date_created"));
-				insertStatement.setString(16, AppProperties.getInstance().getDatabaseName());
+				insertStatement.setString(16, Mozart2Properties.getInstance().getDatabaseName());
 				insertStatement.setString(17, results.getString("uuid"));
 				
 				insertStatement.addBatch();
@@ -110,14 +110,14 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		Date endDate = Date.valueOf(AppProperties.getInstance().getEndDate());
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
+		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString())
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString())
 		        .append(") WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS))
 		        .append(" AND CASE WHEN o.concept_id = ").append(VALUE_DATETIME_CONCEPT)
 		        .append(" THEN o.value_datetime <= '").append(endDate).append("' ELSE o.obs_datetime <= '").append(endDate)
@@ -127,20 +127,20 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		Date endDate = Date.valueOf(AppProperties.getInstance().getEndDate());
+		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
 		StringBuilder sb = new StringBuilder("SELECT o.*, ")
 		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, ")
 		        .append("p.patient_uuid, e.encounter_datetime as encounter_date, cn.name as concept_name, ")
-		        .append("cn1.name as value_coded_name FROM ").append(AppProperties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
+		        .append("cn1.name as value_coded_name FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(AppProperties.getInstance().getLocationsIdsString()).append(") LEFT JOIN ")
-		        .append(AppProperties.getInstance().getDatabaseName())
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") LEFT JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")
-		        .append("cn.locale_preferred LEFT JOIN ").append(AppProperties.getInstance().getDatabaseName())
+		        .append("cn.locale_preferred LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
 		        .append("cn1.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS))
 		        .append(" AND CASE WHEN o.concept_id = ").append(VALUE_DATETIME_CONCEPT)
