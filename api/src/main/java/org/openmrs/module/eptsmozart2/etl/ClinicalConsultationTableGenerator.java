@@ -85,7 +85,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	protected String countQuery() {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(AppProperties.getInstance().getDatabaseName())
 		        .append(".encounter e JOIN ").append(AppProperties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON e.patient_id = p.patient_id JOIN ")
+		        .append(".patient p ON e.patient_id = p.patient_id LEFT JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
@@ -101,7 +101,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		        "SELECT e.*, o.obs_datetime, o.concept_id, o.value_datetime, o.obs_datetime, p.patient_uuid FROM ")
 		        .append(AppProperties.getInstance().getDatabaseName()).append(".encounter e JOIN ")
 		        .append(AppProperties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON e.patient_id = p.patient_id JOIN ")
+		        .append(".patient p ON e.patient_id = p.patient_id LEFT JOIN ")
 		        .append(AppProperties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")
 		        .append(SCHEDULED_DATE_CONCEPT).append(" WHERE !e.voided AND e.encounter_type IN ")
