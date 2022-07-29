@@ -83,8 +83,9 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter e JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id = ")

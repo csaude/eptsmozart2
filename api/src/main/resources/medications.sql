@@ -2,6 +2,7 @@ CREATE TABLE `medications` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `encounter_id` varchar(255) DEFAULT NULL,
   `encounter_uuid` char(38) DEFAULT NULL,
+  `encounter_type` int(11) DEFAULT NULL,
   `patient_id` varchar(255) DEFAULT NULL,
   `patient_uuid` char(38) DEFAULT NULL,
   `medication_pickup_date` varchar(255) DEFAULT NULL,

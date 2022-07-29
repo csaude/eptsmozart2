@@ -111,8 +111,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")

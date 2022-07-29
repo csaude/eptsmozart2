@@ -31,9 +31,9 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "medications.sql";
 	
-	private static final Integer[] REGIMEN_CONCEPT_IDS = new Integer[] { 1087, 1088, 21187, 21188, 21190, 23893 };
+	public static final Integer[] REGIMEN_CONCEPT_IDS = new Integer[] { 1087, 1088, 21187, 21188, 21190, 23893 };
 	
-	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 18, 53 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 18, 52, 53 };
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
@@ -50,11 +50,11 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append("formulation, formulation_concept, formulation_drug, quantity, dosage, next_pickup_date, ")
 				.append("mode_dispensation, mode_dispensation_concept, med_line, med_line_concept, type_dispensation, type_dispensation_concept, ")
 		        .append("alternative_line, alternative_line_concept, regimen_change_reason, regimen_change_reason_concept, ")
-				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, source_database, regimen_id, medication_uuid) ")
-		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, source_database, ")
+				.append("regimen_id, medication_uuid, encounter_type) ")
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
-		positionsNotSet.addAll(Arrays.asList(8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27));
 		PreparedStatement fetchMedsDetailsStatement = null;
 		ResultSet medObsResults = null;
 		try (Connection connection = ConnectionPool.getConnection()) {
@@ -75,13 +75,30 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			int count = 0;
 			Map<Integer, Object> parameterCache = new HashedMap();
 			while (results.next() && count < batchSize) {
+				positionsNotSet.addAll(Arrays.asList(8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27));
 				parameterCache.clear();
 				int currentEncounterId = results.getInt("encounter_id");
+				int currentEncounterTypeId = results.getInt("encounter_type");
+
 				insertStatement.setInt(1, currentEncounterId);
 				insertStatement.setString(2, results.getString("encounter_uuid"));
 				insertStatement.setInt(3, results.getInt("patient_id"));
 				insertStatement.setString(4, results.getString("patient_uuid"));
+				insertStatement.setInt(31, currentEncounterTypeId);
 
+				//MOZ2-41
+				if(currentEncounterTypeId == 52) {
+					insertStatement.setDate(5, results.getDate("value_datetime"));
+					insertStatement.setString(28, Mozart2Properties.getInstance().getDatabaseName());
+					insertStatement.setString(30, results.getString("medication_uuid"));
+					insertStatement.setNull(29, Types.INTEGER);
+					insertStatement.setNull(6, Types.VARCHAR);
+					insertStatement.setNull(7, Types.INTEGER);
+					setEmptyPositions(positionsNotSet);
+					insertStatement.addBatch();
+					++count;
+					continue;
+				}
 				parameterCache.put(5, results.getDate("encounter_date"));
 				insertStatement.setDate(5, results.getDate("encounter_date"));
 
@@ -359,36 +376,45 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(")")
-		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("'");
+		        .append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.location_id IN (")
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString())
+		        .append(")")
+		        .append(" WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id=23866 ELSE o.concept_id IN ")
+		        .append(inClause(REGIMEN_CONCEPT_IDS)).append(" END AND o.obs_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
 		return sb.toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder("SELECT o.obs_id, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
-		        .append("o.value_coded, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_datetime as encounter_date, cn.name as regimen FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		        .append(
+		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
+		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime as encounter_date, cn.name as regimen FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
-		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") JOIN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.location_id IN (")
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString())
+		        .append(") LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
-		        .append("cn.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("' ORDER BY o.obs_id");
+		        .append(
+		            "cn.locale_preferred  WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id=23866 ELSE o.concept_id IN ")
+		        .append(inClause(REGIMEN_CONCEPT_IDS)).append(" END AND o.obs_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

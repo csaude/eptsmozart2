@@ -85,9 +85,9 @@ public class LocationTableGenerator implements Generator {
     }
 	
 	private String getUpdateCodeQuery(String codeColumn, int attributeTypeId) {
-		return new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".location l,")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location_attribute la ").append("SET l.")
-		        .append(codeColumn)
+		return new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".location l,").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location_attribute la ").append("SET l.").append(codeColumn)
 		        .append(" = la.value_reference WHERE l.location_id=la.location_id AND la.attribute_type_id = ")
 		        .append(attributeTypeId).append(" AND !la.voided").toString();
 	}

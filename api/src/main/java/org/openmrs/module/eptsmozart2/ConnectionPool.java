@@ -46,8 +46,8 @@ public class ConnectionPool {
 		}
 		catch (SQLException sqle) {
 			LOGGER.error("Error connecting to the database using url: {}, username: {} and password: {}", Mozart2Properties
-			        .getInstance().getJdbcUrl(), Mozart2Properties.getInstance().getDbUsername(), Mozart2Properties.getInstance()
-			        .getDbPassword());
+			        .getInstance().getJdbcUrl(), Mozart2Properties.getInstance().getDbUsername(), Mozart2Properties
+			        .getInstance().getDbPassword());
 			throw sqle;
 		}
 	}
