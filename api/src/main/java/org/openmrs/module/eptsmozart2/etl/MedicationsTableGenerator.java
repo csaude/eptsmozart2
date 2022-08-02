@@ -69,7 +69,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 					.append(Mozart2Properties.getInstance().getDatabaseName()).append(".concept_name cn ON o.value_coded = cn.concept_id ")
 					.append("AND !cn.voided AND cn.locale='en' AND cn.locale_preferred ")
 					.append("WHERE o.encounter_id = ? AND o.concept_id IN (1711, 1715, 165256, 23740, 5096, 165174, 21151, 23742, 21190, 21187,")
-					.append("21188, 23739, 23742, 1792, 2015, 6223)").toString();
+					.append("21188, 23739, 23742, 1792, 2015, 6223, 1190)").toString();
 			
 			fetchMedsDetailsStatement = connection.prepareStatement(fetchMoreObsSql);
 			int count = 0;
@@ -77,8 +77,9 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			while (results.next() && count < batchSize) {
 				positionsNotSet.addAll(Arrays.asList(8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27));
 				parameterCache.clear();
-				int currentEncounterId = results.getInt("encounter_id");
-				int currentEncounterTypeId = results.getInt("encounter_type");
+				final int currentEncounterId = results.getInt("encounter_id");
+				final int currentEncounterTypeId = results.getInt("encounter_type");
+				final int currentConceptId = results.getInt("concept_id");
 
 				insertStatement.setInt(1, currentEncounterId);
 				insertStatement.setString(2, results.getString("encounter_uuid"));
@@ -99,15 +100,22 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 					++count;
 					continue;
 				}
-				parameterCache.put(5, results.getDate("encounter_date"));
-				insertStatement.setDate(5, results.getDate("encounter_date"));
+
+				// MOZ2-43
+				if(currentEncounterTypeId == 53 && Arrays.asList( 21187, 21188, 21190).contains(currentConceptId)) {
+					parameterCache.put(5, results.getDate("obs_datetime"));
+					insertStatement.setDate(5, results.getDate("obs_datetime"));
+				} else {
+					parameterCache.put(5, results.getDate("encounter_date"));
+					insertStatement.setDate(5, results.getDate("encounter_date"));
+				}
 
 				parameterCache.put(6, results.getString("regimen"));
 				insertStatement.setString(6, results.getString("regimen"));
 				insertStatement.setInt(7, results.getInt("value_coded"));
 
 				insertStatement.setString(28, Mozart2Properties.getInstance().getDatabaseName());
-				insertStatement.setInt(29, results.getInt("concept_id"));
+				insertStatement.setInt(29, currentConceptId);
 				insertStatement.setString(30, results.getString("medication_uuid"));
 
 				fetchMedsDetailsStatement.clearParameters();
@@ -119,6 +127,13 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 					Integer obsGrouper = medObsResults.getInt("obs_group_id");
 					obsGrouper = obsGrouper == 0 ? null : obsGrouper;
 					switch(conceptId) {
+						case 1190:
+							// MOZ2-43
+							if(currentConceptId == 23893 && currentEncounterTypeId == 53) {
+								// Overwrite the medication_pickup_date.
+								insertStatement.setDate(5, medObsResults.getDate("value_datetime"));
+							}
+							break;
 						case 165256:
 							// formulation
 							if(obsGrouper != null) {
