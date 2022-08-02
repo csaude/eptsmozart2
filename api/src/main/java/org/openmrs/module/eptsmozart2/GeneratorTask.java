@@ -134,7 +134,7 @@ public class GeneratorTask implements Task, Callable<Void> {
 		return Void.TYPE.newInstance();
 	}
 
-	private static void initializeVariables() {
+	public static void initializeVariables() {
         GENERATORS.clear();
         service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
     }

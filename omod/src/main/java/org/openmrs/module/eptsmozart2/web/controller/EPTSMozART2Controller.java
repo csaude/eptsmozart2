@@ -120,6 +120,11 @@ public class EPTSMozART2Controller {
 				progressStatuses.replace(generator.getTable(),
 						new StatusInfo(generator.getTable(), generator.getCurrentlyGenerated(), generator.getToBeGenerated()));
 			});
+
+			// clear the task
+			if(!GENERATOR_TASK.isExecuting()) {
+				GENERATOR_TASK.initializeVariables();
+			}
             return progressStatuses;
 		}
 		return INITIAL_STATUSES;
