@@ -33,6 +33,8 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	
 	public static final Integer[] REGIMEN_CONCEPT_IDS = new Integer[] { 1087, 1088, 21187, 21188, 21190, 23893 };
 	
+	public static final Integer[] REGIMEN_CONCEPT_IDS_ENCTYPE_53 = new Integer[] { 1088, 21187, 21188, 21190, 23893 };
+	
 	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 18, 52, 53 };
 	
 	@Override
@@ -392,19 +394,18 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	@Override
 	protected String countQuery() {
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" AND e.location_id IN (")
-		        .append(Mozart2Properties.getInstance().getLocationsIdsString())
-		        .append(")")
-		        .append(" WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id=23866 ELSE o.concept_id IN ")
-		        .append(inClause(REGIMEN_CONCEPT_IDS)).append(" END AND o.obs_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") ")
+		        .append("WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
+		        .append("WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
+		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
+		        .append(" END AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+		        .append("'");
 		return sb.toString();
 	}
 	
@@ -427,9 +428,11 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
 		        .append(
-		            "cn.locale_preferred  WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id=23866 ELSE o.concept_id IN ")
-		        .append(inClause(REGIMEN_CONCEPT_IDS)).append(" END AND o.obs_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
+		            "cn.locale_preferred  WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
+		        .append("WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
+		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
+		        .append(" END AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+		        .append("' ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
