@@ -411,7 +411,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT o.obs_id, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
+		StringBuilder sb = new StringBuilder("SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
 		        .append(
 		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
 		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime as encounter_date, cn.name as regimen FROM ")
