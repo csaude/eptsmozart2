@@ -404,14 +404,16 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append("WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
 		        .append("WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
 		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" END AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("'");
+		        .append(" END AND CASE WHEN o.concept_id = 23866 THEN o.value_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ELSE o.obs_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' END");
 		return sb.toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
+		StringBuilder sb = new StringBuilder(
+		        "SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
 		        .append(
 		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
 		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime as encounter_date, cn.name as regimen FROM ")
@@ -431,8 +433,9 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		            "cn.locale_preferred  WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
 		        .append("WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
 		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" END AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("' ORDER BY o.obs_id");
+		        .append(" END AND CASE WHEN o.concept_id = 23866 THEN o.value_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ELSE o.obs_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' END ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
