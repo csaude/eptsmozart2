@@ -104,9 +104,14 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				}
 
 				// MOZ2-43
-				if(currentEncounterTypeId == 53 && Arrays.asList( 21187, 21188, 21190).contains(currentConceptId)) {
-					parameterCache.put(5, results.getDate("obs_datetime"));
-					insertStatement.setDate(5, results.getDate("obs_datetime"));
+				if(currentEncounterTypeId == 53) {
+					if(Arrays.asList( 21187, 21188, 21190).contains(currentConceptId)) {
+						parameterCache.put(5, results.getDate("obs_datetime"));
+						insertStatement.setDate(5, results.getDate("obs_datetime"));
+					} else if(currentConceptId == 23893) {
+						// MOZ2-48
+						insertStatement.setNull(5, Types.DATE);
+					}
 				} else {
 					parameterCache.put(5, results.getDate("encounter_date"));
 					insertStatement.setDate(5, results.getDate("encounter_date"));
@@ -133,6 +138,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 							// MOZ2-43
 							if(currentConceptId == 23893 && currentEncounterTypeId == 53) {
 								// Overwrite the medication_pickup_date.
+								parameterCache.put(5, medObsResults.getDate("value_datetime"));
 								insertStatement.setDate(5, medObsResults.getDate("value_datetime"));
 							}
 							break;
@@ -260,7 +266,13 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 						insertStatement.setString(2, results.getString("encounter_uuid"));
 						insertStatement.setInt(3, results.getInt("patient_id"));
 						insertStatement.setString(4, results.getString("patient_uuid"));
-						insertStatement.setDate(5, results.getDate("encounter_date"));
+
+						if(parameterCache.containsKey(5)) {
+							insertStatement.setDate(5, (Date) parameterCache.get(5));
+						} else {
+							insertStatement.setNull(5, Types.DATE);
+						}
+						
 						insertStatement.setString(6, results.getString("regimen"));
 						insertStatement.setInt(7, results.getInt("value_coded"));
 						insertStatement.setInt(29, results.getInt("concept_id"));
