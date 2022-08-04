@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -36,6 +37,27 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	public static final Integer[] REGIMEN_CONCEPT_IDS_ENCTYPE_53 = new Integer[] { 1088, 21187, 21188, 21190, 23893 };
 	
 	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 18, 52, 53 };
+
+	public static final Map<Integer, Map<Integer, String>> ENC_TYPE5_MED_LINES = new HashMap<>(5);
+
+	static {
+		Map<Integer, String> firstLine = new HashMap<>();
+		firstLine.put(21150, "FIRST LINE");
+
+		Map<Integer, String> secondLine = new HashMap<>();
+		secondLine.put(21148, "SECOND LINE");
+
+		Map<Integer, String> thirdLine = new HashMap<>();
+		thirdLine.put(21149, "THIRD LINE");
+
+		Map<Integer, String> alternativeLine = new HashMap<>();
+		alternativeLine.put(23741, "ALTERNATIVE 1st LINE OF THE ART");
+
+		ENC_TYPE5_MED_LINES.put(23893, firstLine);
+		ENC_TYPE5_MED_LINES.put(21187, secondLine);
+		ENC_TYPE5_MED_LINES.put(21188, thirdLine);
+		ENC_TYPE5_MED_LINES.put(21190, alternativeLine);
+	}
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
@@ -115,6 +137,17 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				} else {
 					parameterCache.put(5, results.getDate("encounter_date"));
 					insertStatement.setDate(5, results.getDate("encounter_date"));
+				}
+
+				// MOZ2-49
+				if(currentEncounterTypeId == 53 && Arrays.asList( 21187, 21188, 21190, 23893).contains(currentConceptId)) {
+					Map.Entry<Integer, String> entry = ENC_TYPE5_MED_LINES.get(currentConceptId).entrySet().iterator().next();
+					parameterCache.put(16, entry.getValue());
+					insertStatement.setString(16, entry.getValue());
+
+					parameterCache.put(17, entry.getKey());
+					insertStatement.setInt(17, entry.getKey());
+					positionsNotSet.removeAll(Arrays.asList(16, 17));
 				}
 
 				parameterCache.put(6, results.getString("regimen"));
@@ -201,12 +234,14 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 							break;
 						case 21151:case 23893:case 21190:case 21187:case 21188:
 							// med_line
-							parameterCache.put(16, medObsResults.getString("concept_name"));
-							insertStatement.setString(16, medObsResults.getString("concept_name"));
+							if(!(currentEncounterTypeId == 53 && Arrays.asList( 21187, 21188, 21190, 23893).contains(conceptId))) {
+								parameterCache.put(16, medObsResults.getString("concept_name"));
+								insertStatement.setString(16, medObsResults.getString("concept_name"));
 
-							parameterCache.put(17, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(17, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(16, 17));
+								parameterCache.put(17, medObsResults.getInt("value_coded"));
+								insertStatement.setInt(17, medObsResults.getInt("value_coded"));
+								positionsNotSet.removeAll(Arrays.asList(16, 17));
+							}
 							break;
 						case 23739:
 							// type_dispensation
