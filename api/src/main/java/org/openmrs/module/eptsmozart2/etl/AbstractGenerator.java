@@ -108,6 +108,17 @@ public abstract class AbstractGenerator implements Generator {
 		return toBeGenerated;
 	}
 	
+	@Override
+	public void cancel() throws SQLException {
+		if (selectStatement != null) {
+			selectStatement.cancel();
+		}
+		
+		if (insertStatement != null) {
+			insertStatement.cancel();
+		}
+	}
+	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException;
 	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException;

@@ -46,7 +46,7 @@ public class EPTSMozART2Controller {
 
 	private static final GeneratorTask GENERATOR_TASK = new GeneratorTask();
 	private static final Map<String, StatusInfo> INITIAL_STATUSES = new LinkedHashMap<>();
-	private static final ExecutorService SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
+	private static ExecutorService SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
 
 	static {
 		INITIAL_STATUSES.put("patient", new StatusInfo("patient", 0, 0));
@@ -85,6 +85,9 @@ public class EPTSMozART2Controller {
 			if(endDate != null) {
 		    	log.debug(String.format("Using end date %s for mozart2 generation", endDate.toString()));
 				Mozart2Properties.getInstance().setEndDate(endDate);
+			}
+			if(SINGLE_THREAD_EXECUTOR.isShutdown() || SINGLE_THREAD_EXECUTOR.isTerminated()) {
+				SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
 			}
 			SINGLE_THREAD_EXECUTOR.submit(GENERATOR_TASK);
 		} else {

@@ -23,6 +23,9 @@ public interface Generator extends Callable<Void> {
 	
 	Integer getToBeGenerated();
 
+	// Provide a default do nothing implementation
+	default void cancel() throws SQLException {}
+
 	default void createTable(String createTableSql) throws IOException, SQLException {
 		try(Connection connection = ConnectionPool.getConnection();
 			Statement statement = connection.createStatement()) {

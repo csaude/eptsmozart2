@@ -64,12 +64,14 @@
                 }
             })
             .then(data => {
-                console.log('Returned data:', data);
-                $j('#progress-table').css('visibility', 'visible');
+                console.log('Cancellation Returned data:', data);
+                $j('#progress-table').css('visibility', 'hidden');
                 data.forEach(tableEntry => {
-                    tableProgress(tableEntry);
+                    // Reset progress bar
+                    $j('#' + tableEntry.table + '-progress-id').progressbar({ value: 0});
                 });
                 $j('#mozart2-button').prop('disabled', false);
+                $j('#mozart2-cancel-button').prop('disabled', false);
                 $j('#mozart2-cancel-button').css('visibility', 'hidden');
             }).catch(error => {
                 console.log(error);
@@ -229,6 +231,7 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
+                    $j('#mozart2-cancel-button').css('visibility', 'hidden');
                 }
             }).catch(error => {
                 console.log(error);

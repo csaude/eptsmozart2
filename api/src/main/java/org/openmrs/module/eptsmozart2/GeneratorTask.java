@@ -124,6 +124,13 @@ public class GeneratorTask implements Task, Callable<Void> {
 	
 	@Override
 	public void shutdown() {
+		for(Generator generator: GENERATORS) {
+			try {
+				generator.cancel();
+			} catch (SQLException e) {
+				LOGGER.error("An error occurred while canceling generator for table: {}", generator.getTable(), e);
+			}
+		}
 		service.shutdownNow();
 		taskIsRunning.set(false);
 	}
