@@ -36,8 +36,6 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
 	public static final Integer FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID = 23722;
 
-	public static final Integer FICHA_CLINICA_ENC_TYPE = 6;
-
 	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 13, 51, 53 };
 
 	public static final Map<Integer, String> CONCEPT_UNITS = new HashMap<>();
@@ -135,7 +133,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     positionsNotSet.remove(12);
                 }
 
-                if(Arrays.asList(856, 1305, 23722, 22772).contains(conceptId)) {
+                if(Arrays.asList(1305, 23722, 22772).contains(conceptId)) {
                     //13. result_qualitative_id, 14. result_qualitative_name
                     insertStatement.setInt(13, results.getInt("value_coded"));
                     insertStatement.setString(14, results.getString("value_coded_name"));
