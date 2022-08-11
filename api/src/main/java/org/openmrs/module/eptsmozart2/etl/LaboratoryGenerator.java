@@ -30,11 +30,17 @@ public class LaboratoryGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "laboratory.sql";
 	
-	private static final Integer[] LAB_CONCEPT_IDS = new Integer[] { 730, 856, 1305, 1695, 5497, 22772, 23722 };
-	
-	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 13, 51, 53 };
+	public static final Integer[] LAB_CONCEPT_IDS = new Integer[] { 730, 856, 1305, 1695, 5497, 22772 };
 
-	private static final Map<Integer, String> CONCEPT_UNITS = new HashMap<>();
+	public static final Integer[] FICHA_CLINICA_LAB_ANSWERS = new Integer[] { 856, 1695 };
+
+	public static final Integer FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID = 23722;
+
+	public static final Integer FICHA_CLINICA_ENC_TYPE = 6;
+
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 13, 51, 53 };
+
+	public static final Map<Integer, String> CONCEPT_UNITS = new HashMap<>();
 
 	static {
 	    CONCEPT_UNITS.put(730, "%");
@@ -92,6 +98,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 insertStatement.setInt(7, conceptId);
                 insertStatement.setBoolean(9, false);
                 if(conceptId == 23722) {
+                    // request and order_date
                     insertStatement.setBoolean(9, true);
                     insertStatement.setDate(10, results.getDate("obs_datetime"));
                     positionsNotSet.remove(10);
@@ -109,6 +116,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                             positionsNotSet.remove(10);
                             orderResultDateSet = true;
                         } else if(resultConceptId == 23821) {
+                            //sample_collection_date
                             insertStatement.setDate(11, orderDateSpecimenTypeResults.getDate("value_datetime"));
                             positionsNotSet.remove(11);
                             orderResultDateSet = true;
@@ -122,11 +130,13 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 }
 
                 if(!orderResultDateSet && conceptId != 23722 && (encounterType == 13 || encounterType == 51 || encounterType == 6)) {
+                    //result_report_date
                     insertStatement.setDate(12, results.getDate("encounter_date"));
                     positionsNotSet.remove(12);
                 }
 
                 if(Arrays.asList(856, 1305, 23722, 22772).contains(conceptId)) {
+                    //13. result_qualitative_id, 14. result_qualitative_name
                     insertStatement.setInt(13, results.getInt("value_coded"));
                     insertStatement.setString(14, results.getString("value_coded_name"));
                     positionsNotSet.remove(13);
@@ -185,8 +195,10 @@ public class LaboratoryGenerator extends AbstractGenerator {
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN (")
                 .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(")")
-                .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS))
-                .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
+                .append(" WHERE !o.voided AND ((o.concept_id = ").append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
+                .append(" AND o.value_coded IN ").append(inClause(FICHA_CLINICA_LAB_ANSWERS)).append(") OR o.concept_id IN ")
+                .append(inClause(LAB_CONCEPT_IDS)).append(") AND o.obs_datetime <= '")
+                .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
 		return sb.toString();
 	}
 	
@@ -204,8 +216,10 @@ public class LaboratoryGenerator extends AbstractGenerator {
 		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")
 		        .append("cn.locale_preferred LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
-		        .append("cn1.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(LAB_CONCEPT_IDS))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
+		        .append("cn1.locale_preferred  WHERE !o.voided AND ((o.concept_id = ").append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
+                .append(" AND o.value_coded IN ").append(inClause(FICHA_CLINICA_LAB_ANSWERS)).append(") OR o.concept_id IN ")
+                .append(inClause(LAB_CONCEPT_IDS)).append(") AND o.obs_datetime <= '")
+                .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
