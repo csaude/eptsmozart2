@@ -94,6 +94,9 @@ public class GeneratorTask implements Task, Callable<Void> {
 			service.shutdownNow();
 
 			taskIsRunning.set(false);
+
+			// Create the dumpfile
+			Utils.createMozart2SqlDump();
 		}
 		catch (SQLException e) {
 			e.printStackTrace();

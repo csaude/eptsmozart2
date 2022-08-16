@@ -13,6 +13,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.BaseModuleActivator;
 
+import java.io.File;
+
 /**
  * This class contains the logic that is run every time this module is either started or shutdown
  */
@@ -25,6 +27,10 @@ public class EPTSMozART2Activator extends BaseModuleActivator {
 	 */
 	public void started() {
 		log.info("Started EPTS MozART 2");
+		boolean created = new File(Utils.getMozart2Directory()).mkdirs();
+		if (created) {
+			log.info("Created Mozart2 directory " + Utils.getMozart2Directory());
+		}
 	}
 	
 	/**
