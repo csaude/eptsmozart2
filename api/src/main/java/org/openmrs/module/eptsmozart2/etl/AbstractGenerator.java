@@ -11,11 +11,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Observable;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public abstract class AbstractGenerator implements Generator {
+public abstract class AbstractGenerator extends Observable implements Generator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	

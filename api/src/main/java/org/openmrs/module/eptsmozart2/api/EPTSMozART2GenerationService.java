@@ -9,30 +9,33 @@
  */
 package org.openmrs.module.eptsmozart2.api;
 
+import org.openmrs.User;
 import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.eptsmozart2.EPTSMozART2Config;
-import org.openmrs.module.eptsmozart2.Item;
+import org.openmrs.module.eptsmozart2.Mozart2Generation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * The main service of this module, which is exposed for other modules. See
  * moduleApplicationContext.xml on how it is wired up.
  */
-public interface EPTSMozART2Service extends OpenmrsService {
+public interface EPTSMozART2GenerationService extends OpenmrsService {
 	
 	/**
 	 * Returns an item by uuid. It can be called by any authenticated user. It is fetched in read
 	 * only transaction.
 	 * 
-	 * @param uuid
-	 * @return
+	 * @param id
+	 * @return Mozart2Generation
 	 * @throws APIException
 	 */
 	@Authorized()
 	@Transactional(readOnly = true)
-	Item getItemByUuid(String uuid) throws APIException;
+	Mozart2Generation getMozart2GenerationById(Integer id) throws APIException;
 	
 	/**
 	 * Saves an item. Sets the owner to superuser, if it is not set. It can be called by users with
@@ -42,7 +45,38 @@ public interface EPTSMozART2Service extends OpenmrsService {
 	 * @return
 	 * @throws APIException
 	 */
-	@Authorized(EPTSMozART2Config.MODULE_PRIVILEGE)
 	@Transactional
-	Item saveItem(Item item) throws APIException;
+	Mozart2Generation saveMozartGeneration(Mozart2Generation item) throws APIException;
+	
+	/**
+	 * @return
+	 */
+	@Transactional
+	Integer getCountOfAllMozart2Generations();
+	
+	/**
+	 * @return
+	 */
+	@Transactional
+	List<Mozart2Generation> getAllMozart2Generations();
+	
+	/**
+	 * @param startIndex
+	 * @param pageSize
+	 * @return
+	 * @throws APIException
+	 */
+	@Transactional
+	List<Mozart2Generation> getMozart2Generations(Integer startIndex, Integer pageSize) throws APIException;
+	
+	/**
+	 * @param executor
+	 * @param startIndex
+	 * @param pageSize
+	 * @return
+	 * @throws APIException
+	 */
+	@Transactional
+	List<Mozart2Generation> getMozart2GenerationsByExecutor(final User executor, Integer startIndex, Integer pageSize)
+	        throws APIException;
 }

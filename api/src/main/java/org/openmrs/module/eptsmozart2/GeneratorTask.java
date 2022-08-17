@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
 
+import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.etl.ClinicalConsultationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.FormTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.Generator;
@@ -19,7 +20,10 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Observable;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/10/22.
  */
-public class GeneratorTask implements Task, Callable<Void> {
+public class GeneratorTask extends Observable implements Task, Callable<Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorTask.class);
 	private static final Integer NUMBER_OF_THREADS = 10;
 	private TaskDefinition taskDefinition;
@@ -95,6 +99,16 @@ public class GeneratorTask implements Task, Callable<Void> {
 
 			taskIsRunning.set(false);
 
+			Map<String, String> parameters = new LinkedHashMap<>();
+			parameters.put("name", "generatorTask");
+			parameters.put("status", "done");
+			this.setChanged();
+			try {
+				Context.openSession();
+				this.notifyObservers(parameters);
+			} finally {
+				Context.closeSession();
+			}
 			// Create the dumpfile
 			Utils.createMozart2SqlDump();
 		}
