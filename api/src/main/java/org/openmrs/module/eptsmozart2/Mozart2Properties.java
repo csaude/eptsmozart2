@@ -1,5 +1,6 @@
 package org.openmrs.module.eptsmozart2;
 
+import org.apache.commons.lang.StringUtils;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,9 +45,11 @@ public class Mozart2Properties {
 	public static final String LOG_LEVEL_PROP = "log.level";
 	
 	private static final String DEFAULT_END_DATE_PATTERN = "dd-MM-yyyy";
-	
+
+	private static final String DEFAULT_NEW_DB_NAME = "mozart2";
+
 	private static final int DEFAULT_BATCH_SIZE = 20000;
-	
+
 	private static Mozart2Properties mozart2Properties = null;
 	
 	private static final Properties APP_PROPS = new Properties();
@@ -148,7 +151,10 @@ public class Mozart2Properties {
 	}
 	
 	public String getNewDatabaseName() {
-		return APP_PROPS.getProperty(NEW_DB_NAME_PROP);
+		if(StringUtils.isNotBlank(APP_PROPS.getProperty(NEW_DB_NAME_PROP))) {
+			return APP_PROPS.getProperty(NEW_DB_NAME_PROP).trim();
+		}
+		return DEFAULT_NEW_DB_NAME;
 	}
 	
 	public String getHost() {

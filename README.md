@@ -48,7 +48,7 @@ db.username=<username>
 db.password=<password>
  
 # The new mozart2 database
-# Replace <new database to be created> with an actual value.
+# Replace <new database to be created> with an actual value. Leave blank to use the default which is mozart2
 newDb.name=<new database to be created>
  
 # Comma separated list of Locations IDs of the locations for which you wish to extract patient data.
