@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.openmrs.api.context.Context;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,10 @@ import java.util.Set;
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/21/21.
  */
 public class Mozart2Properties {
-	
 	private static final Logger LOGGER = LoggerFactory.getLogger(Mozart2Properties.class);
-	
+
+	public final static String MOZART2_APPNAME_GP_NAME = "eptsmozart2.application.name";
+
 	public final static String JDBC_URL_PROP = "jdbc.url";
 	
 	public final static String DB_PASSWORD_PROP = "db.password";
@@ -53,7 +55,9 @@ public class Mozart2Properties {
 	private static Mozart2Properties mozart2Properties = null;
 	
 	private static final Properties APP_PROPS = new Properties();
-	
+
+	private static  Properties runtimeProperties = null;
+
 	private LocalDate endDate;
 	
 	private DateTimeFormatter endDateFormatter;
@@ -86,6 +90,9 @@ public class Mozart2Properties {
                     // TODO: We have a problem
                 }
                 APP_PROPS.load(OpenmrsUtil.getResourceInputStream(mozart2PropFile.toURI().toURL()));
+                String applicationName = Context.getAdministrationService().getGlobalProperty(MOZART2_APPNAME_GP_NAME, "openmrs");
+
+                runtimeProperties = OpenmrsUtil.getRuntimeProperties(applicationName);
 
 				String[] locIds = APP_PROPS.getProperty(LOCATIONS_IDS_PROP).split(",");
 				for(String locId: locIds) {
@@ -135,7 +142,14 @@ public class Mozart2Properties {
     }
 	
 	public String getJdbcUrl() {
-		return APP_PROPS.getProperty(JDBC_URL_PROP);
+		if(StringUtils.isNotBlank(APP_PROPS.getProperty(JDBC_URL_PROP))) {
+			return APP_PROPS.getProperty(JDBC_URL_PROP);
+		}
+		if(runtimeProperties != null && StringUtils.isNotBlank(runtimeProperties.getProperty("connection.url"))) {
+			return runtimeProperties.getProperty("connection.url");
+		}
+		LOGGER.warn("JDBC connection URL is blank, EPTS Mozart2 needs it to run");
+		return null;
 	}
 	
 	public String getDatabaseName() {
@@ -143,11 +157,25 @@ public class Mozart2Properties {
 	}
 	
 	public String getDbUsername() {
-		return APP_PROPS.getProperty(DB_USERNAME_PROP);
+		if(StringUtils.isNotBlank(APP_PROPS.getProperty(DB_USERNAME_PROP))) {
+			return APP_PROPS.getProperty(DB_USERNAME_PROP);
+		}
+		if(StringUtils.isNotBlank(runtimeProperties.getProperty("connection.username"))) {
+			return runtimeProperties.getProperty("connection.username");
+		}
+		LOGGER.warn("JDBC connection username is blank, EPTS Mozart2 needs it to run");
+		return null;
 	}
 	
 	public String getDbPassword() {
-		return APP_PROPS.getProperty(DB_PASSWORD_PROP);
+		if(StringUtils.isNotBlank(APP_PROPS.getProperty(DB_PASSWORD_PROP))) {
+			return APP_PROPS.getProperty(DB_PASSWORD_PROP);
+		}
+		if(StringUtils.isNotBlank(runtimeProperties.getProperty("connection.password"))) {
+			return runtimeProperties.getProperty("connection.password");
+		}
+		LOGGER.warn("JDBC connection password is blank, EPTS Mozart2 needs it to run");
+		return null;
 	}
 	
 	public String getNewDatabaseName() {

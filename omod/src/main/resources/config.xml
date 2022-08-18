@@ -43,18 +43,16 @@
 		<description>Allows user to access Mozart2 Generate Page</description>
 	</privilege>
 
-	<!-- Required Global Properties 
 	<globalProperty>
-		<property>@MODULE_ID@.someProperty</property>
+		<property>@MODULE_ID@.application.name</property>
 		<defaultValue></defaultValue>
 		<description>
-			A description of the global property goes here.  The description
-			should explain enough for administrators to understand the purpose
-			and possible values for the global property.
+			The application name used in context path. This is used to load the correct runtime properties file
+			by using the correct name because the file is named {APPLICATION_NAME}-runtime.properties. Leave blank to use
+			the default value which is openmrs.
 		</description>
 	</globalProperty>
-	/Required Global Properties -->
-	
+
 	<!--
 	<dwr>
 		<allow>
