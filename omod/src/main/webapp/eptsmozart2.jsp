@@ -30,6 +30,17 @@
         }
     }
 
+    function resetToBeGeneratedValuesAndProgressBars() {
+        var tableNames = Object.keys(tableProgressBarMap);
+        if(tableNames.length > 0) {
+            tableNames.forEach(function(table) {
+                $j('#' + table + '-to-generate-value').html(0);
+                $j('#' + table + '-progress-id').progressbar('value', 0);
+                tableProgressBarMap[table].pulsate();
+            });
+        }
+    }
+
     function formatDateToISO(date) {
         var month = date.getMonth() + 1;
         if(month < 10) {
@@ -82,6 +93,7 @@
     function requestMozart2Generation() {
         $j('#mozart2-button').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'visible');
+        resetToBeGeneratedValuesAndProgressBars();
 
         var requestOptions = {
             method: 'POST',
@@ -228,7 +240,7 @@
                 data.forEach(tableEntry => {
                     if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
                         continueCheckingProgress = true;
-                    } else if(tableEntry.toBeGenerated === tableEntry.generated) {
+                    } else if(tableEntry.toBeGenerated === tableEntry.generated && tableEntry.generated > 0) {
                         tableProgressBarMap[tableEntry.table].keepOn = false;
                     }
                     tableProgress(tableEntry);
