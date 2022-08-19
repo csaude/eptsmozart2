@@ -83,6 +83,7 @@
                     $j('#' + tableEntry.table + '-progress-id').progressbar({ value: 0});
                 });
                 $j('#mozart2-button').prop('disabled', false);
+                $j('#end-date-picker').prop('disabled', false);
                 $j('#mozart2-cancel-button').prop('disabled', false);
                 $j('#mozart2-cancel-button').css('visibility', 'hidden');
             }).catch(error => {
@@ -92,6 +93,7 @@
 
     function requestMozart2Generation() {
         $j('#mozart2-button').prop('disabled', true);
+        $j('#end-date-picker').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'visible');
         resetToBeGeneratedValuesAndProgressBars();
 
@@ -130,6 +132,7 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
+                    $j('#end-date-picker').prop('disabled', false);
                     $j('#mozart2-cancel-button').css('visibility', 'hidden');
                 }
             }).catch(error => {
@@ -153,6 +156,7 @@
 
     function initialStatusRequest() {
         $j('#mozart2-button').prop('disabled', true);
+        $j('#end-date-picker').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'hidden');
 
         var requestOptions = {
@@ -201,6 +205,7 @@
                     $j('#progress-table').css('visibility', 'visible');
                 } else {
                     $j('#mozart2-button').prop('disabled', false);
+                    $j('#end-date-picker').prop('disabled', false);
                 }
 
                 if(continueCheckingProgress) {
@@ -211,6 +216,7 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
+                    $j('#end-date-picker').prop('disabled', false);
                 }
             }).catch(error => {
                 console.log(error);
@@ -253,6 +259,7 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
+                    $j('#end-date-picker').prop('disabled', false);
                     $j('#mozart2-cancel-button').css('visibility', 'hidden');
                 }
             }).catch(error => {
