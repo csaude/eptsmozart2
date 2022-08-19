@@ -12,6 +12,7 @@
     var localOpenmrsContextPath = '${pageContext.request.contextPath}';
     var progressUpdateSchedule = null;
     var TIME_INTERVAL_BETWEEN_STATUS_CHECK = 20000;
+    var tableProgressBarMap = {};
 
     class HttpError extends Error {
         constructor(response) {
@@ -124,11 +125,18 @@
             });
     }
 
-    function pulsateProgressBar(progressBarElement) {
-        progressBarElement.effect("pulsate", { times:1 }, 3000,function(){
-            //repeat after pulsating
-            pulsateProgressBar(progressBarElement);
-        });
+    function ProgressBarState(progressBarElement) {
+        this.progressBarElement = progressBarElement;
+        this.keepOn = true;
+        this.pulsate = function() {
+            var _that = this;
+            this.progressBarElement.effect("pulsate", { times:1 }, 3000,function(){
+                //repeat after pulsating
+                if(_that.keepOn) {
+                    _that.pulsate();
+                }
+            });
+        };
     }
 
     function initialStatusRequest() {
@@ -173,8 +181,8 @@
                             value: 0,
                         });
                     }
-
-                    pulsateProgressBar(progressBarElement);
+                    tableProgressBarMap[tableEntry.table] = new ProgressBarState(progressBarElement);
+                    tableProgressBarMap[tableEntry.table].pulsate();
                 });
 
                 if(progressTableVisible) {
@@ -220,6 +228,8 @@
                 data.forEach(tableEntry => {
                     if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
                         continueCheckingProgress = true;
+                    } else if(tableEntry.toBeGenerated === tableEntry.generated) {
+                        tableProgressBarMap[tableEntry.table].keepOn = false;
                     }
                     tableProgress(tableEntry);
                 });
