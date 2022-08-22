@@ -25,9 +25,19 @@
             <column name="date_completed" type="datetime"/>
             <column name="batch_size" type="int(11)"/>
             <column name="executor" type="int(11)"/>
+            <column name="sql_dump_path" type="varchar(255)"/>
         </createTable>
-        <addForeignKeyConstraint baseTableName="eptsmozart2_generation" baseColumnNames="executor" constraintName="eptsmozart2_executor_fk"
-                                 referencedTableName="user"
+    </changeSet>
+
+    <changeSet id="eptsmozart2-2022-08-17-11-47" author="Willa Mhawila">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="eptsmozart2_generation"/>
+        </preConditions>
+        <comment>
+            Adding foreign key for field executor in eptsmozart2_generation table
+        </comment>
+        <addForeignKeyConstraint baseTableName="eptsmozart2_generation" baseColumnNames="executor" constraintName="eptsmozart2_generation_executor_fk"
+                                 referencedTableName="users"
                                  referencedColumnNames="user_id"/>
     </changeSet>
 </databaseChangeLog>

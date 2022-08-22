@@ -9,20 +9,37 @@
  */
 package org.openmrs.module.eptsmozart2.web.controller;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.module.eptsmozart2.GenerationCoordinator;
+import org.openmrs.module.eptsmozart2.Mozart2Generation;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.StatusInfo;
+import org.openmrs.module.eptsmozart2.api.EPTSMozART2GenerationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -50,7 +67,8 @@ public class EPTSMozART2Controller {
 	@Autowired
 	protected GenerationCoordinator generationCoordinator;
 	
-	private static ExecutorService SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
+	@Autowired
+	protected EPTSMozART2GenerationService moz2GenService;
 	
 	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2.form", method = RequestMethod.GET)
 	public ModelAndView onGet() {
@@ -61,6 +79,7 @@ public class EPTSMozART2Controller {
 			modalAndView.getModelMap().addAttribute("statuses",
 			    getListOfStatuses(generationCoordinator.generateStatusInfo()));
 		}
+		modalAndView.getModelMap().addAttribute("generations", moz2GenService.getAllMozart2Generations());
 		return modalAndView;
 	}
 	
@@ -86,13 +105,7 @@ public class EPTSMozART2Controller {
 	@ResponseBody
 	public List<StatusInfo> cancelMozartGeneration() {
 		Map<String, StatusInfo> statusInfoMap = generationCoordinator.generateStatusInfo();
-		if (GENERATOR_TASK.isExecuting()) {
-			log.debug("Stopping Mozart2 generation");
-			GENERATOR_TASK.shutdown();
-			SINGLE_THREAD_EXECUTOR.shutdownNow();
-		} else {
-			log.debug("Mozart2 generation already finished, can't stop it");
-		}
+		generationCoordinator.cancelGeneration();
 		return getListOfStatuses(statusInfoMap);
 	}
 	
@@ -100,6 +113,23 @@ public class EPTSMozART2Controller {
 	@ResponseBody
 	public List<StatusInfo> getMozartStatus() {
 		return getListOfStatuses(generationCoordinator.generateStatusInfo());
+	}
+	
+	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2download.json")
+	public void getSqlDump(@RequestParam("id") Integer id, HttpServletResponse response) {
+		Mozart2Generation toDownload = moz2GenService.getMozart2GenerationById(id);
+		try {
+			InputStream is = new FileInputStream(toDownload.getSqlDumpPath());
+			response.setHeader(HttpHeaders.CONTENT_DISPOSITION,
+			    "attachment; filename=".concat(toDownload.getSqlDumpFilename()));
+			IOUtils.copy(is, response.getOutputStream());
+			response.flushBuffer();
+		}
+		catch (IOException ex) {
+			log.info(String.format("Error writing SQL dump '%s' file to output stream.", toDownload.getSqlDumpFilename()),
+			    ex);
+			throw new RuntimeException(ex);
+		}
 	}
 	
 	private static List<StatusInfo> getListOfStatuses(Map<String, StatusInfo> statusesMap) {

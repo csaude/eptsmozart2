@@ -1,5 +1,6 @@
 package org.openmrs.module.eptsmozart2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.openmrs.User;
 
@@ -42,6 +43,9 @@ public class Mozart2Generation {
 	@ManyToOne
 	@JoinColumn(name = "executor", nullable = false)
 	private User executor;
+	
+	@Column(name = "sql_dump_path")
+	private String sqlDumpPath;
 	
 	public Integer getId() {
 		return id;
@@ -89,5 +93,17 @@ public class Mozart2Generation {
 	
 	public void setExecutor(User executor) {
 		this.executor = executor;
+	}
+	
+	public String getSqlDumpPath() {
+		return sqlDumpPath;
+	}
+	
+	public void setSqlDumpPath(String sqlDumpPath) {
+		this.sqlDumpPath = sqlDumpPath;
+	}
+	
+	public String getSqlDumpFilename() {
+		return StringUtils.substringAfterLast(sqlDumpPath, "/");
 	}
 }

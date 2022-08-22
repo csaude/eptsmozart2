@@ -79,4 +79,12 @@ public interface EPTSMozART2GenerationService extends OpenmrsService {
 	@Transactional
 	List<Mozart2Generation> getMozart2GenerationsByExecutor(final User executor, Integer startIndex, Integer pageSize)
 	        throws APIException;
+	
+	/**
+	 * Fetches the last mozart2 generation
+	 * 
+	 * @return
+	 */
+	@Transactional
+	Mozart2Generation getLastMozart2Generation();
 }

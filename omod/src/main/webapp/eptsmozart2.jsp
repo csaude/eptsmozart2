@@ -302,4 +302,28 @@
 <div>
     <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;"><openmrs:message code="eptsmozart2.cancel.mozart2.button.label"/></button>
 </div>
+
+<div id="generations-table">
+    <table cellpadding="8" border="1" cellspacing="5" width="80%">
+        <thead>
+        <tr><th>S/N</th><th>Date started</th><th>Date completed</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+        <c:forEach items="${generations}" var="generation" varStatus="loop">
+            <tr>
+                <td>${loop.count}</td>
+                <td>${generation.dateStarted}</td>
+                <td>${generation.dateCompleted}</td>
+                <td>
+                    <c:if test="${not empty generation.sqlDumpPath}">
+                        <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json").concat("?id=").concat(generation.id)}'>
+                            <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
+                        </a>
+                    </c:if>
+                </td>
+            </tr>
+        </c:forEach>
+        </tbody>
+    </table>
+</div>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

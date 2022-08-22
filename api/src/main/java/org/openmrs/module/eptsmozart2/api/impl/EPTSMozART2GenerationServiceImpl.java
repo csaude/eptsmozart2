@@ -66,4 +66,9 @@ public class EPTSMozART2GenerationServiceImpl extends BaseOpenmrsService impleme
 	        throws APIException {
 		return dao.getMozart2Generations(executor, startIndex, pageSize);
 	}
+	
+	@Override
+	public Mozart2Generation getLastMozart2Generation() throws APIException {
+		return dao.getLastMozart2Generation();
+	}
 }
