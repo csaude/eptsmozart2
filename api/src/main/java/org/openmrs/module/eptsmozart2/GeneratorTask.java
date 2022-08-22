@@ -18,6 +18,7 @@ import org.openmrs.scheduler.TaskDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -110,7 +111,16 @@ public class GeneratorTask extends Observable implements Task, Callable<Void> {
 				Context.closeSession();
 			}
 			// Create the dumpfile
-			Utils.createMozart2SqlDump();
+			File dumpFile  = Utils.createMozart2SqlDump();
+			try {
+				parameters.replace("status",  "dumpFileDone");
+				parameters.put("filename", dumpFile.getCanonicalPath());
+				this.setChanged();
+				Context.openSession();
+				this.notifyObservers(parameters);
+			} finally {
+				Context.closeSession();
+			}
 		}
 		catch (SQLException e) {
 			e.printStackTrace();

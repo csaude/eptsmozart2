@@ -64,7 +64,7 @@ public class Utils {
 		}
 	}
 	
-	public static void createMozart2SqlDump() throws IOException, InterruptedException {
+	public static File createMozart2SqlDump() throws IOException, InterruptedException {
 		StringBuilder cmd = new StringBuilder("mysqldump -u").append(Mozart2Properties.getInstance().getDbUsername())
 		        .append(" -p").append(Mozart2Properties.getInstance().getDbPassword()).append(" --host=")
 		        .append(Mozart2Properties.getInstance().getHost()).append(" --port=")
@@ -72,7 +72,7 @@ public class Utils {
 		        .append(" --compact ").append(Mozart2Properties.getInstance().getNewDatabaseName());
 		
 		File file = getDumpFilePath().toFile();
-		
+
 		LOGGER.info("Creating SQL dump file {}", file.getName());
 		
 		ProcessBuilder processBuilder = new ProcessBuilder(cmd.toString().split(" "));
@@ -88,6 +88,7 @@ public class Utils {
 				while ((line = buf.readLine()) != null) {
 					LOGGER.error(line);
 				}
+				throw new IOException("Could not generate SQL dump file");
 			}
 		} else {
 			LOGGER.info("SQL dump file generated successfully");
@@ -97,6 +98,7 @@ public class Utils {
 					LOGGER.info(line);
 				}
 			}
+			return file;
 		}
 	}
 	

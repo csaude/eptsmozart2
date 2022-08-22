@@ -83,15 +83,39 @@ public class GenerationCoordinator implements Observer {
         return INITIAL_STATUSES;
     }
 
+    public synchronized void cancelGeneration() {
+        if (GENERATOR_TASK.isExecuting()) {
+            log.debug("Stopping Mozart2 generation");
+            GENERATOR_TASK.shutdown();
+            SINGLE_THREAD_EXECUTOR.shutdownNow();
+
+        } else {
+            log.debug("Mozart2 generation already finished, can't stop it");
+        }
+
+        if(generationRecord != null) {
+            generationRecord.setStatus(Mozart2Generation.Status.CANCELLED);
+            generationRecord.setDateEnded(new Date());
+            moz2GenService.saveMozartGeneration(generationRecord);
+        }
+    }
+
     @Override
     public synchronized void update(Observable o, Object arg) {
         Map<String, String> params = (Map) arg;
         String name = params.get("name");
         switch(name) {
             case "generatorTask":
-                if("done".equalsIgnoreCase(params.get("status")) && generationRecord != null) {
-                    generationRecord.setDateCompleted(new Date());
-                    moz2GenService.saveMozartGeneration(generationRecord);
+                if(generationRecord != null) {
+                    if("done".equalsIgnoreCase(params.get("status"))) {
+                        generationRecord.setDateEnded(new Date());
+                        generationRecord.setStatus(Mozart2Generation.Status.COMPLETED);
+                        moz2GenService.saveMozartGeneration(generationRecord);
+                    }
+                    if("dumpFileDone".equalsIgnoreCase(params.get("status"))) {
+                        generationRecord.setSqlDumpPath(params.get("filename"));
+                        moz2GenService.saveMozartGeneration(generationRecord);
+                    }
                 }
         }
     }

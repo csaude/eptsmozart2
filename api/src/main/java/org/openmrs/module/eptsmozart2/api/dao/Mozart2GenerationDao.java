@@ -2,6 +2,7 @@ package org.openmrs.module.eptsmozart2.api.dao;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.openmrs.User;
@@ -38,7 +39,12 @@ public class Mozart2GenerationDao {
 	
 	public Mozart2Generation getMozart2GenerationById(Integer id) {
 		return (Mozart2Generation) sessionFactory.getCurrentSession().createCriteria(Mozart2Generation.class)
-		        .add(Restrictions.eq("id", id));
+		        .add(Restrictions.eq("id", id)).uniqueResult();
+	}
+	
+	public Mozart2Generation getLastMozart2Generation() {
+		return (Mozart2Generation) sessionFactory.getCurrentSession().createCriteria(Mozart2Generation.class)
+		        .addOrder(Order.desc("id")).setMaxResults(1).uniqueResult();
 	}
 	
 	public Integer getMozart2GenerationCount(User executor) {
@@ -59,6 +65,9 @@ public class Mozart2GenerationDao {
 		if (pageSize != null) {
 			criteria.setMaxResults(pageSize);
 		}
+		
+		// Order in desc
+		criteria.addOrder(Order.desc("id"));
 		
 		return criteria.list();
 	}

@@ -8,11 +8,38 @@
 <openmrs:message var="pageTitle" code="eptsmozart2.title" scope="page"/>
 <br/>
 
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables_jui.css"/>
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/js/jquery.dataTables.min.js" />
+
+<style>
+    div {
+        margin-bottom: 1em;
+    }
+
+    table.vertical_table {
+        margin-top: 10px;
+    }
+
+    table.vertical_table, table.vertical_table > * > tr > th, table.vertical_table > * > tr > td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        text-align: left;
+        padding: 0.5em;
+        width: 100%;
+    }
+
+    table.vertical_table > * > tr > th {
+        width: fit-content;
+        white-space:nowrap;
+    }
+</style>
+
 <script type="text/javascript">
     var localOpenmrsContextPath = '${pageContext.request.contextPath}';
     var progressUpdateSchedule = null;
     var TIME_INTERVAL_BETWEEN_STATUS_CHECK = 20000;
     var tableProgressBarMap = {};
+    var lastGeneration = <c:choose><c:when test="${not empty lastGeneration}">${lastGeneration.id}</c:when><c:otherwise>-1</c:otherwise></c:choose>;
 
     class HttpError extends Error {
         constructor(response) {
@@ -30,6 +57,20 @@
         }
     }
 
+    function ProgressBarState(progressBarElement) {
+        this.progressBarElement = progressBarElement;
+        this.keepOn = true;
+        this.pulsate = function() {
+            var _that = this;
+            this.progressBarElement.effect("pulsate", { times:1 }, 3000,function(){
+                //repeat after pulsating
+                if(_that.keepOn) {
+                    _that.pulsate();
+                }
+            });
+        };
+    }
+
     function resetToBeGeneratedValuesAndProgressBars() {
         var tableNames = Object.keys(tableProgressBarMap);
         if(tableNames.length > 0) {
@@ -39,6 +80,28 @@
                 tableProgressBarMap[table].pulsate();
             });
         }
+    }
+
+    function updateLastGenerationData(generation) {
+        if(generation === null || generation === undefined) return;
+        if((typeof lastGeneration !== 'object' && lastGeneration !== generation.id) || lastGeneration['id'] !== generation.id) {
+            $j('#recent-generation-executor').html(generation.executor.fullname + ' (' + generation.executor.username + ')');
+            $j('#recent-generation-date-started').html(generation.dateStarted);
+        }
+        if($j('#recent-generation-date-started').is(':empty')) {
+            $j('#recent-generation-date-started').html(generation.dateStarted);
+        }
+        $j('#recent-generation-date-ended').html(generation.dateEnded);
+        $j('#recent-generation-status').html(generation.status);
+        if(generation.status == 'COMPLETED' && generation.sqlDumpFilename) {
+            var anchorTag = '<a href="' + localOpenmrsContextPath + '/module/eptsmozart2/eptsmozart2download.json?id=' + generation.id + '">';
+            anchorTag += '<openmrs:message code="eptsmozart2.download.mozart2.button.label"/>';
+            anchorTag += '</a>';
+            $j('#recent-generation-action').append(anchorTag);
+        } else {
+            $j('#recent-generation-action').html();
+        }
+        lastGeneration = generation;
     }
 
     function formatDateToISO(date) {
@@ -78,7 +141,8 @@
             .then(data => {
                 console.log('Cancellation Returned data:', data);
                 $j('#progress-table').css('visibility', 'hidden');
-                data.forEach(tableEntry => {
+                updateLastGenerationData(data['lastGeneration']);
+                data['statuses'].forEach(tableEntry => {
                     // Reset progress bar
                     $j('#' + tableEntry.table + '-progress-id').progressbar({ value: 0});
                 });
@@ -119,7 +183,11 @@
                 console.log('Returned data:', data);
                 $j('#progress-table').css('visibility', 'visible');
                 var continueCheckingProgress = false;
-                data.forEach(tableEntry => {
+                if(data['lastGeneration']) {
+                    updateLastGenerationData(data['lastGeneration']);
+                    $j('#last-generation-info').css('display','block');
+                }
+                data['statuses'].forEach(tableEntry => {
                     if(tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
                         continueCheckingProgress = true;
                     }
@@ -138,20 +206,6 @@
             }).catch(error => {
                 console.log(error);
             });
-    }
-
-    function ProgressBarState(progressBarElement) {
-        this.progressBarElement = progressBarElement;
-        this.keepOn = true;
-        this.pulsate = function() {
-            var _that = this;
-            this.progressBarElement.effect("pulsate", { times:1 }, 3000,function(){
-                //repeat after pulsating
-                if(_that.keepOn) {
-                    _that.pulsate();
-                }
-            });
-        };
     }
 
     function initialStatusRequest() {
@@ -179,7 +233,12 @@
                 console.log('Initial status data:', data);
                 var progressTableVisible = false;
                 var continueCheckingProgress = false;
-                data.forEach(tableEntry => {
+
+                if(data['lastGeneration']) {
+                    updateLastGenerationData(data['lastGeneration']);
+                    $j('#last-generation-info').css('display', 'block');
+                }
+                data['statuses'].forEach(tableEntry => {
                     if (tableEntry.generated > 0) {
                         progressTableVisible = true;
                     }
@@ -243,7 +302,8 @@
             .then(data => {
                 console.log('Status data:', data);
                 var continueCheckingProgress = false;
-                data.forEach(tableEntry => {
+                updateLastGenerationData(data['lastGeneration']);
+                data['statuses'].forEach(tableEntry => {
                     if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
                         continueCheckingProgress = true;
                     } else if(tableEntry.toBeGenerated === tableEntry.generated && tableEntry.generated > 0) {
@@ -269,7 +329,11 @@
 
     $j(document).ready(function() {
         initialStatusRequest();
-        
+
+        $j('#mozart2-tabs').tabs();
+
+        $j('#generation-history-table').dataTable();
+
         $j('#end-date-picker').datepicker({
             changeMonth: true,
             changeYear: true,
@@ -280,26 +344,136 @@
         $j('#end-date-picker').datepicker('setDate', new Date());
     });
 </script>
-<label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate"/>
-<button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
-<br/>
-<div id="progress-table" style = "visibility: hidden;">
-    <table cellpadding="5" border="0" cellspacing="5" width="80%">
-        <thead>
-            <tr><th>Table</th><th>Records to Generate</th><th style="width: 70%">Progress</th></tr>
-        </thead>
-        <tbody>
-            <c:forEach items="${statuses}" var="tableEntry">
+
+<div id="last-generation-info" style="display:none;">
+    <fieldset>
+        <legend><openmrs:message code="eptsmozart2.most.recent.generation.label"/></legend>
+        <table class="vertical_table">
+            <tr>
+                <th><openmrs:message code="eptsmozart2.generation.initiator.label"/></th>
+                <td id="recent-generation-executor">
+                    <c:if test="${not empty lastGeneration}">
+                        <c:choose>
+                            <c:when test="${not empty lastGeneration.executor}">
+                                ${lastGeneration.executor.username}
+                            </c:when>
+                            <c:otherwise>
+                                <openmrs:message code="eptsmozart2.generation.initiator.unknown.label"/>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:if>
+                </td>
+            </tr>
+            <tr>
+                <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
+                <td id="recent-generation-date-started">
+                    <c:if test="${not empty lastGeneration}"></c:if>
+                    ${lastGeneration.dateStarted}
+                </td>
+            </tr>
+            <tr>
+                <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
+                <td id="recent-generation-date-ended">
+                    <c:if test="${not empty lastGeneration}">${lastGeneration.dateEnded}</c:if>
+                </td>
+            </tr>
+            <tr>
+                <th><openmrs:message code="eptsmozart2.generation.status.label"/></th>
+                <td id="recent-generation-status">
+                    <c:if test="${not empty lastGeneration}">${lastGeneration.status}</c:if>
+                </td>
+            </tr>
+                <th><openmrs:message code="eptsmozart2.action.label"/></th>
+                <td id="recent-generation-action">
+                    <c:if test="${not empty lastGeneration}">
+                        <c:if test="${not empty generation.sqlDumpPath}">
+                            <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json?id=").concat(lastGeneration.id)}'>
+                                <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
+                            </a>
+                        </c:if>
+                    </c:if>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+</div>
+<div id="mozart2-tabs">
+    <ul>
+        <li><a href="#mozart2-generation-tab"><openmrs:message code="eptsmozart2.generation.tab.label"/></a></li>
+
+        <li><a href="#mozart2-history-tab"><openmrs:message code="eptsmozart2.history.tab.label"/></a></li>
+    </ul>
+    <div id="mozart2-generation-tab">
+        <label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate"/>
+        <button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
+        <br/>
+        <div id="progress-table" style = "visibility: hidden;">
+            <table cellpadding="5" border="0" cellspacing="5" width="80%">
+                <thead>
+                <tr><th>Table</th><th>Records to Generate</th><th style="width: 70%">Progress</th></tr>
+                </thead>
+                <tbody>
+                <c:forEach items="${statuses}" var="tableEntry">
+                    <tr>
+                        <td>${tableEntry.table}</td>
+                        <td style="text-align:center;" id="${tableEntry.table}-to-generate-value">${tableEntry.toBeGenerated}</td>
+                        <td><div id="${tableEntry.table}-progress-id"></div></td>
+                    </tr>
+                </c:forEach>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;">
+                <openmrs:message code="eptsmozart2.cancel.mozart2.button.label"/>
+            </button>
+        </div>
+    </div>
+    <div id="mozart2-history-tab">
+        <table id="generation-history-table" width="100%">
+            <thead>
                 <tr>
-                    <td>${tableEntry.table}</td>
-                    <td style="text-align:center;" id="${tableEntry.table}-to-generate-value">${tableEntry.toBeGenerated}</td>
-                    <td><div id="${tableEntry.table}-progress-id"></div></td>
+                    <th>S/N</th>
+                    <th><openmrs:message code="eptsmozart2.generation.initiator.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.generation.status.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.action.label"/></th>
                 </tr>
-            </c:forEach>
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                <c:forEach items="${generations}" var="generation" varStatus="loop">
+                    <tr>
+                        <td>${loop.count}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${not empty generation.executor}">
+                                    <c:if test="${not empty generation.executor.personName}">
+                                        ${generation.executor.personName.fullName}
+                                    </c:if>
+                                    (${generation.executor.username})
+                                </c:when>
+                                <c:otherwise>
+                                    <openmrs:message code="eptsmozart2.generation.initiator.unknown.label"/>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td>${generation.dateStarted}</td>
+                        <td>${generation.dateEnded}</td>
+                        <td>${generation.status}</td>
+                        <td>
+                            <c:if test="${not empty generation.sqlDumpPath}">
+                                <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json?id=").concat(generation.id)}'>
+                                    <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
+                                </a>
+                            </c:if>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
 </div>
-<div>
-    <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;"><openmrs:message code="eptsmozart2.cancel.mozart2.button.label"/></button>
-</div>
+
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>
