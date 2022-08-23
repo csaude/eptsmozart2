@@ -8,6 +8,9 @@
 <openmrs:message var="pageTitle" code="eptsmozart2.title" scope="page"/>
 <br/>
 
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/js/jquery.dataTables.min.js" />
+
 <script type="text/javascript">
     var localOpenmrsContextPath = '${pageContext.request.contextPath}';
     var progressUpdateSchedule = null;
@@ -269,7 +272,11 @@
 
     $j(document).ready(function() {
         initialStatusRequest();
-        
+
+        $j('#mozart2-tabs').tabs();
+
+        $j('#generation-history-table').dataTable();
+
         $j('#end-date-picker').datepicker({
             changeMonth: true,
             changeYear: true,
@@ -280,50 +287,66 @@
         $j('#end-date-picker').datepicker('setDate', new Date());
     });
 </script>
-<label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate"/>
-<button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
-<br/>
-<div id="progress-table" style = "visibility: hidden;">
-    <table cellpadding="5" border="0" cellspacing="5" width="80%">
-        <thead>
-            <tr><th>Table</th><th>Records to Generate</th><th style="width: 70%">Progress</th></tr>
-        </thead>
-        <tbody>
-            <c:forEach items="${statuses}" var="tableEntry">
+<div id="mozart2-tabs">
+    <ul>
+        <li><a href="#mozart2-generation-tab"><openmrs:message code="eptsmozart2.generation.tab.label"/></a></li>
+
+        <li><a href="#mozart2-history-tab"><openmrs:message code="eptsmozart2.history.tab.label"/></a></li>
+    </ul>
+    <div id="mozart2-generation-tab">
+        <label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate"/>
+        <button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
+        <br/>
+        <div id="progress-table" style = "visibility: hidden;">
+            <table cellpadding="5" border="0" cellspacing="5" width="80%">
+                <thead>
+                <tr><th>Table</th><th>Records to Generate</th><th style="width: 70%">Progress</th></tr>
+                </thead>
+                <tbody>
+                <c:forEach items="${statuses}" var="tableEntry">
+                    <tr>
+                        <td>${tableEntry.table}</td>
+                        <td style="text-align:center;" id="${tableEntry.table}-to-generate-value">${tableEntry.toBeGenerated}</td>
+                        <td><div id="${tableEntry.table}-progress-id"></div></td>
+                    </tr>
+                </c:forEach>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;">
+                <openmrs:message code="eptsmozart2.cancel.mozart2.button.label"/>
+            </button>
+        </div>
+    </div>
+    <div id="mozart2-history-tab">
+        <table id="generation-history-table">
+            <thead>
                 <tr>
-                    <td>${tableEntry.table}</td>
-                    <td style="text-align:center;" id="${tableEntry.table}-to-generate-value">${tableEntry.toBeGenerated}</td>
-                    <td><div id="${tableEntry.table}-progress-id"></div></td>
-                </tr>
-            </c:forEach>
-        </tbody>
-    </table>
-</div>
-<div>
-    <button id = "mozart2-cancel-button" onclick="cancelMozart2Generation()" style="visibility: hidden;"><openmrs:message code="eptsmozart2.cancel.mozart2.button.label"/></button>
+                    <th>S/N</th>
+                    <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
+                    <th>Action</th></tr>
+            </thead>
+            <tbody>
+                <c:forEach items="${generations}" var="generation" varStatus="loop">
+                    <tr>
+                        <td>${loop.count}</td>
+                        <td>${generation.dateStarted}</td>
+                        <td>${generation.dateCompleted}</td>
+                        <td>
+                            <c:if test="${not empty generation.sqlDumpPath}">
+                                <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json").concat("?id=").concat(generation.id)}'>
+                                    <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
+                                </a>
+                            </c:if>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<div id="generations-table">
-    <table cellpadding="8" border="1" cellspacing="5" width="80%">
-        <thead>
-        <tr><th>S/N</th><th>Date started</th><th>Date completed</th><th>Action</th></tr>
-        </thead>
-        <tbody>
-        <c:forEach items="${generations}" var="generation" varStatus="loop">
-            <tr>
-                <td>${loop.count}</td>
-                <td>${generation.dateStarted}</td>
-                <td>${generation.dateCompleted}</td>
-                <td>
-                    <c:if test="${not empty generation.sqlDumpPath}">
-                        <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json").concat("?id=").concat(generation.id)}'>
-                            <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
-                        </a>
-                    </c:if>
-                </td>
-            </tr>
-        </c:forEach>
-        </tbody>
-    </table>
-</div>
+
 <%@ include file="/WEB-INF/template/footer.jsp"%>
