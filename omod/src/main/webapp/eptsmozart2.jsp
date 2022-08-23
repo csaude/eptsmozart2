@@ -8,8 +8,31 @@
 <openmrs:message var="pageTitle" code="eptsmozart2.title" scope="page"/>
 <br/>
 
-<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables.css" />
+<openmrs:htmlInclude file="/scripts/jquery/dataTables/css/dataTables_jui.css"/>
 <openmrs:htmlInclude file="/scripts/jquery/dataTables/js/jquery.dataTables.min.js" />
+
+<style>
+    div {
+        margin-bottom: 1em;
+    }
+
+    table.vertical_table {
+        margin-top: 10px;
+    }
+
+    table.vertical_table, table.vertical_table > * > tr > th, table.vertical_table > * > tr > td {
+        border: 1px solid black;
+        border-collapse: collapse;
+        text-align: left;
+        padding: 0.5em;
+        width: 100%;
+    }
+
+    table.vertical_table > * > tr > th {
+        width: fit-content;
+        white-space:nowrap;
+    }
+</style>
 
 <script type="text/javascript">
     var localOpenmrsContextPath = '${pageContext.request.contextPath}';
@@ -287,6 +310,46 @@
         $j('#end-date-picker').datepicker('setDate', new Date());
     });
 </script>
+
+<c:if test="${not empty lastGeneration}">
+<div>
+    <fieldset>
+        <legend><openmrs:message code="eptsmozart2.most.recent.generation.label"/></legend>
+        <table class="vertical_table">
+            <tr>
+                <th><openmrs:message code="eptsmozart2.generation.initiator.label"/></th>
+                <td>
+                    <c:choose>
+                        <c:when test="${not empty lastGeneration.executor}">
+                            ${lastGeneration.executor.username}
+                        </c:when>
+                        <c:otherwise>
+                            <openmrs:message code="eptsmozart2.generation.initiator.unknown.label"/>
+                        </c:otherwise>
+                    </c:choose>
+                </td>
+            </tr>
+            <tr>
+                <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
+                <td>${lastGeneration.dateStarted}</td>
+            </tr>
+            <tr>
+                <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
+                <td>${lastGeneration.dateCompleted}</td>
+            </tr>
+                <th><openmrs:message code="eptsmozart2.action.label"/></th>
+                <td>
+                    <c:if test="${not empty generation.sqlDumpPath}">
+                        <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json").concat("?id=").concat(lastGeneration.id)}'>
+                            <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
+                        </a>
+                    </c:if>
+                </td>
+            </tr>
+        </table>
+    </fieldset>
+</div>
+</c:if>
 <div id="mozart2-tabs">
     <ul>
         <li><a href="#mozart2-generation-tab"><openmrs:message code="eptsmozart2.generation.tab.label"/></a></li>
@@ -320,18 +383,30 @@
         </div>
     </div>
     <div id="mozart2-history-tab">
-        <table id="generation-history-table">
+        <table id="generation-history-table" width="100%">
             <thead>
                 <tr>
                     <th>S/N</th>
+                    <th><openmrs:message code="eptsmozart2.generation.initiator.label"/></th>
                     <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
                     <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
-                    <th>Action</th></tr>
+                    <th><openmrs:message code="eptsmozart2.action.label"/></th>
+                </tr>
             </thead>
             <tbody>
                 <c:forEach items="${generations}" var="generation" varStatus="loop">
                     <tr>
                         <td>${loop.count}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${not empty generation.executor}">
+                                    ${generation.executor.username}
+                                </c:when>
+                                <c:otherwise>
+                                    <openmrs:message code="eptsmozart2.generation.initiator.unknown.label"/>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
                         <td>${generation.dateStarted}</td>
                         <td>${generation.dateCompleted}</td>
                         <td>

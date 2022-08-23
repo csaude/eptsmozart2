@@ -80,6 +80,7 @@ public class EPTSMozART2Controller {
 			    getListOfStatuses(generationCoordinator.generateStatusInfo()));
 		}
 		modalAndView.getModelMap().addAttribute("generations", moz2GenService.getAllMozart2Generations());
+		modalAndView.getModelMap().addAttribute("lastGeneration", moz2GenService.getLastMozart2Generation());
 		return modalAndView;
 	}
 	
