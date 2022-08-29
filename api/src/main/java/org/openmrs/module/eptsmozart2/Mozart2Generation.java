@@ -4,8 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Type;
 import org.openmrs.User;
+import org.openmrs.util.OpenmrsUtil;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,10 +20,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
+import static org.openmrs.module.eptsmozart2.EPTSMozART2Config.DATETIME_DISPLAY_PATTERN;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 8/17/22.
@@ -38,13 +43,16 @@ public class Mozart2Generation {
 	private String databaseName;
 	
 	@Column(name = "date_started", updatable = false)
-	@Temporal(TemporalType.TIMESTAMP)
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Africa/Maputo")
-	private Date dateStarted;
+	@Type(type = "org.hibernate.type.LocalDateTimeType")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATETIME_DISPLAY_PATTERN)
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	private LocalDateTime dateStarted;
 	
 	@Column(name = "date_ended")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Africa/Maputo")
-	private Date dateEnded;
+	@Type(type = "org.hibernate.type.LocalDateTimeType")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATETIME_DISPLAY_PATTERN)
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	private LocalDateTime dateEnded;
 	
 	@Column(name = "batch_size")
 	private Integer batchSize;
@@ -77,19 +85,19 @@ public class Mozart2Generation {
 		this.databaseName = databaseName;
 	}
 	
-	public Date getDateStarted() {
+	public LocalDateTime getDateStarted() {
 		return dateStarted;
 	}
 	
-	public void setDateStarted(Date dateStarted) {
+	public void setDateStarted(LocalDateTime dateStarted) {
 		this.dateStarted = dateStarted;
 	}
 	
-	public Date getDateEnded() {
+	public LocalDateTime getDateEnded() {
 		return dateEnded;
 	}
 	
-	public void setDateEnded(Date dateCompleted) {
+	public void setDateEnded(LocalDateTime dateCompleted) {
 		this.dateEnded = dateCompleted;
 	}
 	
@@ -117,6 +125,7 @@ public class Mozart2Generation {
 		this.status = status;
 	}
 	
+	@JsonIgnore
 	public String getSqlDumpPath() {
 		return sqlDumpPath;
 	}
@@ -127,6 +136,46 @@ public class Mozart2Generation {
 	
 	public String getSqlDumpFilename() {
 		return StringUtils.substringAfterLast(sqlDumpPath, "/");
+	}
+	
+	@JsonProperty("duration")
+	public String getDuration() {
+		if (dateStarted == null || dateEnded == null)
+			return "";
+		
+		StringBuilder sb = new StringBuilder();
+		long weeks = ChronoUnit.WEEKS.between(dateStarted, dateEnded);
+		long days = ChronoUnit.DAYS.between(dateStarted, dateEnded);
+		long hours = ChronoUnit.HOURS.between(dateStarted, dateEnded);
+		long minutes = ChronoUnit.MINUTES.between(dateStarted, dateEnded);
+		long seconds = ChronoUnit.SECONDS.between(dateStarted, dateEnded);
+		long milliseconds = ChronoUnit.MILLIS.between(dateStarted, dateEnded);
+		if (weeks > 0) {
+			sb.append(weeks).append(" ").append(OpenmrsUtil.getMessage("eptsmozart2.weeks")).append(", ");
+		}
+		if (days > 0 && days % 7 > 0) {
+			sb.append(days % 7).append(" ").append(OpenmrsUtil.getMessage("eptsmozart2.days")).append(", ");
+		}
+		if (hours > 0 && hours % 24 > 0) {
+			sb.append(hours % 24).append(" ").append(OpenmrsUtil.getMessage("eptsmozart2.hours")).append(", ");
+		}
+		if (minutes > 0 && minutes % 60 > 0) {
+			sb.append(minutes % 60).append(" ").append(OpenmrsUtil.getMessage("eptsmozart2.minutes")).append(", ");
+		}
+		if (seconds > 0 && seconds % 60 > 0) {
+			sb.append(seconds % 60).append(" ").append(OpenmrsUtil.getMessage("eptsmozart2.seconds")).append(", ");
+		}
+		if (milliseconds > 0 && milliseconds % 1000 > 0) {
+			sb.append(milliseconds % 1000).append(" ").append(OpenmrsUtil.getMessage("eptsmozart2.milliseconds"))
+			        .append(", ");
+		}
+		
+		String duration = sb.toString().trim();
+		
+		if (StringUtils.isNotBlank(duration) && duration.endsWith(",")) {
+			duration = StringUtils.chop(duration);
+		}
+		return duration;
 	}
 	
 	public enum Status {

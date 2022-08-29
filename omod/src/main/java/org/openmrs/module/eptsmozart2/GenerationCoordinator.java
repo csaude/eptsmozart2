@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -57,7 +58,7 @@ public class GenerationCoordinator implements Observer {
             generationRecord.setExecutor(Context.getAuthenticatedUser());
             generationRecord.setBatchSize(Mozart2Properties.getInstance().getBatchSize());
             generationRecord.setDatabaseName(Mozart2Properties.getInstance().getNewDatabaseName());
-            generationRecord.setDateStarted(new Date());
+            generationRecord.setDateStarted(LocalDateTime.now());
             moz2GenService.saveMozartGeneration(generationRecord);
             SINGLE_THREAD_EXECUTOR.submit(GENERATOR_TASK);
         } else {
@@ -95,7 +96,7 @@ public class GenerationCoordinator implements Observer {
 
         if(generationRecord != null) {
             generationRecord.setStatus(Mozart2Generation.Status.CANCELLED);
-            generationRecord.setDateEnded(new Date());
+            generationRecord.setDateEnded(LocalDateTime.now());
             moz2GenService.saveMozartGeneration(generationRecord);
         }
     }
@@ -108,7 +109,7 @@ public class GenerationCoordinator implements Observer {
             case "generatorTask":
                 if(generationRecord != null) {
                     if("done".equalsIgnoreCase(params.get("status"))) {
-                        generationRecord.setDateEnded(new Date());
+                        generationRecord.setDateEnded(LocalDateTime.now());
                         generationRecord.setStatus(Mozart2Generation.Status.COMPLETED);
                         moz2GenService.saveMozartGeneration(generationRecord);
                     }

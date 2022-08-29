@@ -12,31 +12,23 @@ package org.openmrs.module.eptsmozart2.web.controller;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.eptsmozart2.EPTSMozART2Config;
 import org.openmrs.module.eptsmozart2.GenerationCoordinator;
 import org.openmrs.module.eptsmozart2.Mozart2Generation;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.StatusInfo;
 import org.openmrs.module.eptsmozart2.api.EPTSMozART2GenerationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,8 +38,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static org.openmrs.module.eptsmozart2.GenerationCoordinator.GENERATOR_TASK;
 import static org.openmrs.module.eptsmozart2.GenerationCoordinator.INITIAL_STATUSES;
@@ -80,7 +70,10 @@ public class EPTSMozART2Controller {
 			modalAndView.getModelMap().addAttribute("statuses",
 			    getListOfStatuses(generationCoordinator.generateStatusInfo()));
 		}
+		
 		modalAndView.getModelMap().addAttribute("generations", moz2GenService.getAllMozart2Generations());
+		modalAndView.getModelMap().addAttribute("formatter",
+		    DateTimeFormatter.ofPattern(EPTSMozART2Config.DATETIME_DISPLAY_PATTERN));
 		modalAndView.getModelMap().addAttribute("lastGeneration", moz2GenService.getLastMozart2Generation());
 		return modalAndView;
 	}

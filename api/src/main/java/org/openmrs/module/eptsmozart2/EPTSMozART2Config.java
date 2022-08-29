@@ -18,4 +18,6 @@ import org.springframework.stereotype.Component;
 public class EPTSMozART2Config {
 	
 	public final static String MODULE_PRIVILEGE = "Generate MozART2";
+	
+	public final static String DATETIME_DISPLAY_PATTERN = "yyyy-MM-dd HH:mm:ss";
 }

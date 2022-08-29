@@ -92,6 +92,7 @@
             $j('#recent-generation-date-started').html(generation.dateStarted);
         }
         $j('#recent-generation-date-ended').html(generation.dateEnded);
+        $j('#recent-generation-duration').html(generation.duration);
         $j('#recent-generation-status').html(generation.status);
         if(generation.status == 'COMPLETED' && generation.sqlDumpFilename) {
             var anchorTag = '<a href="' + localOpenmrsContextPath + '/module/eptsmozart2/eptsmozart2download.json?id=' + generation.id + '">';
@@ -367,14 +368,23 @@
             <tr>
                 <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
                 <td id="recent-generation-date-started">
-                    <c:if test="${not empty lastGeneration}"></c:if>
-                    ${lastGeneration.dateStarted}
+                    <c:if test="${not empty lastGeneration and not empty lastGeneration.dateStarted}">
+                        ${formatter.format(lastGeneration.dateStarted)}
+                    </c:if>
                 </td>
             </tr>
             <tr>
                 <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
                 <td id="recent-generation-date-ended">
-                    <c:if test="${not empty lastGeneration}">${lastGeneration.dateEnded}</c:if>
+                    <c:if test="${not empty lastGeneration and not empty lastGeneration.dateEnded}">
+                        ${formatter.format(lastGeneration.dateEnded)}
+                    </c:if>
+                </td>
+            </tr>
+            <tr>
+                <th><openmrs:message code="eptsmozart2.duration.label"/></th>
+                <td id="recent-generation-duration">
+                    <c:if test="${not empty lastGeneration}">${lastGeneration.duration}</c:if>
                 </td>
             </tr>
             <tr>
@@ -437,6 +447,7 @@
                     <th><openmrs:message code="eptsmozart2.generation.initiator.label"/></th>
                     <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
                     <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.duration.label"/></th>
                     <th><openmrs:message code="eptsmozart2.generation.status.label"/></th>
                     <th><openmrs:message code="eptsmozart2.action.label"/></th>
                 </tr>
@@ -458,8 +469,17 @@
                                 </c:otherwise>
                             </c:choose>
                         </td>
-                        <td>${generation.dateStarted}</td>
-                        <td>${generation.dateEnded}</td>
+                        <td>
+                            <c:if test="${not empty generation.dateStarted}">
+                                ${formatter.format(generation.dateStarted)}
+                            </c:if>
+                        </td>
+                        <td>
+                            <c:if test="${not empty generation.dateEnded}">
+                                ${formatter.format(generation.dateEnded)}
+                            </c:if>
+                        </td>
+                        <td>${generation.duration}</td>
                         <td>${generation.status}</td>
                         <td>
                             <c:if test="${not empty generation.sqlDumpPath}">
