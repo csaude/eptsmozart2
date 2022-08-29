@@ -52,6 +52,28 @@
 			the default value which is openmrs.
 		</description>
 	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.location.ids</property>
+		<defaultValue></defaultValue>
+		<description>
+			Comma separated list of location.location_id values of locations to be included in MozART2 database.
+		</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.batch.size</property>
+		<defaultValue>20000</defaultValue>
+		<description>
+			The number of records to be generated in a single batch. Default is 20000
+		</description>
+	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.mozart2.database.name</property>
+		<defaultValue>mozart2</defaultValue>
+		<description>
+			The name of the mozart2 database to be generated. Default value is mozart2, note the database is overwritten over
+			subsequent runs.
+		</description>
+	</globalProperty>
 
 	<!--
 	<dwr>
