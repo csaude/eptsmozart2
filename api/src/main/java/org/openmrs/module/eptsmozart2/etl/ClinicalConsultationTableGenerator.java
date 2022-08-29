@@ -58,7 +58,7 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 				insertStatement.setDate(6, results.getDate("encounter_datetime"));
 				insertStatement.setDate(7, results.getDate("value_datetime"));
 				insertStatement.setDate(8, results.getDate("obs_datetime"));
-				insertStatement.setString(9, Mozart2Properties.getInstance().getDatabaseName());
+				insertStatement.setString(9, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
 				++count;

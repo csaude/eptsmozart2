@@ -99,7 +99,7 @@
             anchorTag += '</a>';
             $j('#recent-generation-action').append(anchorTag);
         } else {
-            $j('#recent-generation-action').html();
+            $j('#recent-generation-action').html('');
         }
         lastGeneration = generation;
     }

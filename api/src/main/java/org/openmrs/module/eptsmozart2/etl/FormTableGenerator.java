@@ -75,7 +75,7 @@ public class FormTableGenerator implements Generator {
 		        .append(
 		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
 		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.location_id, l.uuid, '")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided ").append("AND e.encounter_type IN ")
@@ -101,7 +101,7 @@ public class FormTableGenerator implements Generator {
 		        .append(
 		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
 		        .append("e.date_created, o.value_datetime, e.date_changed, l.location_id, l.uuid, '")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")

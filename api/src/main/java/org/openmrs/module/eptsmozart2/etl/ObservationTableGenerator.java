@@ -84,7 +84,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				insertStatement.setString(13, results.getString("value_text"));
 				insertStatement.setDate(14, results.getDate("value_datetime"));
 				insertStatement.setDate(15, results.getDate("date_created"));
-				insertStatement.setString(16, Mozart2Properties.getInstance().getDatabaseName());
+				insertStatement.setString(16, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				insertStatement.setString(17, results.getString("uuid"));
 				
 				insertStatement.addBatch();

@@ -49,7 +49,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 				insertStatement.setString(5, results.getString("identifier"));
 				insertStatement.setBoolean(6, results.getBoolean("primary"));
 				insertStatement.setString(7, results.getString("identifier_uuid"));
-				insertStatement.setString(8, Mozart2Properties.getInstance().getDatabaseName());
+				insertStatement.setString(8, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
 				++count;

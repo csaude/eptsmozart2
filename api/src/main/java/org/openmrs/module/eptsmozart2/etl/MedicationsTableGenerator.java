@@ -114,7 +114,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
 					insertStatement.setDate(5, results.getDate("value_datetime"));
-					insertStatement.setString(28, Mozart2Properties.getInstance().getDatabaseName());
+					insertStatement.setString(28, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 					insertStatement.setString(30, results.getString("medication_uuid"));
 					insertStatement.setNull(29, Types.INTEGER);
 					insertStatement.setNull(6, Types.VARCHAR);
@@ -154,7 +154,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				insertStatement.setString(6, results.getString("regimen"));
 				insertStatement.setInt(7, results.getInt("value_coded"));
 
-				insertStatement.setString(28, Mozart2Properties.getInstance().getDatabaseName());
+				insertStatement.setString(28, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				insertStatement.setInt(29, currentConceptId);
 				insertStatement.setString(30, results.getString("medication_uuid"));
 
@@ -311,7 +311,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 						insertStatement.setString(6, results.getString("regimen"));
 						insertStatement.setInt(7, results.getInt("value_coded"));
 						insertStatement.setInt(29, results.getInt("concept_id"));
-						insertStatement.setString(28, Mozart2Properties.getInstance().getDatabaseName());
+						insertStatement.setString(28, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 
 						if(parameterCache.containsKey(13)) {
 							insertStatement.setDate(13, (Date) parameterCache.get(13));

@@ -61,7 +61,7 @@ public class ProgramTableGenerator implements Generator {
                 .append(".program (patient_id, patient_uuid,program_id, program, date_enrolled,date_completed, ")
                 .append("location_id, location_name, location_uuid, enrolment_uuid, source_database) SELECT p.patient_id, p.patient_uuid, ")
                 .append("pg.program_id, program.name, pg.date_enrolled, pg.date_completed, pg.location_id, l.name, l.uuid,  pg.uuid, '")
-                .append(Mozart2Properties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+                .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient_program pg ON p.patient_id = pg.patient_id JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".program ON pg.program_id = program.program_id JOIN ")

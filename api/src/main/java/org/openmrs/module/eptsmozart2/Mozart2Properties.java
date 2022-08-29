@@ -2,6 +2,7 @@ package org.openmrs.module.eptsmozart2;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
+import org.openmrs.util.OpenmrsConstants;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class Mozart2Properties {
 	public final static String MOZART2_BATCH_SIZE_GP_NAME = "eptsmozart2.batch.size";
 	
 	public final static String MOZART2_NEW_DB_NAME_GP_NAME = "eptsmozart2.mozart2.database.name";
-
+	
 	public final static String JDBC_URL_PROP = "jdbc.url";
 	
 	public final static String DB_PASSWORD_PROP = "db.password";
@@ -149,6 +150,10 @@ public class Mozart2Properties {
 		return Context.getAdministrationService().getGlobalProperty(MOZART2_NEW_DB_NAME_GP_NAME, DEFAULT_NEW_DB_NAME);
 	}
 	
+	public String getSourceOpenmrsInstance() {
+		return Context.getAdministrationService().getGlobalProperty(OpenmrsConstants.GLOBAL_PROPERTY_APPLICATION_NAME);
+	}
+	
 	public String getHost() {
 		return host;
 	}
@@ -214,7 +219,7 @@ public class Mozart2Properties {
 		}
 		return locIds;
 	}
-
+	
 	@Override
 	public String toString() {
 		return APP_PROPS.toString();

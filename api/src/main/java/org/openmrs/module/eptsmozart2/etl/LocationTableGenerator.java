@@ -55,7 +55,7 @@ public class LocationTableGenerator implements Generator {
         String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".location (location_id,location_uuid, name, province_name, province_district, source_database) ")
                 .append("SELECT location_id,uuid,name,state_province,county_district, '")
-                .append(Mozart2Properties.getInstance().getDatabaseName()).append("' AS source_database FROM ")
+                .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location WHERE location_id IN (")
 				.append(Mozart2Properties.getInstance().getLocationsIdsString()).append(") ORDER BY location_id").toString();
 

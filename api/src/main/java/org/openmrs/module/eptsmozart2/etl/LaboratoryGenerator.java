@@ -153,7 +153,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 insertStatement.setString(17, results.getString("comments"));
                 insertStatement.setDate(18, results.getDate("date_created"));
-                insertStatement.setString(19, Mozart2Properties.getInstance().getDatabaseName());
+                insertStatement.setString(19, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
                 insertStatement.setString(22, results.getString("uuid"));
 
                 setEmptyPositions(positionsNotSet);
