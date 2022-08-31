@@ -1,7 +1,7 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public class FormTableGenerator implements Generator {
+public class FormTableGenerator extends ObservableGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormTableGenerator.class);
 	
@@ -129,6 +129,8 @@ public class FormTableGenerator implements Generator {
 			currentlyGenerated += moreToGo;
 		} catch (SQLException e) {
 			LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), sql, e);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
 			throw e;
 		}
 	}

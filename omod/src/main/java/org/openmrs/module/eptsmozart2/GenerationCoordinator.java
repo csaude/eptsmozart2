@@ -1,5 +1,6 @@
 package org.openmrs.module.eptsmozart2;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.api.EPTSMozART2GenerationService;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import java.util.concurrent.Executors;
 public class GenerationCoordinator implements Observer {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Mozart2Generation generationRecord = null;
+    private Exception generationException;
 
     @Autowired
     private EPTSMozART2GenerationService moz2GenService;
@@ -84,7 +86,11 @@ public class GenerationCoordinator implements Observer {
         return INITIAL_STATUSES;
     }
 
-    public synchronized void cancelGeneration() {
+    public void cancelGeneration() {
+        cancelGeneration(true);
+    }
+
+    private synchronized void cancelGeneration(Boolean updateGenerationRecord) {
         if (GENERATOR_TASK.isExecuting()) {
             log.debug("Stopping Mozart2 generation");
             GENERATOR_TASK.shutdown();
@@ -94,7 +100,7 @@ public class GenerationCoordinator implements Observer {
             log.debug("Mozart2 generation already finished, can't stop it");
         }
 
-        if(generationRecord != null) {
+        if(updateGenerationRecord && generationRecord != null) {
             generationRecord.setStatus(Mozart2Generation.Status.CANCELLED);
             generationRecord.setDateEnded(LocalDateTime.now());
             moz2GenService.saveMozartGeneration(generationRecord);
@@ -103,21 +109,44 @@ public class GenerationCoordinator implements Observer {
 
     @Override
     public synchronized void update(Observable o, Object arg) {
-        Map<String, String> params = (Map) arg;
-        String name = params.get("name");
+        Map<String, Object> params = (Map) arg;
+        String name = (String) params.get("name");
         switch(name) {
             case "generatorTask":
                 if(generationRecord != null) {
-                    if("done".equalsIgnoreCase(params.get("status"))) {
+                    if("done".equalsIgnoreCase((String) params.get("status"))) {
                         generationRecord.setDateEnded(LocalDateTime.now());
                         generationRecord.setStatus(Mozart2Generation.Status.COMPLETED);
                         moz2GenService.saveMozartGeneration(generationRecord);
                     }
-                    if("dumpFileDone".equalsIgnoreCase(params.get("status"))) {
-                        generationRecord.setSqlDumpPath(params.get("filename"));
+                    if("dumpFileDone".equalsIgnoreCase((String) params.get("status"))) {
+                        generationRecord.setSqlDumpPath((String) params.get("filename"));
                         moz2GenService.saveMozartGeneration(generationRecord);
                     }
                 }
+                break;
+            case "exception":
+                Exception e = (Exception) params.get("status");
+                if(generationRecord != null) {
+                    generationRecord.setDateEnded(LocalDateTime.now());
+                    generationRecord.setStatus(Mozart2Generation.Status.ERROR);
+                    if(e != null) {
+                        generationRecord.setErrorMessage(e.getMessage());
+                        generationRecord.setStackTrace(ExceptionUtils.getStackTrace(e));
+                    }
+                    moz2GenService.saveMozartGeneration(generationRecord);
+                }
+                this.setGenerationException(e);
+                this.cancelGeneration(false);
+                break;
         }
+    }
+
+    public Exception getGenerationException() {
+        return this.generationException;
+    }
+
+    public void setGenerationException(Exception generationException) {
+        this.generationException = generationException;
     }
 }

@@ -5,6 +5,8 @@
 <%@ include file="/WEB-INF/template/header.jsp"%>
 
 <h2><spring:message code="eptsmozart2.title" /></h2>
+<div id="mozart2-generation-error-msg" class="error" style="visibility:hidden;">
+</div>
 <openmrs:message var="pageTitle" code="eptsmozart2.title" scope="page"/>
 <br/>
 
@@ -39,6 +41,7 @@
     var progressUpdateSchedule = null;
     var TIME_INTERVAL_BETWEEN_STATUS_CHECK = 20000;
     var tableProgressBarMap = {};
+    var errorMessagePrefix = '<openmrs:message code="eptsmozart2.generation.error.message"/>: ';
     var lastGeneration = <c:choose><c:when test="${not empty lastGeneration}">${lastGeneration.id}</c:when><c:otherwise>-1</c:otherwise></c:choose>;
 
     class HttpError extends Error {
@@ -82,6 +85,11 @@
         }
     }
 
+    function openErrorDetailsDialog() {
+        $j('#stack-trace-dialog').dialog();
+        return true;
+    }
+
     function updateLastGenerationData(generation) {
         if(generation === null || generation === undefined) return;
         if((typeof lastGeneration !== 'object' && lastGeneration !== generation.id) || lastGeneration['id'] !== generation.id) {
@@ -94,11 +102,19 @@
         $j('#recent-generation-date-ended').html(generation.dateEnded);
         $j('#recent-generation-duration').html(generation.duration);
         $j('#recent-generation-status').html(generation.status);
+        $j('#recent-generation-error-message').html(generation.errorMessage);
+        if(generation.stackTrace && generation.stackTrace.length > 400) {
+            var fullLink = '<button onclick="openErrorDetailsDialog()"><openmrs:message code="eptsmozart2.generation.see.full.label"/></button>';
+            $j('#recent-generation-stack-trace').html(generation.stackTrace.substring(0, 400) + '<br/>...<br/>' + fullLink);
+            $j('#stack-trace-dialog').html(generation.stackTrace);
+        } else {
+            $j('#recent-generation-stack-trace').html(generation.stackTrace);
+        }
         if(generation.status == 'COMPLETED' && generation.sqlDumpFilename) {
             var anchorTag = '<a href="' + localOpenmrsContextPath + '/module/eptsmozart2/eptsmozart2download.json?id=' + generation.id + '">';
             anchorTag += '<openmrs:message code="eptsmozart2.download.mozart2.button.label"/>';
             anchorTag += '</a>';
-            $j('#recent-generation-action').append(anchorTag);
+            $j('#recent-generation-action').html(anchorTag);
         } else {
             $j('#recent-generation-action').html('');
         }
@@ -160,6 +176,7 @@
         $j('#mozart2-button').prop('disabled', true);
         $j('#end-date-picker').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'visible');
+        $j('#mozart2-generation-error-msg').css('visibility', 'hidden');
         resetToBeGeneratedValuesAndProgressBars();
 
         var requestOptions = {
@@ -304,15 +321,24 @@
                 console.log('Status data:', data);
                 var continueCheckingProgress = false;
                 updateLastGenerationData(data['lastGeneration']);
-                data['statuses'].forEach(tableEntry => {
-                    if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
-                        continueCheckingProgress = true;
-                    } else if(tableEntry.toBeGenerated === tableEntry.generated && tableEntry.generated > 0) {
-                        tableProgressBarMap[tableEntry.table].keepOn = false;
-                    }
-                    tableProgress(tableEntry);
-                });
 
+                if(data['errorMessage']) {
+                    $j('#mozart2-generation-error-msg').html(errorMessagePrefix + data['errorMessage']);
+                    $j('#mozart2-generation-error-msg').css('visibility', 'visible');
+
+                    data['statuses'].forEach(tableEntry => {
+                        tableProgressBarMap[tableEntry.table].keepOn = false;
+                    });
+                } else {
+                    data['statuses'].forEach(tableEntry => {
+                        if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
+                            continueCheckingProgress = true;
+                        } else if(tableEntry.toBeGenerated === tableEntry.generated && tableEntry.generated > 0) {
+                            tableProgressBarMap[tableEntry.table].keepOn = false;
+                        }
+                        tableProgress(tableEntry);
+                    });
+                }
                 if(continueCheckingProgress) {
                     progressUpdateSchedule = setTimeout(requestStatusAndUpgradeProgress, TIME_INTERVAL_BETWEEN_STATUS_CHECK);
                 } else {
@@ -392,6 +418,16 @@
                 <td id="recent-generation-status">
                     <c:if test="${not empty lastGeneration}">${lastGeneration.status}</c:if>
                 </td>
+            </tr><tr>
+                <th><openmrs:message code="eptsmozart2.generation.error.message.label"/></th>
+                <td id="recent-generation-error-message">
+                    <c:if test="${not empty lastGeneration}">${lastGeneration.errorMessage}</c:if>
+                </td>
+            </tr><tr>
+                <th><openmrs:message code="eptsmozart2.generation.stack.trace.label"/></th>
+                <td id="recent-generation-stack-trace">
+                    <c:if test="${not empty lastGeneration}">${lastGeneration.stackTrace}</c:if>
+                </td>
             </tr>
                 <th><openmrs:message code="eptsmozart2.action.label"/></th>
                 <td id="recent-generation-action">
@@ -449,6 +485,7 @@
                     <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
                     <th><openmrs:message code="eptsmozart2.duration.label"/></th>
                     <th><openmrs:message code="eptsmozart2.generation.status.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.generation.error.message.label"/></th>
                     <th><openmrs:message code="eptsmozart2.action.label"/></th>
                 </tr>
             </thead>
@@ -481,6 +518,7 @@
                         </td>
                         <td>${generation.duration}</td>
                         <td>${generation.status}</td>
+                        <td>${generation.errorMessage}</td>
                         <td>
                             <c:if test="${not empty generation.sqlDumpPath}">
                                 <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json?id=").concat(generation.id)}'>
@@ -494,6 +532,7 @@
         </table>
     </div>
 </div>
-
+<div id="stack-trace-dialog" title='<openmrs:message code="eptsmozart2.generation.stack.trace.full.label"/>'>
+</div>
 
 <%@ include file="/WEB-INF/template/footer.jsp"%>

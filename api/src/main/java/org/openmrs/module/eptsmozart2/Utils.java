@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
 import org.apache.commons.io.IOUtils;
+import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.etl.AbstractGenerator;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
@@ -18,6 +19,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Observable;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -120,5 +124,17 @@ public class Utils {
 			return dataDirectory.concat(MOZART2_DIR_NAME);
 		}
 		return dataDirectory.concat(File.separator).concat(MOZART2_DIR_NAME);
+	}
+	
+	public static void notifyObserversAboutException(Observable observable, Exception e) {
+		Map<String, Object> parameters = new LinkedHashMap<>();
+		parameters.put("name", "exception");
+		parameters.put("status", e);
+		try {
+			Context.openSession();
+			observable.notifyObservers(parameters);
+		} finally {
+			Context.closeSession();
+		}
 	}
 }

@@ -108,8 +108,12 @@ public class EPTSMozART2Controller {
 	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2status.json", method = RequestMethod.GET, produces = "application/json")
 	@ResponseBody
 	public Map<String, Object> getMozartStatus() {
-		return getDTO(generationCoordinator.generateStatusInfo(), moz2GenService.getLastMozart2Generation(),
-		    generationCoordinator.GENERATOR_TASK.isExecuting());
+		Map<String, Object> statusDetails = getDTO(generationCoordinator.generateStatusInfo(),
+		    moz2GenService.getLastMozart2Generation(), generationCoordinator.GENERATOR_TASK.isExecuting());
+		if (generationCoordinator.getGenerationException() != null) {
+			statusDetails.put("errorMessage", generationCoordinator.getGenerationException().getMessage());
+		}
+		return statusDetails;
 	}
 	
 	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2download.json")

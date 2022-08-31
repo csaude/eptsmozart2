@@ -21,6 +21,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -68,6 +69,12 @@ public class Mozart2Generation {
 	@Column(name = "sql_dump_path")
 	@JsonIgnore
 	private String sqlDumpPath;
+	
+	@Column(name = "error_message")
+	private String errorMessage;
+	
+	@Column(name = "stack_trace")
+	private String stackTrace;
 	
 	public Integer getId() {
 		return id;
@@ -138,6 +145,22 @@ public class Mozart2Generation {
 		return StringUtils.substringAfterLast(sqlDumpPath, "/");
 	}
 	
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+	
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+	
+	public String getStackTrace() {
+		return stackTrace;
+	}
+	
+	public void setStackTrace(String stackTrace) {
+		this.stackTrace = stackTrace;
+	}
+	
 	@JsonProperty("duration")
 	public String getDuration() {
 		if (dateStarted == null || dateEnded == null)
@@ -172,7 +195,11 @@ public class Mozart2Generation {
 		
 		String duration = sb.toString().trim();
 		
-		if (StringUtils.isNotBlank(duration) && duration.endsWith(",")) {
+		if (StringUtils.isBlank(duration)) {
+			return "0 ms";
+		}
+		
+		if (duration.endsWith(",")) {
 			duration = StringUtils.chop(duration);
 		}
 		return duration;

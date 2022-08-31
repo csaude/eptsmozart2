@@ -16,7 +16,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 7/21/22.
  */
-public class ProgramTableGenerator implements Generator {
+public class ProgramTableGenerator extends ObservableGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
@@ -78,6 +78,8 @@ public class ProgramTableGenerator implements Generator {
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertSql, e);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
             throw e;
         }
     }

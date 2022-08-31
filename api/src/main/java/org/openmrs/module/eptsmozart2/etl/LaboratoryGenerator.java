@@ -164,6 +164,8 @@ public class LaboratoryGenerator extends AbstractGenerator {
         }
         catch (SQLException e) {
             LOGGER.error("Error preparing insert statement for table {}", getTable());
+            this.setChanged();
+            Utils.notifyObserversAboutException(this, e);
             throw e;
         } finally {
             if(orderDateSpecimenTypeResults != null) {

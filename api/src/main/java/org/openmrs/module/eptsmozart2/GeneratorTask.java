@@ -9,6 +9,7 @@ import org.openmrs.module.eptsmozart2.etl.IdentifierTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.LaboratoryGenerator;
 import org.openmrs.module.eptsmozart2.etl.LocationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.MedicationsTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.ObservableGenerator;
 import org.openmrs.module.eptsmozart2.etl.ObservationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientStateTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientTableGenerator;
@@ -25,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -33,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/10/22.
  */
-public class GeneratorTask extends Observable implements Task, Callable<Void> {
+public class GeneratorTask extends Observable implements Observer, Task, Callable<Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorTask.class);
 	private static final Integer NUMBER_OF_THREADS = 10;
 	private TaskDefinition taskDefinition;
@@ -57,10 +59,12 @@ public class GeneratorTask extends Observable implements Task, Callable<Void> {
 			initializeVariables();
 
 			List<Generator> toBeInvoked = new ArrayList<>(10);
-			Generator generator = new PatientTableGenerator();
+			ObservableGenerator generator = new PatientTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new LocationTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			GENERATORS.addAll(toBeInvoked);
@@ -69,27 +73,35 @@ public class GeneratorTask extends Observable implements Task, Callable<Void> {
 			toBeInvoked.clear();
 
 			generator = new ObservationTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new PatientStateTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new ProgramTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new FormTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new IdentifierTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new MedicationsTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new LaboratoryGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			generator = new ClinicalConsultationTableGenerator();
+			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
 			GENERATORS.addAll(toBeInvoked);
@@ -172,4 +184,11 @@ public class GeneratorTask extends Observable implements Task, Callable<Void> {
         GENERATORS.clear();
         service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
     }
+
+	@Override
+	public void update(Observable o, Object arg) {
+		LOGGER.debug("Notifying observers about a messsage from {}", o);
+		this.setChanged();
+		this.notifyObservers(arg);
+	}
 }

@@ -1,7 +1,7 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +17,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 7/8/22.
  */
-public class PatientStateTableGenerator implements Generator {
+public class PatientStateTableGenerator extends ObservableGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
@@ -91,6 +91,8 @@ public class PatientStateTableGenerator implements Generator {
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertStatement, e);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
             throw e;
         }
     }
@@ -123,6 +125,8 @@ public class PatientStateTableGenerator implements Generator {
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), sb.toString(), e);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
             throw e;
         }
     }
@@ -145,6 +149,8 @@ public class PatientStateTableGenerator implements Generator {
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insert, e);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
             throw e;
         }
     }

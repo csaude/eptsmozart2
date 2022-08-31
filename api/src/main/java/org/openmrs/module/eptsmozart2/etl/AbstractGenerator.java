@@ -1,7 +1,8 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.Mozart2Properties;
+import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,12 +12,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Observable;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public abstract class AbstractGenerator extends Observable implements Generator {
+public abstract class AbstractGenerator extends ObservableGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
@@ -72,6 +72,8 @@ public abstract class AbstractGenerator extends Observable implements Generator 
             return null;
         } catch (SQLException e) {
             LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertStatement.getParameterMetaData().getParameterCount(), e);
+            this.setChanged();
+            Utils.notifyObserversAboutException(this, e);
             throw e;
         } finally {
             if(resultSet != null) {
@@ -140,6 +142,8 @@ public abstract class AbstractGenerator extends Observable implements Generator 
             statement.addBatch(createSql);
             statement.executeBatch();
         } catch (SQLException e) {
+            this.setChanged();
+            Utils.notifyObserversAboutException(this, e);
             e.printStackTrace();
         }
     }
@@ -166,6 +170,8 @@ public abstract class AbstractGenerator extends Observable implements Generator 
 		}
 		catch (SQLException e) {
 			LOGGER.error("Error while running query: {}", query);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
 			throw e;
 		}
 		finally {
