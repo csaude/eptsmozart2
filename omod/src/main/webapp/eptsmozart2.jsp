@@ -164,9 +164,10 @@
                     $j('#' + tableEntry.table + '-progress-id').progressbar({ value: 0});
                 });
                 $j('#mozart2-button').prop('disabled', false);
-                $j('#end-date-picker').prop('disabled', false);
                 $j('#mozart2-cancel-button').prop('disabled', false);
                 $j('#mozart2-cancel-button').css('visibility', 'hidden');
+                $j('#end-date-picker').prop('disabled', false);
+                $j('#end-date-picker').datepicker('setDate', new Date());
             }).catch(error => {
                 console.log(error);
             });
@@ -218,8 +219,9 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
-                    $j('#end-date-picker').prop('disabled', false);
                     $j('#mozart2-cancel-button').css('visibility', 'hidden');
+                    $j('#end-date-picker').prop('disabled', false);
+                    $j('#end-date-picker').datepicker('setDate', new Date());
                 }
             }).catch(error => {
                 console.log(error);
@@ -255,6 +257,12 @@
                 if(data['lastGeneration']) {
                     updateLastGenerationData(data['lastGeneration']);
                     $j('#last-generation-info').css('display', 'block');
+
+                    if(data['isRunning']) {
+                        if(data['lastGeneration']) {
+                            $j('#end-date-picker').datepicker('setDate', new Date(data['lastGeneration']['endDateUsed']));
+                        }
+                    }
                 }
                 data['statuses'].forEach(tableEntry => {
                     if (tableEntry.generated > 0) {

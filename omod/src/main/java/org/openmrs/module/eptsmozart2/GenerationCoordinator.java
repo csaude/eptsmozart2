@@ -61,6 +61,7 @@ public class GenerationCoordinator implements Observer {
             generationRecord.setBatchSize(Mozart2Properties.getInstance().getBatchSize());
             generationRecord.setDatabaseName(Mozart2Properties.getInstance().getNewDatabaseName());
             generationRecord.setDateStarted(LocalDateTime.now());
+            generationRecord.setEndDateUsed(Mozart2Properties.getInstance().getEndDate());
             moz2GenService.saveMozartGeneration(generationRecord);
             SINGLE_THREAD_EXECUTOR.submit(GENERATOR_TASK);
         } else {

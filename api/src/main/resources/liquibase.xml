@@ -54,4 +54,16 @@
             <column name="stack_trace" type="longtext"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="eptsmozart2-2022-09-02-15-15-40" author="Willa Mhawila">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="eptsmozart2_generation"/>
+        </preConditions>
+        <comment>
+            Adding column end_date_used to the eptsmozart2_generation table
+        </comment>
+        <addColumn tableName="eptsmozart2_generation">
+            <column name="end_date_used" type="date"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

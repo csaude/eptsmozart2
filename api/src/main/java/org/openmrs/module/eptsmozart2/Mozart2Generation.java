@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
@@ -22,10 +23,12 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
 import static org.openmrs.module.eptsmozart2.EPTSMozART2Config.DATETIME_DISPLAY_PATTERN;
+import static org.openmrs.module.eptsmozart2.EPTSMozART2Config.DATE_DISPLAY_PATTERN;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 8/17/22.
@@ -57,6 +60,12 @@ public class Mozart2Generation {
 	
 	@Column(name = "batch_size")
 	private Integer batchSize;
+	
+	@Column(name = "end_date_used")
+	@Type(type = "org.hibernate.type.LocalDateType")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_DISPLAY_PATTERN)
+	@JsonSerialize(using = LocalDateSerializer.class)
+	private LocalDate endDateUsed;
 	
 	@ManyToOne
 	@JoinColumn(name = "executor", nullable = false)
@@ -114,6 +123,14 @@ public class Mozart2Generation {
 	
 	public void setBatchSize(Integer batchSize) {
 		this.batchSize = batchSize;
+	}
+	
+	public LocalDate getEndDateUsed() {
+		return endDateUsed;
+	}
+	
+	public void setEndDateUsed(LocalDate endDateUsed) {
+		this.endDateUsed = endDateUsed;
 	}
 	
 	public User getExecutor() {
