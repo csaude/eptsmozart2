@@ -1,6 +1,6 @@
 <%@ include file="/WEB-INF/template/include.jsp"%>
 
-<openmrs:require privilege="Generate MozART2" otherwise="/login.htm" />
+<openmrs:require privilege="Generate MozART2" otherwise="/login.htm" redirect="/module/eptsmozart2/eptsmozart2.form"/>
 
 <%@ include file="/WEB-INF/template/header.jsp"%>
 
