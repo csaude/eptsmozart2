@@ -18,6 +18,7 @@ import org.openmrs.module.eptsmozart2.Mozart2Generation;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.StatusInfo;
 import org.openmrs.module.eptsmozart2.api.EPTSMozART2GenerationService;
+import org.openmrs.module.eptsmozart2.web.Mozart2GenerationDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
@@ -144,7 +145,7 @@ public class EPTSMozART2Controller {
 	private static Map<String, Object> getDTO(Map<String, StatusInfo> statusesMap, Mozart2Generation lastGeneration, Boolean isRunning) {
 		Map<String, Object> dto = new HashMap<>();
 		dto.put("statuses", getListOfStatuses(statusesMap));
-		dto.put("lastGeneration", lastGeneration);
+		dto.put("lastGeneration", new Mozart2GenerationDTO(lastGeneration));
 		dto.put("isRunning", isRunning);
 		return dto;
 	}

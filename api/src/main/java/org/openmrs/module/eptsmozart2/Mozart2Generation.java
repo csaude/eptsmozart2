@@ -22,7 +22,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -149,7 +148,6 @@ public class Mozart2Generation {
 		this.status = status;
 	}
 	
-	@JsonIgnore
 	public String getSqlDumpPath() {
 		return sqlDumpPath;
 	}
