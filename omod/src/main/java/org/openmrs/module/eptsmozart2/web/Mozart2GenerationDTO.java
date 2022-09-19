@@ -40,6 +40,7 @@ public class Mozart2GenerationDTO {
     private String duration;
 
     public Mozart2GenerationDTO(Mozart2Generation mozart2Generation) {
+        if(mozart2Generation == null) return;
         this.id = mozart2Generation.getId();
         this.databaseName = mozart2Generation.getDatabaseName();
         this.batchSize = mozart2Generation.getBatchSize();

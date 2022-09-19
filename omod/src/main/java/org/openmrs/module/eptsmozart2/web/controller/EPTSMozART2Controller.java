@@ -145,7 +145,11 @@ public class EPTSMozART2Controller {
 	private static Map<String, Object> getDTO(Map<String, StatusInfo> statusesMap, Mozart2Generation lastGeneration, Boolean isRunning) {
 		Map<String, Object> dto = new HashMap<>();
 		dto.put("statuses", getListOfStatuses(statusesMap));
-		dto.put("lastGeneration", new Mozart2GenerationDTO(lastGeneration));
+		if(lastGeneration != null) {
+			dto.put("lastGeneration", new Mozart2GenerationDTO(lastGeneration));
+		} else {
+			dto.put("lastGeneration", null);
+		}
 		dto.put("isRunning", isRunning);
 		return dto;
 	}
