@@ -57,10 +57,15 @@ public class Mozart2GenerationDTO {
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATETIME_DISPLAY_PATTERN);
-        this.dateStarted = formatter.format(mozart2Generation.getDateStarted());
-        this.dateEnded = formatter.format(mozart2Generation.getDateEnded());
-
-        endDateUsed = DateTimeFormatter.ofPattern(DATE_DISPLAY_PATTERN).format(mozart2Generation.getEndDateUsed());
+        if(mozart2Generation.getDateStarted() != null) {
+            this.dateStarted = formatter.format(mozart2Generation.getDateStarted());
+        }
+        if(mozart2Generation.getDateEnded() != null) {
+            this.dateEnded = formatter.format(mozart2Generation.getDateEnded());
+        }
+        if(mozart2Generation.getEndDateUsed() != null) {
+            endDateUsed = DateTimeFormatter.ofPattern(DATE_DISPLAY_PATTERN).format(mozart2Generation.getEndDateUsed());
+        }
     }
 
     public Integer getId() {
