@@ -84,25 +84,26 @@ public class Mozart2Properties {
                 String applicationName = Context.getAdministrationService().getGlobalProperty(MOZART2_APPNAME_GP_NAME, "openmrs");
                 runtimeProperties = OpenmrsUtil.getRuntimeProperties(applicationName);
 
-                try {
-                    String datePattern = APP_PROPS.getProperty(END_DATE_PATTERN_PROP, DEFAULT_END_DATE_PATTERN);
-                    mozart2Properties.endDateFormatter = DateTimeFormatter.ofPattern(datePattern);
-                    mozart2Properties.endDate = LocalDate.parse(APP_PROPS.getProperty(END_DATE_PROP), mozart2Properties.endDateFormatter);
-                } catch (DateTimeParseException|NullPointerException e) {
-                    if(APP_PROPS.containsKey(END_DATE_PROP) && APP_PROPS.getProperty(END_DATE_PROP) != null) {
-                        LOGGER.error("Invalid value set for property {}", END_DATE_PROP);
-                        throw e;
-                    } else {
-                        // Just use now.
-                        LOGGER.info("{} property not set, defaulting to current date", END_DATE_PROP);
-                        mozart2Properties.endDate = LocalDate.now();
-                    }
-                }
-                //Host and port
-                mozart2Properties.determineMysqlHostAndPortFromJdbcUrl();
+				//Host and port
+				mozart2Properties.determineMysqlHostAndPortFromJdbcUrl();
+
+				if(StringUtils.isNotBlank(APP_PROPS.getProperty(END_DATE_PROP))) {
+					try {
+						String datePattern = APP_PROPS.getProperty(END_DATE_PATTERN_PROP, DEFAULT_END_DATE_PATTERN);
+						mozart2Properties.endDateFormatter = DateTimeFormatter.ofPattern(datePattern);
+						mozart2Properties.endDate = LocalDate.parse(APP_PROPS.getProperty(END_DATE_PROP), mozart2Properties.endDateFormatter);
+					} catch (DateTimeParseException | NullPointerException e) {
+						if (APP_PROPS.containsKey(END_DATE_PROP) && APP_PROPS.getProperty(END_DATE_PROP) != null) {
+							LOGGER.warn("Invalid value set for property {}, defaulting to current date", END_DATE_PROP);
+						} else {
+							LOGGER.info("{} property not set, defaulting to current date", END_DATE_PROP);
+						}
+						mozart2Properties.endDate = LocalDate.now();
+					}
+				}
             } catch (Exception e) {
-                LOGGER.error("An error occured during reading of app properties (this most likely is a result of invalid application.properties file or lack thereof)");
-                LOGGER.error("The passed properties are: {} ", APP_PROPS, e);
+                LOGGER.warn("An error occured during reading of app properties");
+                LOGGER.warn("The passed properties are: {} ", APP_PROPS, e);
             }
         }
 
