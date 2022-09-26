@@ -115,14 +115,20 @@ public class GenerationCoordinator implements Observer {
         switch(name) {
             case "generatorTask":
                 if(generationRecord != null) {
-                    if("done".equalsIgnoreCase((String) params.get("status"))) {
-                        generationRecord.setDateEnded(LocalDateTime.now());
-                        generationRecord.setStatus(Mozart2Generation.Status.COMPLETED);
-                        moz2GenService.saveMozartGeneration(generationRecord);
-                    }
-                    if("dumpFileDone".equalsIgnoreCase((String) params.get("status"))) {
-                        generationRecord.setSqlDumpPath((String) params.get("filename"));
-                        moz2GenService.saveMozartGeneration(generationRecord);
+                    switch((String) params.get("status")) {
+                        case "done":
+                            generationRecord.setDateEnded(LocalDateTime.now());
+                            generationRecord.setStatus(Mozart2Generation.Status.COMPLETED);
+                            moz2GenService.saveMozartGeneration(generationRecord);
+                            break;
+                        case "dumpFileDone":
+                            generationRecord.setSqlDumpPath((String) params.get("filename"));
+                            moz2GenService.saveMozartGeneration(generationRecord);
+                            break;
+                        case "dumpFileError":
+                            generationRecord.setErrorMessage((String) params.get("errorMessage"));
+                            moz2GenService.saveMozartGeneration(generationRecord);
+                            break;
                     }
                 }
                 break;

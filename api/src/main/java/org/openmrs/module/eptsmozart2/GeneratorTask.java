@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -123,10 +124,16 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 				Context.closeSession();
 			}
 			// Create the dumpfile
-			File dumpFile  = Utils.createMozart2SqlDump();
 			try {
+				File dumpFile  = Utils.createMozart2SqlDump();
 				parameters.replace("status",  "dumpFileDone");
 				parameters.put("filename", dumpFile.getCanonicalPath());
+				this.setChanged();
+				Context.openSession();
+				this.notifyObservers(parameters);
+			} catch (IOException e) {
+				parameters.replace("status", "dumpFileError");
+				parameters.put("errorMessage", e.getMessage());
 				this.setChanged();
 				Context.openSession();
 				this.notifyObservers(parameters);

@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.etl.AbstractGenerator;
 import org.openmrs.util.OpenmrsUtil;
@@ -89,10 +90,15 @@ public class Utils {
 				String line = "";
 				LOGGER.error("Error while creating the dump file when running: {}", cmd);
 				LOGGER.error("Command exited with exit code {}", exitCode);
+				String errorMessage = "";
 				while ((line = buf.readLine()) != null) {
 					LOGGER.error(line);
+					errorMessage += line;
 				}
-				throw new IOException("Could not generate SQL dump file");
+				if(StringUtils.isBlank(errorMessage)) {
+					errorMessage = "Could not generate SQL dump file";
+				}
+				throw new IOException(errorMessage);
 			}
 		} else {
 			LOGGER.info("SQL dump file generated successfully");
