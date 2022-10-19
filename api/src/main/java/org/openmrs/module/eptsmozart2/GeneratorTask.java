@@ -4,6 +4,7 @@ package org.openmrs.module.eptsmozart2;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.etl.ClinicalConsultationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.FormTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.FormTypeTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.Generator;
 import org.openmrs.module.eptsmozart2.etl.IdentifierTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.LaboratoryGenerator;
@@ -65,6 +66,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			toBeInvoked.add(generator);
 
 			generator = new LocationTableGenerator();
+			generator.addObserver(this);
+			toBeInvoked.add(generator);
+
+			generator = new FormTypeTableGenerator();
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
