@@ -440,7 +440,7 @@
                 <th><openmrs:message code="eptsmozart2.action.label"/></th>
                 <td id="recent-generation-action">
                     <c:if test="${not empty lastGeneration}">
-                        <c:if test="${not empty generation.sqlDumpPath}">
+                        <c:if test="${not empty lastGeneration.sqlDumpPath}">
                             <a href='${pageContext.request.contextPath.concat("/module/eptsmozart2/eptsmozart2download.json?id=").concat(lastGeneration.id)}'>
                                 <openmrs:message code="eptsmozart2.download.mozart2.button.label"/>
                             </a>
