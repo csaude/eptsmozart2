@@ -8,7 +8,7 @@ CREATE TABLE `laboratory` (
   `patient_uuid` char(38) DEFAULT NULL,
   `concept_id` int(11) NOT NULL,
   `concept_name` varchar(255) DEFAULT NULL,
-  `request` tinyint(1) NOT NULL,
+  `request` int(11) DEFAULT NULL,
   `order_date` datetime DEFAULT NULL,
   `sample_collection_date` datetime DEFAULT NULL,
   `result_report_date` datetime DEFAULT NULL,

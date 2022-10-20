@@ -11,6 +11,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLType;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -82,7 +83,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
             orderDateSpecimenStatement = ConnectionPool.getConnection().prepareStatement(orderDateSpecimenQuery);
             Set<Integer> positionsNotSet = new HashSet<>();
             while (results.next() && count < batchSize) {
-                positionsNotSet.addAll(Arrays.asList(10,11,12,13,14,15,16, 20, 21));
+                positionsNotSet.addAll(Arrays.asList(9, 10,11,12,13,14,15,16, 20, 21));
                 Integer encounterType = results.getInt("encounter_type");
                 insertStatement.setInt(1, results.getInt("encounter_id"));
                 insertStatement.setString(2, results.getString("encounter_uuid"));
@@ -94,11 +95,13 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 Integer conceptId = results.getInt("concept_id");
                 insertStatement.setInt(7, conceptId);
-                insertStatement.setBoolean(9, false);
                 if(conceptId == 23722) {
                     // request and order_date
-                    insertStatement.setBoolean(9, true);
-                    insertStatement.setDate(10, results.getDate("obs_datetime"));
+                    insertStatement.setInt(7, results.getInt("value_coded"));
+                    insertStatement.setString(8, results.getString("value_coded_name"));
+                    insertStatement.setInt(9, conceptId);
+                    insertStatement.setTimestamp(10, results.getTimestamp("obs_datetime"));
+                    positionsNotSet.remove(9);
                     positionsNotSet.remove(10);
                 }
 
@@ -133,7 +136,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     positionsNotSet.remove(12);
                 }
 
-                if(Arrays.asList(1305, 23722, 22772).contains(conceptId)) {
+                if(Arrays.asList(1305, 22772).contains(conceptId)) {
                     //13. result_qualitative_id, 14. result_qualitative_name
                     insertStatement.setInt(13, results.getInt("value_coded"));
                     insertStatement.setString(14, results.getString("value_coded_name"));
