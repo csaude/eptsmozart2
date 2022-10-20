@@ -132,7 +132,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 if(!orderResultDateSet && conceptId != 23722 && (encounterType == 13 || encounterType == 51 || encounterType == 6)) {
                     //result_report_date
-                    insertStatement.setDate(12, results.getDate("encounter_date"));
+                    insertStatement.setTimestamp(12, results.getTimestamp("obs_datetime"));
                     positionsNotSet.remove(12);
                 }
 
