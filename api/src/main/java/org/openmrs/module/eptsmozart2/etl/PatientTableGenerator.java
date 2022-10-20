@@ -54,7 +54,7 @@ public class PatientTableGenerator extends AbstractGenerator {
 				insertStatement.setBoolean(5, results.getBoolean("birthdate_estimated"));
 				insertStatement.setBoolean(6, results.getBoolean("dead"));
 				insertStatement.setDate(7, results.getDate("death_date"));
-				insertStatement.setDate(8, results.getDate("date_created"));
+				insertStatement.setTimestamp(8, results.getTimestamp("date_created"));
 				insertStatement.setString(9, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();

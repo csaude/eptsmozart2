@@ -30,7 +30,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "laboratory.sql";
 	
-	public static final Integer[] LAB_CONCEPT_IDS = new Integer[] { 730, 856, 1305, 1695, 5497, 22772 };
+	public static final Integer[] LAB_CONCEPT_IDS = new Integer[] { 730, 856, 1305, 1695, 5497, 22772, 23896 };
 
 	public static final Integer[] FICHA_CLINICA_LAB_ANSWERS = new Integer[] { 856, 1695 };
 
@@ -141,18 +141,18 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     positionsNotSet.remove(14);
                 }
 
-                if(Arrays.asList(5497, 1695,856,730).contains(conceptId)) {
+                if(Arrays.asList(5497, 23896, 1695, 856, 730).contains(conceptId)) {
                     insertStatement.setDouble(15, results.getDouble("value_numeric"));
                     positionsNotSet.remove(15);
 
-                    if(conceptId != 1695) {
+                    if(conceptId != 1695 && conceptId != 23896) {
                         insertStatement.setString(16, CONCEPT_UNITS.get(conceptId));
                         positionsNotSet.remove(16);
                     }
                 }
 
                 insertStatement.setString(17, results.getString("comments"));
-                insertStatement.setDate(18, results.getDate("date_created"));
+                insertStatement.setTimestamp(18, results.getTimestamp("date_created"));
                 insertStatement.setString(19, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
                 insertStatement.setString(22, results.getString("uuid"));
 
