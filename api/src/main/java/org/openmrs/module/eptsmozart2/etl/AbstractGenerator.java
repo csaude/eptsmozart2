@@ -24,9 +24,9 @@ public abstract class AbstractGenerator extends ObservableGenerator {
 	
 	protected PreparedStatement selectStatement;
 	
-	private Integer toBeGenerated = 0;
+	protected Integer toBeGenerated = 0;
 	
-	private Integer currentlyGenerated = 0;
+	protected Integer currentlyGenerated = 0;
 	
 	@Override
     public Void call() throws SQLException, IOException {
@@ -132,7 +132,7 @@ public abstract class AbstractGenerator extends ObservableGenerator {
 	
 	protected abstract String fetchQuery(Integer start, Integer batchSize);
 	
-	private void createTable() throws IOException {
+	protected void createTable() throws IOException {
         String createSql = getCreateTableSql();
 
         try(Connection connection = ConnectionPool.getConnection();
@@ -148,7 +148,7 @@ public abstract class AbstractGenerator extends ObservableGenerator {
         }
     }
 	
-	private int[] etl(Integer start, Integer batchSize) throws SQLException {
+	protected int[] etl(Integer start, Integer batchSize) throws SQLException {
 		String query = fetchQuery(start, batchSize);
 		ResultSet resultSet = null;
 		try {
