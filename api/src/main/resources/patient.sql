@@ -5,8 +5,6 @@ CREATE TABLE `patient` (
   `gender` char(2) DEFAULT NULL,
   `birthdate` date DEFAULT NULL,
   `birthdate_estimated` tinyint(1) DEFAULT NULL,
-  `dead` tinyint(1) DEFAULT '0',
-  `death_date` date DEFAULT NULL,
   `date_created` date DEFAULT NULL,
   `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),

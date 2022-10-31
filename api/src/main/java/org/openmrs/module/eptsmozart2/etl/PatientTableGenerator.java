@@ -37,8 +37,8 @@ public class PatientTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient (patient_id, patient_uuid, gender, birthdate, birthdate_estimated, dead, death_date, ")
-		        .append("date_created, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append(".patient (patient_id, patient_uuid, gender, birthdate, birthdate_estimated, ")
+		        .append("date_created, source_database) VALUES (?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -52,10 +52,8 @@ public class PatientTableGenerator extends AbstractGenerator {
 				insertStatement.setString(3, results.getString("gender"));
 				insertStatement.setDate(4, results.getDate("birthdate"));
 				insertStatement.setBoolean(5, results.getBoolean("birthdate_estimated"));
-				insertStatement.setBoolean(6, results.getBoolean("dead"));
-				insertStatement.setDate(7, results.getDate("death_date"));
-				insertStatement.setTimestamp(8, results.getTimestamp("date_created"));
-				insertStatement.setString(9, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
+				insertStatement.setTimestamp(6, results.getTimestamp("date_created"));
+				insertStatement.setString(7, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
 				++count;
