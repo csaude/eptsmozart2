@@ -110,7 +110,7 @@
         } else {
             $j('#recent-generation-stack-trace').html(generation.stackTrace);
         }
-        if(generation.status == 'COMPLETED' && generation.sqlDumpFilename) {
+        if(generation.status == 'COMPLETED' && (generation.sqlDumpFilename || generation.sqlDumpPath)) {
             var anchorTag = '<a href="' + localOpenmrsContextPath + '/module/eptsmozart2/eptsmozart2download.json?id=' + generation.id + '">';
             anchorTag += '<openmrs:message code="eptsmozart2.download.mozart2.button.label"/>';
             anchorTag += '</a>';
