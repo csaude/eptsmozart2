@@ -1,5 +1,6 @@
 package org.openmrs.module.eptsmozart2;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,6 +22,19 @@ public class DbUtils {
             s.execute(sql);
         } catch (SQLException sqle) {
             LOGGER.error("An error occured while running sql: {}", sql, sqle);
+            throw sqle;
+        }
+    }
+	
+	public  static void runSqlStatements(String[] sqls) throws SQLException {
+        try (Connection connection = ConnectionPool.getConnection();
+             Statement s = connection.createStatement()) {
+            for(String sql:sqls) {
+                s.addBatch(sql.trim());
+            }
+            s.executeBatch();
+        } catch (SQLException sqle) {
+            LOGGER.error("An error occured while running sqls: {}", sqls, sqle);
             throw sqle;
         }
     }

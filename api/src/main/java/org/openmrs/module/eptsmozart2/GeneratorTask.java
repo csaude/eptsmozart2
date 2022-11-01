@@ -59,6 +59,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 		try {
 			DbUtils.createNewDatabase();
 
+			// Create the lookup table
+			String[] sqls = Utils.readFileToString("type_id_lookup.sql").split(";");
+			DbUtils.runSqlStatements(sqls);
+
 			initializeVariables();
 
 			List<Generator> toBeInvoked = new ArrayList<>(10);
