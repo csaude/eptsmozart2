@@ -22,8 +22,6 @@ public class ProgramTableGenerator extends ObservableGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "program.sql";
 	
-	private static Integer[] PROGRAM_IDS = new Integer[] { 1, 2, 8 };
-	
 	private Integer toBeGenerated = 0;
 	
 	private Integer currentlyGenerated = 0;
@@ -64,10 +62,9 @@ public class ProgramTableGenerator extends ObservableGenerator {
                 .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient_program pg ON p.patient_id = pg.patient_id JOIN ")
-                .append(Mozart2Properties.getInstance().getDatabaseName()).append(".program ON pg.program_id = program.program_id JOIN ")
+                .append(Mozart2Properties.getInstance().getDatabaseName()).append(".program ON pg.program_id = program.program_id ")
+				.append("AND !pg.voided AND pg.date_enrolled <= ? JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location l ON l.location_id=pg.location_id ")
-                .append("WHERE !pg.voided AND pg.location_id IN (").append(Mozart2Properties.getInstance().getLocationsIdsString())
-                .append(") AND pg.program_id IN ").append(inClause(PROGRAM_IDS)).append(" AND pg.date_enrolled <= ? ")
 				.append("ORDER BY pg.patient_program_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();
