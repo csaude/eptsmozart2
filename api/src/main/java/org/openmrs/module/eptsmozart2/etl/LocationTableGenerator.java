@@ -53,9 +53,8 @@ public class LocationTableGenerator extends ObservableGenerator {
 	
 	private void locationEtl() throws SQLException {
         String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-                .append(".location (location_id,location_uuid, name, province_name, province_district, source_database) ")
-                .append("SELECT location_id,uuid,name,state_province,county_district, '")
-                .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
+                .append(".location (location_id,location_uuid, name, province_name, province_district) ")
+                .append("SELECT location_id,uuid,name,state_province,county_district FROM ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location ORDER BY location_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();

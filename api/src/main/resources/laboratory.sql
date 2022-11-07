@@ -21,7 +21,6 @@ CREATE TABLE `laboratory` (
   `specimen_type_id` int(11) DEFAULT NULL,
   `specimen_type` varchar(255) DEFAULT NULL,
   `labtest_uuid` char(38) DEFAULT NULL,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `laboratory_encounter_id` (`encounter_id`),
   KEY `laboratory_encounter_uuid` (`encounter_uuid`),

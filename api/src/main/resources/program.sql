@@ -10,7 +10,6 @@ CREATE TABLE `program` (
   `location_name` varchar(255) DEFAULT NULL,
   `location_uuid` char(38) DEFAULT NULL,
   `enrolment_uuid` char(38) DEFAULT NULL,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `program_patient_id` (`patient_id`),
   KEY `program_patient_uuid` (`patient_uuid`),

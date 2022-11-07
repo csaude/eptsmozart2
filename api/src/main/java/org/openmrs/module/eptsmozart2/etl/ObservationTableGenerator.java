@@ -45,8 +45,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		            ".observation (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, patient_uuid, ")
 		        .append(
 		            "concept_id, concept_name, observation_date, value_numeric, value_coded, value_coded_name, value_text, ")
-		        .append(
-		            "value_datetime, date_created, source_database, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		        .append("value_datetime, date_created, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		        .toString();
 		try {
 			if (insertStatement == null) {
@@ -84,8 +83,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				insertStatement.setString(13, results.getString("value_text"));
 				insertStatement.setDate(14, results.getDate("value_datetime"));
 				insertStatement.setTimestamp(15, results.getTimestamp("date_created"));
-				insertStatement.setString(16, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
-				insertStatement.setString(17, results.getString("uuid"));
+				insertStatement.setString(16, results.getString("uuid"));
 				
 				insertStatement.addBatch();
 				++count;

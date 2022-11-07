@@ -8,7 +8,6 @@ CREATE TABLE `location` (
   `name` varchar(255) DEFAULT NULL,
   `province_name` varchar(255) DEFAULT NULL,
   `province_district` varchar(255) DEFAULT NULL,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `location_source_location_id` (`location_id`),
   KEY `location_uuid` (`location_uuid`)

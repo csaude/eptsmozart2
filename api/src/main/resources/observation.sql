@@ -16,7 +16,6 @@ CREATE TABLE `observation` (
   `value_datetime` datetime DEFAULT NULL,
   `date_created` datetime,
   `obs_uuid` char(38) DEFAULT NULL,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `observation_encounter_id` (`encounter_id`),
   KEY `observation_encounter_uuid` (`encounter_uuid`),

@@ -36,8 +36,8 @@ public class DSDTableGenerator extends AbstractGenerator {
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".dsd (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, ")
-		        .append("patient_uuid, source_id, dsd_id, dsd_state_id, date_created, source_database)")
-		        .append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("patient_uuid, source_id, dsd_id, dsd_state_id, date_created)")
+		        .append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -56,7 +56,6 @@ public class DSDTableGenerator extends AbstractGenerator {
 				insertStatement.setInt(8, results.getInt("dsd_id"));
 				insertStatement.setInt(9, results.getInt("dsd_state_id"));
 				insertStatement.setTimestamp(10, results.getTimestamp("date_created"));
-				insertStatement.setString(11, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
 				++count;

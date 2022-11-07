@@ -62,10 +62,8 @@ public class FormTypeTableGenerator extends ObservableGenerator {
 	private void etl() throws SQLException {
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(
-		            ".form_type (form_type_id, form_type_name, form_type_uuid, encounter_type_id, encounter_type_name, source_database) ")
-		        .append("SELECT f.form_id, f.name, f.uuid, et.encounter_type_id, et.name, '")
-		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
+		        .append(".form_type (form_type_id, form_type_name, form_type_uuid, encounter_type_id, encounter_type_name) ")
+		        .append("SELECT f.form_id, f.name, f.uuid, et.encounter_type_id, et.name FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".form f JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter_type et on f.encounter_type = et.encounter_type_id").toString();

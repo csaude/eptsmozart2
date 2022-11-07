@@ -33,7 +33,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
 		            ".identifier (patient_id, patient_uuid, identifier_type, identifier_type_name, identifier_value, `primary`, ")
-		        .append("identifier_uuid, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("identifier_uuid) VALUES (?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -49,7 +49,6 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 				insertStatement.setString(5, results.getString("identifier"));
 				insertStatement.setBoolean(6, results.getBoolean("primary"));
 				insertStatement.setString(7, results.getString("identifier_uuid"));
-				insertStatement.setString(8, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
 				++count;

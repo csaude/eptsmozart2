@@ -74,9 +74,9 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append("formulation, formulation_concept, formulation_drug, quantity, dosage, next_pickup_date, ")
 				.append("mode_dispensation, mode_dispensation_concept, med_line, med_line_concept, type_dispensation, type_dispensation_concept, ")
 		        .append("alternative_line, alternative_line_concept, regimen_change_reason, regimen_change_reason_concept, ")
-				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, source_database, ")
+				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, ")
 				.append("regimen_id, medication_uuid, encounter_type) ")
-		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
 		PreparedStatement fetchMedsDetailsStatement = null;
@@ -109,14 +109,13 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				insertStatement.setString(2, results.getString("encounter_uuid"));
 				insertStatement.setInt(3, results.getInt("patient_id"));
 				insertStatement.setString(4, results.getString("patient_uuid"));
-				insertStatement.setInt(31, currentEncounterTypeId);
+				insertStatement.setInt(30, currentEncounterTypeId);
 
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
 					insertStatement.setDate(5, results.getDate("value_datetime"));
-					insertStatement.setString(28, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
-					insertStatement.setString(30, results.getString("medication_uuid"));
-					insertStatement.setNull(29, Types.INTEGER);
+					insertStatement.setString(29, results.getString("medication_uuid"));
+					insertStatement.setNull(28, Types.INTEGER);
 					insertStatement.setNull(6, Types.VARCHAR);
 					insertStatement.setNull(7, Types.INTEGER);
 					setEmptyPositions(positionsNotSet);
@@ -154,9 +153,8 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				insertStatement.setString(6, results.getString("regimen"));
 				insertStatement.setInt(7, results.getInt("value_coded"));
 
-				insertStatement.setString(28, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
-				insertStatement.setInt(29, currentConceptId);
-				insertStatement.setString(30, results.getString("medication_uuid"));
+				insertStatement.setInt(28, currentConceptId);
+				insertStatement.setString(29, results.getString("medication_uuid"));
 
 				fetchMedsDetailsStatement.clearParameters();
 				fetchMedsDetailsStatement.setInt(1, currentEncounterId);
@@ -310,8 +308,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 						
 						insertStatement.setString(6, results.getString("regimen"));
 						insertStatement.setInt(7, results.getInt("value_coded"));
-						insertStatement.setInt(29, results.getInt("concept_id"));
-						insertStatement.setString(28, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
+						insertStatement.setInt(28, results.getInt("concept_id"));
 
 						if(parameterCache.containsKey(13)) {
 							insertStatement.setDate(13, (Date) parameterCache.get(13));

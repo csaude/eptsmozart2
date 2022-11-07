@@ -8,7 +8,6 @@ CREATE TABLE `clinical_consultation` (
   `consultation_date` date DEFAULT NULL,
   `scheduled_date` date DEFAULT NULL,
   `observation_date` datetime DEFAULT NULL,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `clinical_consultation_encounter_id` (`encounter_id`),
   KEY `clinical_consultation_encounter_uuid` (`encounter_uuid`),

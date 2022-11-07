@@ -36,12 +36,9 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".clinical_consultation (encounter_id, encounter_uuid, encounter_type, patient_id, patient_uuid, ")
-		        .append(
-		            "consultation_date, scheduled_date, observation_date, source_database) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-		        .toString();
+		        .append("consultation_date, scheduled_date, observation_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -58,7 +55,6 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 				insertStatement.setDate(6, results.getDate("encounter_datetime"));
 				insertStatement.setDate(7, results.getDate("value_datetime"));
 				insertStatement.setDate(8, results.getDate("obs_datetime"));
-				insertStatement.setString(9, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
 				++count;

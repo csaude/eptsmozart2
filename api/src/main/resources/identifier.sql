@@ -7,7 +7,6 @@ CREATE TABLE `identifier` (
   `identifier_value` varchar(255) DEFAULT NULL,
   `primary` tinyint(4) DEFAULT NULL,
   `identifier_uuid` varchar(38) DEFAULT NULL,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`identifier_seq`),
   UNIQUE KEY `identifier_uuid` (`identifier_uuid`),
   KEY `identifier_patient_id` (`patient_id`),

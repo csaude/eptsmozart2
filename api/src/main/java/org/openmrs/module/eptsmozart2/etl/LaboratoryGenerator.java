@@ -67,9 +67,9 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 .append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".laboratory (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, patient_uuid, ")
                 .append("concept_id, concept_name, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
-                .append("result_qualitative_name, result_numeric, result_units, result_comment, date_created, source_database, ")
+                .append("result_qualitative_name, result_numeric, result_units, result_comment, date_created, ")
                 .append("specimen_type_id, specimen_type, labtest_uuid) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
         PreparedStatement orderDateSpecimenStatement = null;
         ResultSet orderDateSpecimenTypeResults = null;
@@ -120,8 +120,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         // Common values
                         eighty561305Values.put(17, results.getString("comments"));
                         eighty561305Values.put(18, results.getTimestamp("date_created"));
-                        eighty561305Values.put(19, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
-                        eighty561305Values.put(22, results.getString("uuid"));
+                        eighty561305Values.put(21, results.getString("uuid"));
                     } else if(conceptId == 1305) {
                         eighty561305Values.put(1305, results.getString("concept_name"));
                         eighty561305Values.put(13, results.getInt("value_coded"));
@@ -131,8 +130,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         if(!eighty561305Values.containsKey(856)) {
                             eighty561305Values.put(17, results.getString("comments"));
                             eighty561305Values.put(18, results.getTimestamp("date_created"));
-                            eighty561305Values.put(19, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
-                            eighty561305Values.put(22, results.getString("uuid"));
+                            eighty561305Values.put(21, results.getString("uuid"));
                         }
                     }
 
@@ -140,7 +138,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     continue;
                 }
 
-                positionsNotSet.addAll(Arrays.asList(9, 10,11,12,13,14,15,16, 20, 21));
+                positionsNotSet.addAll(Arrays.asList(9, 10,11,12,13,14,15,16, 19, 20));
                 insertStatement.setInt(1, results.getInt("encounter_id"));
                 insertStatement.setString(2, results.getString("encounter_uuid"));
                 insertStatement.setDate(3, results.getDate("encounter_date"));
@@ -188,10 +186,10 @@ public class LaboratoryGenerator extends AbstractGenerator {
                             positionsNotSet.remove(11);
                             orderResultDateSet = true;
                         } else if(resultConceptId == 23832) {
+                            positionsNotSet.remove(19);
                             positionsNotSet.remove(20);
-                            positionsNotSet.remove(21);
-                            insertStatement.setInt(20, orderDateSpecimenTypeResults.getInt("value_coded"));
-                            insertStatement.setString(21, orderDateSpecimenTypeResults.getString("value_coded_name"));
+                            insertStatement.setInt(19, orderDateSpecimenTypeResults.getInt("value_coded"));
+                            insertStatement.setString(20, orderDateSpecimenTypeResults.getString("value_coded_name"));
                         }
                     }
                 }
@@ -226,8 +224,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 insertStatement.setString(17, results.getString("comments"));
                 insertStatement.setTimestamp(18, results.getTimestamp("date_created"));
-                insertStatement.setString(19, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
-                insertStatement.setString(22, results.getString("uuid"));
+                insertStatement.setString(21, results.getString("uuid"));
 
                 setEmptyPositions(positionsNotSet);
                 insertStatement.addBatch();
@@ -393,7 +390,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 Iterator<Map.Entry<Integer, Map<Integer, Object>>> entriesIterator = eight561305.entrySet().iterator();
                 while(entriesIterator.hasNext()) {
                     Map.Entry<Integer, Map<Integer, Object>> entry = entriesIterator.next();
-                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(9, 10,11, 20, 21));
+                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(9, 10,11, 19, 20));
                     Map<Integer, Object> enc8561305 = entry.getValue();
                     if(!(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) && !lastIteration) continue;
                     Integer encounterId = entry.getKey();
@@ -421,7 +418,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     
                     insertStatement.setTimestamp(18, (Timestamp) enc8561305.get(18));
                     insertStatement.setString(19, (String) enc8561305.get(19));
-                    insertStatement.setString(22, (String) enc8561305.get(22));
+                    insertStatement.setString(21, (String) enc8561305.get(21));
 
                     if(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) {
                         //Combined

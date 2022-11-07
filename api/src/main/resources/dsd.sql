@@ -10,7 +10,6 @@ CREATE TABLE `dsd` (
   `dsd_id` int(11) NOT NULL,
   `dsd_state_id` int(11) NOT NULL,
   `date_created` datetime,
-  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `dsd_encounter_id` (`encounter_id`),
   KEY `dsd_encounter_uuid` (`encounter_uuid`),
