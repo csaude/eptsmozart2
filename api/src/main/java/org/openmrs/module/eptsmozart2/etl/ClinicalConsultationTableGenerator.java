@@ -37,8 +37,8 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".clinical_consultation (encounter_id, encounter_uuid, encounter_type, patient_id, patient_uuid, ")
-		        .append("consultation_date, scheduled_date, observation_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append(".clinical_consultation (encounter_uuid, encounter_type, patient_uuid, ")
+		        .append("consultation_date, scheduled_date, observation_date) VALUES (?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -47,14 +47,12 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 			}
 			int count = 0;
 			while (results.next() && count < batchSize) {
-				insertStatement.setInt(1, results.getInt("encounter_id"));
-				insertStatement.setString(2, results.getString("uuid"));
-				insertStatement.setInt(3, results.getInt("encounter_type"));
-				insertStatement.setInt(4, results.getInt("patient_id"));
-				insertStatement.setString(5, results.getString("patient_uuid"));
-				insertStatement.setDate(6, results.getDate("encounter_datetime"));
-				insertStatement.setDate(7, results.getDate("value_datetime"));
-				insertStatement.setDate(8, results.getDate("obs_datetime"));
+				insertStatement.setString(1, results.getString("uuid"));
+				insertStatement.setInt(2, results.getInt("encounter_type"));
+				insertStatement.setString(3, results.getString("patient_uuid"));
+				insertStatement.setDate(4, results.getDate("encounter_datetime"));
+				insertStatement.setDate(5, results.getDate("value_datetime"));
+				insertStatement.setDate(6, results.getDate("obs_datetime"));
 				
 				insertStatement.addBatch();
 				++count;

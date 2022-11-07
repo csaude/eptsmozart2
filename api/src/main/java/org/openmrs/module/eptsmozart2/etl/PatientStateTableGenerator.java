@@ -70,10 +70,10 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 	private void etlProgramBasedRecords() throws SQLException {
 		String insertStatement = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state (patient_id, patient_uuid, program_id, program_name, program_enrolment_date, ")
+		        .append(".patient_state (patient_uuid, program_id, program_name, program_enrolment_date, ")
 		        .append("program_completed_date, location_id, location_name, location_uuid, enrolment_uuid, ")
 		        .append("source_id, source_type, state_id, state, state_date, state_uuid) ")
-		        .append("SELECT p.patient_id, p.patient_uuid, pg.program_id, pr.name, pg.date_enrolled, pg.date_completed, ")
+		        .append("SELECT p.patient_uuid, pg.program_id, pr.name, pg.date_enrolled, pg.date_completed, ")
 		        .append(
 		            "pg.location_id, l.name, l.uuid,  pg.uuid, 2 as source_id, 'Program enrolment' as source_type, cn.concept_id,")
 		        .append("cn.name, ps.start_date, ps.uuid FROM ")
@@ -102,12 +102,10 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 	}
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
-		StringBuilder sb = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state(patient_id, patient_uuid, source_id, source_type, ")
+		StringBuilder sb = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".patient_state(patient_uuid, source_id, source_type, ")
 		        .append("state_id, state, state_date, state_uuid) ")
-		        .append(
-		            "SELECT p.patient_id, p.patient_uuid, e.form_id, f.name, o.value_coded, cn.name, o.obs_datetime, o.uuid FROM ")
+		        .append("SELECT p.patient_uuid, e.form_id, f.name, o.value_coded, cn.name, o.obs_datetime, o.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
@@ -132,8 +130,8 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 	
 	private void etlPersonDeathState() throws SQLException {
 		String insert = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state (patient_id, patient_uuid, source_id, source_type, state_id, state, state_date) ")
-		        .append("SELECT pe.person_id, pe.uuid, 1 as source_id,'Demographic' as source_type, 1366 as state_id, ")
+		        .append(".patient_state (patient_uuid, source_id, source_type, state_id, state, state_date) ")
+		        .append("SELECT pe.uuid, 1 as source_id,'Demographic' as source_type, 1366 as state_id, ")
 		        .append("'PATIENT HAS DIED' as state, death_date FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".person pe WHERE pe.dead = 1 AND pe.death_date <= '")

@@ -29,11 +29,9 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(
-		            ".identifier (patient_id, patient_uuid, identifier_type, identifier_type_name, identifier_value, `primary`, ")
-		        .append("identifier_uuid) VALUES (?, ?, ?, ?, ?, ?, ?)").toString();
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".identifier (patient_uuid, identifier_type, identifier_type_name, identifier_value, `primary`, ")
+		        .append("identifier_uuid) VALUES (?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -42,13 +40,12 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 			}
 			int count = 0;
 			while (results.next() && count < batchSize) {
-				insertStatement.setInt(1, results.getInt("patient_id"));
-				insertStatement.setString(2, results.getString("patient_uuid"));
-				insertStatement.setInt(3, results.getInt("identifier_type"));
-				insertStatement.setString(4, results.getString("name"));
-				insertStatement.setString(5, results.getString("identifier"));
-				insertStatement.setBoolean(6, results.getBoolean("primary"));
-				insertStatement.setString(7, results.getString("identifier_uuid"));
+				insertStatement.setString(1, results.getString("patient_uuid"));
+				insertStatement.setInt(2, results.getInt("identifier_type"));
+				insertStatement.setString(3, results.getString("name"));
+				insertStatement.setString(4, results.getString("identifier"));
+				insertStatement.setBoolean(5, results.getBoolean("primary"));
+				insertStatement.setString(6, results.getString("identifier_uuid"));
 				
 				insertStatement.addBatch();
 				++count;

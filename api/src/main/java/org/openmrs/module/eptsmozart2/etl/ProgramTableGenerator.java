@@ -56,8 +56,8 @@ public class ProgramTableGenerator extends ObservableGenerator {
 	
 	private void etl() throws SQLException {
         String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-                .append(".program (patient_id, patient_uuid,program_id, program, date_enrolled,date_completed, ")
-                .append("location_id, location_name, location_uuid, enrolment_uuid) SELECT p.patient_id, p.patient_uuid, ")
+                .append(".program (patient_uuid,program_id, program, date_enrolled,date_completed, ")
+                .append("location_id, location_name, location_uuid, enrolment_uuid) SELECT p.patient_uuid, ")
                 .append("pg.program_id, program.name, pg.date_enrolled, pg.date_completed, pg.location_id, l.name, l.uuid,  pg.uuid FROM ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient_program pg ON p.patient_id = pg.patient_id JOIN ")

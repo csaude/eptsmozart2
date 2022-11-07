@@ -41,11 +41,10 @@ public class ObservationTableGenerator extends AbstractGenerator {
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(
-		            ".observation (encounter_id, encounter_uuid, encounter_date, encounter_type, patient_id, patient_uuid, ")
+		        .append(".observation (encounter_uuid, encounter_date, encounter_type, patient_uuid, ")
 		        .append(
 		            "concept_id, concept_name, observation_date, value_numeric, value_coded, value_coded_name, value_text, ")
-		        .append("value_datetime, date_created, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		        .append("value_datetime, date_created, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		        .toString();
 		try {
 			if (insertStatement == null) {
@@ -55,35 +54,33 @@ public class ObservationTableGenerator extends AbstractGenerator {
 			}
 			int count = 0;
 			while (results.next() && count < batchSize) {
-				insertStatement.setInt(1, results.getInt("encounter_id"));
-				insertStatement.setString(2, results.getString("encounter_uuid"));
-				insertStatement.setDate(3, results.getDate("encounter_date"));
-				insertStatement.setInt(4, results.getInt("encounter_type"));
-				insertStatement.setInt(5, results.getInt("patient_id"));
-				insertStatement.setString(6, results.getString("patient_uuid"));
-				insertStatement.setInt(7, results.getInt("concept_id"));
-				insertStatement.setString(8, results.getString("concept_name"));
-				insertStatement.setDate(9, results.getDate("obs_datetime"));
+				insertStatement.setString(1, results.getString("encounter_uuid"));
+				insertStatement.setDate(2, results.getDate("encounter_date"));
+				insertStatement.setInt(3, results.getInt("encounter_type"));
+				insertStatement.setString(4, results.getString("patient_uuid"));
+				insertStatement.setInt(5, results.getInt("concept_id"));
+				insertStatement.setString(6, results.getString("concept_name"));
+				insertStatement.setDate(7, results.getDate("obs_datetime"));
 				
 				double valueNumeric = results.getDouble("value_numeric");
 				if (results.wasNull()) {
-					insertStatement.setNull(10, Types.DOUBLE);
+					insertStatement.setNull(8, Types.DOUBLE);
 				} else {
-					insertStatement.setDouble(10, valueNumeric);
+					insertStatement.setDouble(8, valueNumeric);
 				}
 				
 				int valueCoded = results.getInt("value_coded");
 				if (results.wasNull()) {
-					insertStatement.setNull(11, Types.INTEGER);
+					insertStatement.setNull(9, Types.INTEGER);
 				} else {
-					insertStatement.setInt(11, valueCoded);
+					insertStatement.setInt(9, valueCoded);
 				}
 				
-				insertStatement.setString(12, results.getString("value_coded_name"));
-				insertStatement.setString(13, results.getString("value_text"));
-				insertStatement.setDate(14, results.getDate("value_datetime"));
-				insertStatement.setTimestamp(15, results.getTimestamp("date_created"));
-				insertStatement.setString(16, results.getString("uuid"));
+				insertStatement.setString(10, results.getString("value_coded_name"));
+				insertStatement.setString(11, results.getString("value_text"));
+				insertStatement.setDate(12, results.getDate("value_datetime"));
+				insertStatement.setTimestamp(13, results.getTimestamp("date_created"));
+				insertStatement.setString(14, results.getString("uuid"));
 				
 				insertStatement.addBatch();
 				++count;
