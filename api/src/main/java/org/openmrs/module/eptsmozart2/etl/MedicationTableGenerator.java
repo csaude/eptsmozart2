@@ -26,11 +26,11 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/15/22.
  */
-public class MedicationsTableGenerator extends AbstractGenerator {
+public class MedicationTableGenerator extends AbstractGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
 	
-	private static final String CREATE_TABLE_FILE_NAME = "medications.sql";
+	private static final String CREATE_TABLE_FILE_NAME = "medication.sql";
 	
 	public static final Integer[] REGIMEN_CONCEPT_IDS = new Integer[] { 1087, 1088, 21187, 21188, 21190, 23893 };
 	
@@ -70,13 +70,13 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".medications (encounter_uuid, patient_uuid, medication_pickup_date, regimen, regimen_concept, ")
-		        .append("formulation, formulation_concept, formulation_drug, quantity, dosage, next_pickup_date, ")
-				.append("mode_dispensation, mode_dispensation_concept, med_line, med_line_concept, type_dispensation, type_dispensation_concept, ")
-		        .append("alternative_line, alternative_line_concept, regimen_change_reason, regimen_change_reason_concept, ")
-				.append("arv_side_effects, arv_side_effects_concept, adherence, adherence_concept, ")
-				.append("regimen_id, medication_uuid, encounter_type) ")
-		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append(".medication (encounter_uuid, medication_pickup_date, regimen_concept, ")
+		        .append("formulation_id, formulation_drug, quantity, dosage, next_pickup_date, ")
+				.append("mode_dispensation_id,med_line_id, type_dispensation_id, ")
+		        .append("alternative_line_id, reason_change_regimen_id, ")
+				.append("arv_side_effects_id, adherence_id, ")
+				.append("regimen_id, medication_uuid) ")
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
 		PreparedStatement fetchMedsDetailsStatement = null;
@@ -87,11 +87,8 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			} else {
 				insertStatement.clearParameters();
 			}
-			String fetchMoreObsSql = new StringBuilder("SELECT o.*, d.name as formulation, d.combination, cn.name as concept_name ")
-					.append("FROM ").append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o LEFT JOIN ")
-					.append(Mozart2Properties.getInstance().getDatabaseName()).append(".drug d ON o.value_drug = d.drug_id LEFT JOIN ")
-					.append(Mozart2Properties.getInstance().getDatabaseName()).append(".concept_name cn ON o.value_coded = cn.concept_id ")
-					.append("AND !cn.voided AND cn.locale='en' AND cn.locale_preferred ")
+			String fetchMoreObsSql = new StringBuilder("SELECT o.* FROM ")
+					.append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o ")
 					.append("WHERE o.encounter_id = ? AND o.concept_id IN (1711, 1715, 165256, 23740, 5096, 165174, 21151, 23742, 21190, 21187,")
 					.append("21188, 23739, 23742, 1792, 2015, 6223, 1190)").toString();
 			
@@ -99,23 +96,21 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			int count = 0;
 			Map<Integer, Object> parameterCache = new HashedMap();
 			while (results.next() && count < batchSize) {
-				positionsNotSet.addAll(Arrays.asList(6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25));
+				positionsNotSet.addAll(Arrays.asList(4,5,6,7,8,9,10,11,12,13,14,15));
 				parameterCache.clear();
 				final int currentEncounterId = results.getInt("encounter_id");
 				final int currentEncounterTypeId = results.getInt("encounter_type");
 				final int currentConceptId = results.getInt("concept_id");
 
 				insertStatement.setString(1, results.getString("encounter_uuid"));
-				insertStatement.setString(2, results.getString("patient_uuid"));
-				insertStatement.setInt(28, currentEncounterTypeId);
 
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
-					insertStatement.setDate(3, results.getDate("value_datetime"));
-					insertStatement.setString(27, results.getString("medication_uuid"));
-					insertStatement.setNull(26, Types.INTEGER);
+					insertStatement.setDate(2, results.getDate("value_datetime"));
+					insertStatement.setString(17, results.getString("medication_uuid"));
+					insertStatement.setNull(16, Types.INTEGER);
 					insertStatement.setNull(4, Types.VARCHAR);
-					insertStatement.setNull(5, Types.INTEGER);
+					insertStatement.setNull(3, Types.INTEGER);
 					setEmptyPositions(positionsNotSet);
 					insertStatement.addBatch();
 					++count;
@@ -125,34 +120,30 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 				// MOZ2-43
 				if(currentEncounterTypeId == 53) {
 					if(Arrays.asList( 21187, 21188, 21190).contains(currentConceptId)) {
-						parameterCache.put(3, results.getDate("obs_datetime"));
-						insertStatement.setDate(3, results.getDate("obs_datetime"));
+						parameterCache.put(2, results.getDate("obs_datetime"));
+						insertStatement.setDate(2, results.getDate("obs_datetime"));
 					} else if(currentConceptId == 23893) {
 						// MOZ2-48
-						insertStatement.setNull(3, Types.DATE);
+						insertStatement.setNull(2, Types.DATE);
 					}
 				} else {
-					parameterCache.put(3, results.getDate("encounter_date"));
-					insertStatement.setDate(3, results.getDate("encounter_date"));
+					parameterCache.put(2, results.getDate("encounter_date"));
+					insertStatement.setDate(2, results.getDate("encounter_date"));
 				}
 
 				// MOZ2-49
 				if(currentEncounterTypeId == 53 && Arrays.asList( 21187, 21188, 21190, 23893).contains(currentConceptId)) {
 					Map.Entry<Integer, String> entry = ENC_TYPE5_MED_LINES.get(currentConceptId).entrySet().iterator().next();
-					parameterCache.put(14, entry.getValue());
-					insertStatement.setString(14, entry.getValue());
 
-					parameterCache.put(15, entry.getKey());
-					insertStatement.setInt(15, entry.getKey());
-					positionsNotSet.removeAll(Arrays.asList(14, 15));
+					parameterCache.put(10, entry.getKey());
+					insertStatement.setInt(10, entry.getKey());
+					positionsNotSet.remove(10);
 				}
 
-				parameterCache.put(4, results.getString("regimen"));
-				insertStatement.setString(4, results.getString("regimen"));
-				insertStatement.setInt(5, results.getInt("value_coded"));
+				insertStatement.setInt(3, results.getInt("value_coded"));
 
-				insertStatement.setInt(26, currentConceptId);
-				insertStatement.setString(27, results.getString("medication_uuid"));
+				insertStatement.setInt(16, currentConceptId);
+				insertStatement.setString(17, results.getString("medication_uuid"));
 
 				fetchMedsDetailsStatement.clearParameters();
 				fetchMedsDetailsStatement.setInt(1, currentEncounterId);
@@ -167,8 +158,8 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 							// MOZ2-43
 							if(currentConceptId == 23893 && currentEncounterTypeId == 53) {
 								// Overwrite the medication_pickup_date.
-								parameterCache.put(3, medObsResults.getDate("value_datetime"));
-								insertStatement.setDate(3, medObsResults.getDate("value_datetime"));
+								parameterCache.put(2, medObsResults.getDate("value_datetime"));
+								insertStatement.setDate(2, medObsResults.getDate("value_datetime"));
 							}
 							break;
 						case 165256:
@@ -177,19 +168,17 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 								if(!formulationsDosagesQuantities.containsKey(obsGrouper)) {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
 								}
-								formulationsDosagesQuantities.get(obsGrouper).put(6, medObsResults.getString("formulation"));
-								formulationsDosagesQuantities.get(obsGrouper).put(7,  medObsResults.getInt("value_coded"));
-								formulationsDosagesQuantities.get(obsGrouper).put(8, medObsResults.getInt("value_drug"));
+								formulationsDosagesQuantities.get(obsGrouper).put(4,  medObsResults.getInt("value_coded"));
+								formulationsDosagesQuantities.get(obsGrouper).put(5, medObsResults.getInt("value_drug"));
 							} else {
-								insertStatement.setString(6, medObsResults.getString("formulation"));
-								insertStatement.setInt(7, medObsResults.getInt("value_coded"));
-								insertStatement.setInt(8, medObsResults.getInt("value_drug"));
-								positionsNotSet.removeAll(Arrays.asList(6, 7, 8));
+								insertStatement.setInt(4, medObsResults.getInt("value_coded"));
+								insertStatement.setInt(5, medObsResults.getInt("value_drug"));
+								positionsNotSet.removeAll(Arrays.asList(4, 5));
 							}
 							break;
 						case 1715:case 23740:
 							// quantity
-							final Integer QUANTITY_POS = 9;
+							final Integer QUANTITY_POS = 6;
 							if(obsGrouper != null) {
 								if (!formulationsDosagesQuantities.containsKey(obsGrouper)) {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
@@ -202,7 +191,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 							break;
 						case 1711:
 							// dosage
-							final Integer DOSAGE_POS = 10;
+							final Integer DOSAGE_POS = 7;
 							if(obsGrouper != null) {
 								if (!formulationsDosagesQuantities.containsKey(obsGrouper)) {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
@@ -215,71 +204,53 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 							break;
 						case 5096:
 							// next_pickup_date
-							insertStatement.setDate(11, medObsResults.getDate("value_datetime"));
-							parameterCache.put(11, medObsResults.getDate("value_datetime"));
-							positionsNotSet.remove(11);
+							insertStatement.setDate(8, medObsResults.getDate("value_datetime"));
+							parameterCache.put(8, medObsResults.getDate("value_datetime"));
+							positionsNotSet.remove(8);
 							break;
 						case 165174:
 							// mode_dispensation
-							parameterCache.put(12, medObsResults.getString("concept_name"));
-							insertStatement.setString(12, medObsResults.getString("concept_name"));
-
-							parameterCache.put(13, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(13, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(12, 13));
+							parameterCache.put(9, medObsResults.getInt("value_coded"));
+							insertStatement.setInt(9, medObsResults.getInt("value_coded"));
+							positionsNotSet.remove(9);
 							break;
 						case 21151:case 23893:case 21190:case 21187:case 21188:
 							// med_line
 							if(!(currentEncounterTypeId == 53 && Arrays.asList( 21187, 21188, 21190, 23893).contains(conceptId))) {
-								parameterCache.put(14, medObsResults.getString("concept_name"));
-								insertStatement.setString(14, medObsResults.getString("concept_name"));
-
-								parameterCache.put(15, medObsResults.getInt("value_coded"));
-								insertStatement.setInt(15, medObsResults.getInt("value_coded"));
-								positionsNotSet.removeAll(Arrays.asList(14, 15));
+								parameterCache.put(10, medObsResults.getInt("value_coded"));
+								insertStatement.setInt(10, medObsResults.getInt("value_coded"));
+								positionsNotSet.remove(10);
 							}
 							break;
 						case 23739:
 							// type_dispensation
-							parameterCache.put(16, medObsResults.getString("concept_name"));
-							insertStatement.setString(16, medObsResults.getString("concept_name"));
-
-							parameterCache.put(17, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(17, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(16, 17));
+							parameterCache.put(11, medObsResults.getInt("value_coded"));
+							insertStatement.setInt(11, medObsResults.getInt("value_coded"));
+							positionsNotSet.remove(11);
 							break;
 						case 23742:
 							// alternative_line
-							parameterCache.put(18, medObsResults.getString("concept_name"));
-							insertStatement.setString(18, medObsResults.getString("concept_name"));
-
-							parameterCache.put(19, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(19, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(18, 19));
+							parameterCache.put(12, medObsResults.getInt("value_coded"));
+							insertStatement.setInt(12, medObsResults.getInt("value_coded"));
+							positionsNotSet.remove(12);
 							break;
 						case 1792:
 							// reason_change_regimen
-							parameterCache.put(20, medObsResults.getString("concept_name"));
-							insertStatement.setString(20, medObsResults.getString("concept_name"));
-							parameterCache.put(21, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(21, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(20, 21));
+							parameterCache.put(13, medObsResults.getInt("value_coded"));
+							insertStatement.setInt(13, medObsResults.getInt("value_coded"));
+							positionsNotSet.remove(13);
 							break;
 						case 2015:
 							// arv_side_effects
-							parameterCache.put(22, medObsResults.getString("concept_name"));
-							insertStatement.setString(22, medObsResults.getString("concept_name"));
-							parameterCache.put(23, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(23, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(22, 23));
+							parameterCache.put(14, medObsResults.getInt("value_coded"));
+							insertStatement.setInt(14, medObsResults.getInt("value_coded"));
+							positionsNotSet.remove(14);
 							break;
 						case 6223:
 							// adherence
-							parameterCache.put(24, medObsResults.getString("concept_name"));
-							insertStatement.setString(24, medObsResults.getString("concept_name"));
-							parameterCache.put(25, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(25, medObsResults.getInt("value_coded"));
-							positionsNotSet.removeAll(Arrays.asList(24, 25));
+							parameterCache.put(15, medObsResults.getInt("value_coded"));
+							insertStatement.setInt(15, medObsResults.getInt("value_coded"));
+							positionsNotSet.remove(15);
 							break;
 					}
 				}
@@ -294,26 +265,42 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 					while(obsGroupers.hasNext()) {
 						group = formulationsDosagesQuantities.get(obsGroupers.next());
 						insertStatement.setString(1, results.getString("encounter_uuid"));
-						insertStatement.setString(2, results.getString("patient_uuid"));
 
-						if(parameterCache.containsKey(3)) {
-							insertStatement.setDate(3, (Date) parameterCache.get(3));
+						if(parameterCache.containsKey(2)) {
+							insertStatement.setDate(2, (Date) parameterCache.get(2));
 						} else {
-							insertStatement.setNull(3, Types.DATE);
+							insertStatement.setNull(2, Types.DATE);
 						}
 						
-						insertStatement.setString(4, results.getString("regimen"));
-						insertStatement.setInt(5, results.getInt("value_coded"));
-						insertStatement.setInt(26, results.getInt("concept_id"));
+						insertStatement.setInt(3, results.getInt("value_coded"));
+						insertStatement.setInt(16, results.getInt("concept_id"));
+
+						if(parameterCache.containsKey(8)) {
+							insertStatement.setDate(8, (Date) parameterCache.get(8));
+						} else {
+							positionsNotSet.add(8);
+						}
+
+						if(parameterCache.containsKey(9)) {
+							insertStatement.setInt(9, (int) parameterCache.get(9));
+						} else {
+							positionsNotSet.add(9);
+						}
+
+						if(parameterCache.containsKey(10)) {
+							insertStatement.setInt(10, (int) parameterCache.get(10));
+						} else {
+							positionsNotSet.add(10);
+						}
 
 						if(parameterCache.containsKey(11)) {
-							insertStatement.setDate(11, (Date) parameterCache.get(11));
+							insertStatement.setInt(11, (int) parameterCache.get(11));
 						} else {
 							positionsNotSet.add(11);
 						}
 
 						if(parameterCache.containsKey(12)) {
-							insertStatement.setString(12, (String) parameterCache.get(12));
+							insertStatement.setInt(12, (int) parameterCache.get(12));
 						} else {
 							positionsNotSet.add(12);
 						}
@@ -325,7 +312,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 						}
 
 						if(parameterCache.containsKey(14)) {
-							insertStatement.setString(14, (String) parameterCache.get(14));
+							insertStatement.setInt(14, (int) parameterCache.get(14));
 						} else {
 							positionsNotSet.add(14);
 						}
@@ -334,66 +321,6 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 							insertStatement.setInt(15, (int) parameterCache.get(15));
 						} else {
 							positionsNotSet.add(15);
-						}
-
-						if(parameterCache.containsKey(16)) {
-							insertStatement.setString(16, (String) parameterCache.get(16));
-						} else {
-							positionsNotSet.add(16);
-						}
-
-						if(parameterCache.containsKey(17)) {
-							insertStatement.setInt(17, (int) parameterCache.get(17));
-						} else {
-							positionsNotSet.add(17);
-						}
-
-						if(parameterCache.containsKey(18)) {
-							insertStatement.setString(18, (String) parameterCache.get(18));
-						} else {
-							positionsNotSet.add(18);
-						}
-
-						if(parameterCache.containsKey(19)) {
-							insertStatement.setInt(19, (int) parameterCache.get(19));
-						} else {
-							positionsNotSet.add(19);
-						}
-
-						if(parameterCache.containsKey(20)) {
-							insertStatement.setString(20, (String) parameterCache.get(20));
-						} else {
-							positionsNotSet.add(20);
-						}
-
-						if(parameterCache.containsKey(21)) {
-							insertStatement.setInt(21, (int) parameterCache.get(21));
-						} else {
-							positionsNotSet.add(21);
-						}
-
-						if(parameterCache.containsKey(22)) {
-							insertStatement.setString(22, (String) parameterCache.get(22));
-						} else {
-							positionsNotSet.add(22);
-						}
-
-						if(parameterCache.containsKey(23)) {
-							insertStatement.setInt(23, (int) parameterCache.get(23));
-						} else {
-							positionsNotSet.add(23);
-						}
-
-						if(parameterCache.containsKey(24)) {
-							insertStatement.setString(24, (String) parameterCache.get(24));
-						} else {
-							positionsNotSet.add(24);
-						}
-
-						if(parameterCache.containsKey(25)) {
-							insertStatement.setInt(25, (int) parameterCache.get(25));
-						} else {
-							positionsNotSet.add(25);
 						}
 
 						setFormulationDosageQuantity(group, positionsNotSet);
@@ -425,7 +352,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	
 	@Override
 	public String getTable() {
-		return "medications";
+		return "medication";
 	}
 	
 	@Override
@@ -457,7 +384,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        "SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
 		        .append(
 		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime as encounter_date, cn.name as regimen FROM ")
+		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime as encounter_date FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
@@ -465,11 +392,7 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" LEFT JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
-		        .append(
-		            "cn.locale_preferred  WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
+		        .append(" WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
 		        .append("WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
 		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
 		        .append(" END AND CASE WHEN o.concept_id = 23866 THEN o.value_datetime <= '")
@@ -493,21 +416,13 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 			while (iter.hasNext()) {
 				int pos = iter.next();
 				switch (pos) {
-					case 9:
+					case 6:
 						insertStatement.setNull(pos, Types.DOUBLE);
 						break;
-					case 11:
+					case 8:
 						insertStatement.setNull(pos, Types.DATE);
 						break;
-					case 6:
-					case 10:
-					case 12:
-					case 14:
-					case 16:
-					case 18:
-					case 20:
-					case 22:
-					case 24:
+					case 7:
 						insertStatement.setNull(pos, Types.VARCHAR);
 						break;
 					default:
@@ -518,29 +433,27 @@ public class MedicationsTableGenerator extends AbstractGenerator {
 	}
 	
 	private void setFormulationDosageQuantity(Map<Integer, Object> group, Set<Integer> positionsNotSet) throws SQLException {
+		if (group.containsKey(4)) {
+			insertStatement.setInt(4, (int) group.get(4));
+			insertStatement.setInt(5, (int) group.get(5));
+			positionsNotSet.removeAll(Arrays.asList(4, 5));
+		} else {
+			insertStatement.setNull(4, Types.INTEGER);
+			insertStatement.setNull(5, Types.INTEGER);
+		}
+		
 		if (group.containsKey(6)) {
-			insertStatement.setString(6, (String) group.get(6));
-			insertStatement.setInt(7, (int) group.get(7));
-			insertStatement.setInt(8, (int) group.get(8));
-			positionsNotSet.removeAll(Arrays.asList(6, 7, 8));
+			insertStatement.setDouble(6, (double) group.get(6));
+			positionsNotSet.remove(6);
 		} else {
-			insertStatement.setNull(6, Types.VARCHAR);
-			insertStatement.setNull(7, Types.INTEGER);
-			insertStatement.setNull(8, Types.INTEGER);
+			insertStatement.setNull(6, Types.DOUBLE);
 		}
 		
-		if (group.containsKey(9)) {
-			insertStatement.setDouble(9, (double) group.get(9));
-			positionsNotSet.remove(9);
+		if (group.containsKey(7)) {
+			insertStatement.setString(7, (String) group.get(7));
+			positionsNotSet.remove(7);
 		} else {
-			insertStatement.setNull(9, Types.DOUBLE);
-		}
-		
-		if (group.containsKey(10)) {
-			insertStatement.setString(10, (String) group.get(10));
-			positionsNotSet.remove(10);
-		} else {
-			insertStatement.setNull(10, Types.VARCHAR);
+			insertStatement.setNull(7, Types.VARCHAR);
 		}
 	}
 }
