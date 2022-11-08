@@ -66,15 +66,11 @@ public class FormTableGenerator extends ObservableGenerator {
 	}
 	
 	private void etlEncounterDatetimeBasedRecords() throws SQLException {
-		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(
-		            ".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, patient_id, ")
-		        .append(
-		            "patient_uuid, created_date, encounter_date, change_date, location_id, location_uuid, source_database) ")
-		        .append(
-		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
-		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.location_id, l.uuid, '")
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, ")
+		        .append("patient_uuid, created_date, encounter_date, change_date, location_uuid, source_database) ")
+		        .append("SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_uuid, ")
+		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.uuid, '")
 		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
@@ -92,15 +88,11 @@ public class FormTableGenerator extends ObservableGenerator {
 	
 	private void etlValueDatetimeBasedRecords() throws SQLException {
 		final Integer[] CONCEPTS = new Integer[] { 23891, 23866 };
-		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(
-		            ".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, patient_id, ")
-		        .append(
-		            "patient_uuid, created_date, encounter_date, change_date, location_id, location_uuid, source_database) ")
-		        .append(
-		            "SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_id, p.patient_uuid, ")
-		        .append("e.date_created, o.value_datetime, e.date_changed, l.location_id, l.uuid, '")
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, ")
+		        .append("patient_uuid, created_date, encounter_date, change_date, location_uuid, source_database) ")
+		        .append("SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_uuid, ")
+		        .append("e.date_created, o.value_datetime, e.date_changed, l.uuid, '")
 		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
