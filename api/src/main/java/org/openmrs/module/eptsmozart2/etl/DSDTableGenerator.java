@@ -35,9 +35,8 @@ public class DSDTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".dsd (encounter_uuid, encounter_date, encounter_type, ")
-		        .append("patient_uuid, source_id, dsd_id, dsd_state_id, date_created)")
-		        .append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append(".dsd (encounter_uuid, dsd_id, dsd_state_id, date_created)").append(" VALUES (?, ?, ?, ?)")
+		        .toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -47,13 +46,9 @@ public class DSDTableGenerator extends AbstractGenerator {
 			int count = 0;
 			while (results.next() && count < batchSize) {
 				insertStatement.setString(1, results.getString("encounter_uuid"));
-				insertStatement.setDate(2, results.getDate("encounter_date"));
-				insertStatement.setInt(3, results.getInt("encounter_type"));
-				insertStatement.setString(4, results.getString("patient_uuid"));
-				insertStatement.setInt(5, results.getInt("source_id"));
-				insertStatement.setInt(6, results.getInt("dsd_id"));
-				insertStatement.setInt(7, results.getInt("dsd_state_id"));
-				insertStatement.setTimestamp(8, results.getTimestamp("date_created"));
+				insertStatement.setInt(2, results.getInt("dsd_id"));
+				insertStatement.setInt(3, results.getInt("dsd_state_id"));
+				insertStatement.setTimestamp(4, results.getTimestamp("date_created"));
 				
 				insertStatement.addBatch();
 				++count;
