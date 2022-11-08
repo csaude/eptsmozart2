@@ -31,7 +31,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "medication.sql";
-	
+
 	public static final Integer[] REGIMEN_CONCEPT_IDS = new Integer[] { 1087, 1088, 21187, 21188, 21190, 23893 };
 	
 	public static final Integer[] REGIMEN_CONCEPT_IDS_ENCTYPE_53 = new Integer[] { 1088, 21187, 21188, 21190, 23893 };
@@ -70,13 +70,12 @@ public class MedicationTableGenerator extends AbstractGenerator {
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".medication (encounter_uuid, medication_pickup_date, regimen_concept, ")
+		        .append(".medication (encounter_uuid, medication_pickup_date, regimen_id, ")
 		        .append("formulation_id, formulation_drug, quantity, dosage, next_pickup_date, ")
 				.append("mode_dispensation_id,med_line_id, type_dispensation_id, ")
 		        .append("alternative_line_id, reason_change_regimen_id, ")
-				.append("arv_side_effects_id, adherence_id, ")
-				.append("regimen_id, medication_uuid) ")
-		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+				.append("arv_side_effects_id, adherence_id, medication_uuid) ")
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
 		PreparedStatement fetchMedsDetailsStatement = null;
@@ -107,8 +106,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
 					insertStatement.setDate(2, results.getDate("value_datetime"));
-					insertStatement.setString(17, results.getString("medication_uuid"));
-					insertStatement.setNull(16, Types.INTEGER);
+					insertStatement.setString(16, results.getString("medication_uuid"));
 					insertStatement.setNull(4, Types.VARCHAR);
 					insertStatement.setNull(3, Types.INTEGER);
 					setEmptyPositions(positionsNotSet);
@@ -141,9 +139,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 				}
 
 				insertStatement.setInt(3, results.getInt("value_coded"));
-
-				insertStatement.setInt(16, currentConceptId);
-				insertStatement.setString(17, results.getString("medication_uuid"));
+				insertStatement.setString(16, results.getString("medication_uuid"));
 
 				fetchMedsDetailsStatement.clearParameters();
 				fetchMedsDetailsStatement.setInt(1, currentEncounterId);

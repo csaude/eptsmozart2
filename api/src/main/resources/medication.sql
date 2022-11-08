@@ -3,7 +3,6 @@ CREATE TABLE `medication` (
   `encounter_uuid` char(38) DEFAULT NULL,
   `medication_pickup_date` varchar(255) DEFAULT NULL,
   `regimen_id` int(11) DEFAULT NULL,
-  `regimen_concept` int(11) DEFAULT NULL,
   `formulation_id` int(11) DEFAULT NULL,
   `formulation_drug` int(11) DEFAULT NULL,
   `quantity` double(255,0) DEFAULT NULL,
