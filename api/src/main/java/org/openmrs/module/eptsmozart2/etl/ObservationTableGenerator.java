@@ -39,13 +39,10 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".observation (encounter_uuid, encounter_date, encounter_type, patient_uuid, ")
-		        .append(
-		            "concept_id, concept_name, observation_date, value_numeric, value_coded, value_coded_name, value_text, ")
-		        .append("value_datetime, date_created, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-		        .toString();
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".observation (encounter_uuid, encounter_date, encounter_type, ")
+		        .append("concept_id, observation_date, value_numeric, value_concept_id, value_text, ")
+		        .append("value_datetime, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -57,30 +54,26 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				insertStatement.setString(1, results.getString("encounter_uuid"));
 				insertStatement.setDate(2, results.getDate("encounter_date"));
 				insertStatement.setInt(3, results.getInt("encounter_type"));
-				insertStatement.setString(4, results.getString("patient_uuid"));
-				insertStatement.setInt(5, results.getInt("concept_id"));
-				insertStatement.setString(6, results.getString("concept_name"));
-				insertStatement.setDate(7, results.getDate("obs_datetime"));
+				insertStatement.setInt(4, results.getInt("concept_id"));
+				insertStatement.setDate(5, results.getDate("obs_datetime"));
 				
 				double valueNumeric = results.getDouble("value_numeric");
 				if (results.wasNull()) {
-					insertStatement.setNull(8, Types.DOUBLE);
+					insertStatement.setNull(6, Types.DOUBLE);
 				} else {
-					insertStatement.setDouble(8, valueNumeric);
+					insertStatement.setDouble(6, valueNumeric);
 				}
 				
 				int valueCoded = results.getInt("value_coded");
 				if (results.wasNull()) {
-					insertStatement.setNull(9, Types.INTEGER);
+					insertStatement.setNull(7, Types.INTEGER);
 				} else {
-					insertStatement.setInt(9, valueCoded);
+					insertStatement.setInt(7, valueCoded);
 				}
 				
-				insertStatement.setString(10, results.getString("value_coded_name"));
-				insertStatement.setString(11, results.getString("value_text"));
-				insertStatement.setDate(12, results.getDate("value_datetime"));
-				insertStatement.setTimestamp(13, results.getTimestamp("date_created"));
-				insertStatement.setString(14, results.getString("uuid"));
+				insertStatement.setString(8, results.getString("value_text"));
+				insertStatement.setDate(9, results.getDate("value_datetime"));
+				insertStatement.setString(10, results.getString("uuid"));
 				
 				insertStatement.addBatch();
 				++count;
@@ -126,19 +119,14 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
 		StringBuilder sb = new StringBuilder("SELECT o.*, ")
 		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_datetime as encounter_date, cn.name as concept_name, ")
-		        .append("cn1.name as value_coded_name FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append("p.patient_uuid, e.encounter_datetime as encounter_date FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" LEFT JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")
-		        .append("cn.locale_preferred LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
-		        .append("cn1.locale_preferred  WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS))
-		        .append(" AND CASE WHEN o.concept_id = ").append(VALUE_DATETIME_CONCEPT)
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND o.concept_id IN ")
+		        .append(inClause(CONCEPT_IDS)).append(" AND CASE WHEN o.concept_id = ").append(VALUE_DATETIME_CONCEPT)
 		        .append(" THEN o.value_datetime <= '").append(endDate).append("' ELSE o.obs_datetime <= '").append(endDate)
 		        .append("' END ORDER BY o.obs_id");
 		
