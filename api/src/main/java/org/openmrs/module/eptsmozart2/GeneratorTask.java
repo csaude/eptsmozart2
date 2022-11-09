@@ -61,7 +61,7 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 
 			// Create the lookup table
 			String[] sqls = Utils.readFileToString("type_id_lookup.sql").split(";");
-			DbUtils.runSqlStatements(sqls);
+			DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getNewDatabaseName());
 
 			initializeVariables();
 

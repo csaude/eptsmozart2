@@ -26,9 +26,10 @@ public class DbUtils {
         }
     }
 	
-	public  static void runSqlStatements(String[] sqls) throws SQLException {
+	public  static void runSqlStatements(String[] sqls, String databaseName) throws SQLException {
         try (Connection connection = ConnectionPool.getConnection();
              Statement s = connection.createStatement()) {
+            s.addBatch("USE ".concat(databaseName));
             for(String sql:sqls) {
                 s.addBatch(sql.trim());
             }
