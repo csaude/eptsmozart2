@@ -1,6 +1,8 @@
 package org.openmrs.module.eptsmozart2.etl;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.DbUtils;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -11,6 +13,8 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
@@ -28,10 +32,6 @@ public class FormTableGenerator extends ObservableGenerator {
 	
 	public static final Integer[] VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 52, 53 };
 	
-	private Integer toBeGenerated = 0;
-	
-	private Integer currentlyGenerated = 0;
-	
 	protected String getCreateTableSql() throws IOException {
 		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
 	}
@@ -39,16 +39,6 @@ public class FormTableGenerator extends ObservableGenerator {
 	@Override
 	public String getTable() {
 		return "form";
-	}
-	
-	@Override
-	public Integer getCurrentlyGenerated() {
-		return currentlyGenerated;
-	}
-	
-	@Override
-	public Integer getToBeGenerated() {
-		return toBeGenerated;
 	}
 	
 	@Override
@@ -83,7 +73,9 @@ public class FormTableGenerator extends ObservableGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id ").append(" ORDER BY e.encounter_id").toString();
 		
-		runSql(insertSql);
+		Map<Integer, Object> params = new HashMap<>();
+		params.put(1, Date.valueOf(Mozart2Properties.getInstance().getEndDate()));
+		runSql(insertSql, params);
 	}
 	
 	private void etlValueDatetimeBasedRecords() throws SQLException {
@@ -108,21 +100,8 @@ public class FormTableGenerator extends ObservableGenerator {
 		        .append(inClause(CONCEPTS)).append(" AND o.value_datetime <= ? ").append("ORDER BY e.encounter_id")
 		        .toString();
 		
-		runSql(insertSql);
-	}
-	
-	private void runSql(String sql) throws SQLException {
-		try(Connection connection = ConnectionPool.getConnection();
-			PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setDate(1, Date.valueOf(Mozart2Properties.getInstance().getEndDate()));
-			int moreToGo = ps.executeUpdate();
-			toBeGenerated += moreToGo;
-			currentlyGenerated += moreToGo;
-		} catch (SQLException e) {
-			LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), sql, e);
-			this.setChanged();
-			Utils.notifyObserversAboutException(this, e);
-			throw e;
-		}
+		Map<Integer, Object> params = new HashMap<>();
+		params.put(1, Date.valueOf(Mozart2Properties.getInstance().getEndDate()));
+		runSql(insertSql, params);
 	}
 }

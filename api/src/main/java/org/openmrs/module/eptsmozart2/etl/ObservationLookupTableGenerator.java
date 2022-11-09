@@ -9,20 +9,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-
-import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public class FormTypeTableGenerator extends ObservableGenerator {
+public class ObservationLookupTableGenerator extends ObservableGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(FormTypeTableGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ObservationLookupTableGenerator.class);
 	
-	public static final String CREATE_TABLE_FILE_NAME = "form_type.sql";
+	public static final String CREATE_TABLE_FILE_NAME = "observation_lookup.sql";
 	
 	protected String getCreateTableSql() throws IOException {
 		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
@@ -30,7 +27,7 @@ public class FormTypeTableGenerator extends ObservableGenerator {
 	
 	@Override
 	public String getTable() {
-		return "form_type";
+		return "observation_lookup";
 	}
 	
 	@Override
@@ -38,7 +35,7 @@ public class FormTypeTableGenerator extends ObservableGenerator {
 		long startTime = System.currentTimeMillis();
 		try {
 			createTable(getCreateTableSql());
-			etl();
+			conceptETL();
 			return null;
 		}
 		finally {
@@ -46,14 +43,11 @@ public class FormTypeTableGenerator extends ObservableGenerator {
 		}
 	}
 	
-	private void etl() throws SQLException {
-		String insertSql = new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".form_type (form_type_id, form_type_name, form_type_uuid, encounter_type_id, encounter_type_name) ")
-		        .append("SELECT f.form_id, f.name, f.uuid, et.encounter_type_id, et.name FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".form f JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter_type et on f.encounter_type = et.encounter_type_id").toString();
+	private void conceptETL() throws SQLException {
+		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".observation_lookup (concept_id, concept_name) ").append("SELECT concept_id, name FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".concept_name ")
+		        .append("WHERE !voided AND locale='en' AND concept_name_type='FULLY_SPECIFIED'").toString();
 		
 		runSql(insertSql, null);
 	}

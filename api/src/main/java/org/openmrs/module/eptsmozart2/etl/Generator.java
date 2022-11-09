@@ -24,6 +24,10 @@ public interface Generator extends Callable<Void> {
 	
 	Integer getToBeGenerated();
 
+	void incrementCurrentlyGenerated(Integer increment);
+
+	void incrementToBeGenerated(Integer increment);
+
 	// Provide a default do nothing implementation
 	default void cancel() throws SQLException {}
 

@@ -1,5 +1,6 @@
 package org.openmrs.module.eptsmozart2.etl;
 
+import org.openmrs.module.eptsmozart2.DbUtils;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Utils;
@@ -10,6 +11,8 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
@@ -22,23 +25,9 @@ public class ProgramTableGenerator extends ObservableGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "program.sql";
 	
-	private Integer toBeGenerated = 0;
-	
-	private Integer currentlyGenerated = 0;
-	
 	@Override
 	public String getTable() {
 		return "program";
-	}
-	
-	@Override
-	public Integer getCurrentlyGenerated() {
-		return currentlyGenerated;
-	}
-	
-	@Override
-	public Integer getToBeGenerated() {
-		return toBeGenerated;
 	}
 	
 	@Override
@@ -66,17 +55,8 @@ public class ProgramTableGenerator extends ObservableGenerator {
                 .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location l ON l.location_id=pg.location_id ")
 				.append("ORDER BY pg.patient_program_id").toString();
 
-        try(Connection connection = ConnectionPool.getConnection();
-            PreparedStatement statement = connection.prepareStatement(insertSql)) {
-        	statement.setDate(1, Date.valueOf(Mozart2Properties.getInstance().getEndDate()));
-            int moreToGo = statement.executeUpdate();
-            toBeGenerated += moreToGo;
-            currentlyGenerated += moreToGo;
-        } catch (SQLException e) {
-            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertSql, e);
-			this.setChanged();
-			Utils.notifyObserversAboutException(this, e);
-            throw e;
-        }
+		Map<Integer, Object> params = new HashMap<>();
+		params.put(1, Date.valueOf(Mozart2Properties.getInstance().getEndDate()));
+		runSql(insertSql, params);
     }
 }

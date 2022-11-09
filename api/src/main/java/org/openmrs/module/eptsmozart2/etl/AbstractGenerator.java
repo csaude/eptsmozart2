@@ -24,10 +24,6 @@ public abstract class AbstractGenerator extends ObservableGenerator {
 	
 	protected PreparedStatement selectStatement;
 	
-	protected Integer toBeGenerated = 0;
-	
-	protected Integer currentlyGenerated = 0;
-	
 	@Override
     public Void call() throws SQLException, IOException {
         ResultSet resultSet = null;
@@ -100,16 +96,6 @@ public abstract class AbstractGenerator extends ObservableGenerator {
             LOGGER.info("MozART II {} table generation duration: {} ms", getTable(), System.currentTimeMillis() - startTime);
         }
     }
-	
-	@Override
-	public Integer getCurrentlyGenerated() {
-		return currentlyGenerated;
-	}
-	
-	@Override
-	public Integer getToBeGenerated() {
-		return toBeGenerated;
-	}
 	
 	@Override
 	public void cancel() throws SQLException {

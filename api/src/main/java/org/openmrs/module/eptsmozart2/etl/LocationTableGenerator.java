@@ -19,23 +19,9 @@ public class LocationTableGenerator extends ObservableGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "location.sql";
 	
-	private Integer toBeGenerated = 0;
-	
-	private Integer currentlyGenerated = 0;
-	
 	@Override
 	public String getTable() {
 		return "location";
-	}
-	
-	@Override
-	public Integer getCurrentlyGenerated() {
-		return currentlyGenerated;
-	}
-	
-	@Override
-	public Integer getToBeGenerated() {
-		return toBeGenerated;
 	}
 	
 	@Override

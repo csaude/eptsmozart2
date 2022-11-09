@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2.etl;
 
 import org.openmrs.module.eptsmozart2.ConnectionPool;
+import org.openmrs.module.eptsmozart2.DbUtils;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -22,10 +23,6 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "patient_state.sql";
-	
-	private Integer toBeGenerated = 0;
-	
-	private Integer currentlyGenerated = 0;
 	
 	@Override
 	public Void call() throws SQLException, IOException {
@@ -51,16 +48,6 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 	@Override
 	public String getTable() {
 		return "patient_state";
-	}
-	
-	@Override
-	public Integer getCurrentlyGenerated() {
-		return currentlyGenerated;
-	}
-	
-	@Override
-	public Integer getToBeGenerated() {
-		return toBeGenerated;
 	}
 	
 	protected String getCreateTableSql() throws IOException {
@@ -98,7 +85,7 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 		        .append(".concept_name cn on cn.concept_id = pws.concept_id AND ")
 		        .append("!cn.voided AND cn.locale = 'en' AND cn.locale_preferred").toString();
 		
-		runInsert(insertStatement);
+		runSql(insertStatement, null);
 	}
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
@@ -125,7 +112,7 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 		        .append(
 		            ".concept_name cn ON cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND cn.locale_preferred");
 		
-		runInsert(sb.toString());
+		runSql(sb.toString(), null);
 	}
 	
 	private void etlPersonDeathState() throws SQLException {
@@ -138,20 +125,7 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 		        .append("' AND pe.person_id IN (SELECT patient_id FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient)").toString();
-		runInsert(insert);
-	}
-	
-	private void runInsert(String sql) throws SQLException {
-		try(Connection connection = ConnectionPool.getConnection();
-			Statement statement = connection.createStatement()) {
-			int moreToGo = statement.executeUpdate(sql);
-			toBeGenerated += moreToGo;
-			currentlyGenerated += moreToGo;
-		} catch (SQLException e) {
-			LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), sql, e);
-			this.setChanged();
-			Utils.notifyObserversAboutException(this, e);
-			throw e;
-		}
+		
+		runSql(insert, null);
 	}
 }
