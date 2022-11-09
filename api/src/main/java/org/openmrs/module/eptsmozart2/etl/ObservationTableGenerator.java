@@ -40,9 +40,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".observation (encounter_uuid, encounter_date, encounter_type, ")
-		        .append("concept_id, observation_date, value_numeric, value_concept_id, value_text, ")
-		        .append("value_datetime, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append(".observation (encounter_uuid, concept_id, observation_date, ")
+		        .append("value_numeric, value_concept_id, value_text, ")
+		        .append("value_datetime, obs_uuid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -52,28 +52,26 @@ public class ObservationTableGenerator extends AbstractGenerator {
 			int count = 0;
 			while (results.next() && count < batchSize) {
 				insertStatement.setString(1, results.getString("encounter_uuid"));
-				insertStatement.setDate(2, results.getDate("encounter_date"));
-				insertStatement.setInt(3, results.getInt("encounter_type"));
-				insertStatement.setInt(4, results.getInt("concept_id"));
-				insertStatement.setDate(5, results.getDate("obs_datetime"));
+				insertStatement.setInt(2, results.getInt("concept_id"));
+				insertStatement.setDate(3, results.getDate("obs_datetime"));
 				
 				double valueNumeric = results.getDouble("value_numeric");
 				if (results.wasNull()) {
-					insertStatement.setNull(6, Types.DOUBLE);
+					insertStatement.setNull(4, Types.DOUBLE);
 				} else {
-					insertStatement.setDouble(6, valueNumeric);
+					insertStatement.setDouble(4, valueNumeric);
 				}
 				
 				int valueCoded = results.getInt("value_coded");
 				if (results.wasNull()) {
-					insertStatement.setNull(7, Types.INTEGER);
+					insertStatement.setNull(5, Types.INTEGER);
 				} else {
-					insertStatement.setInt(7, valueCoded);
+					insertStatement.setInt(5, valueCoded);
 				}
 				
-				insertStatement.setString(8, results.getString("value_text"));
-				insertStatement.setDate(9, results.getDate("value_datetime"));
-				insertStatement.setString(10, results.getString("uuid"));
+				insertStatement.setString(6, results.getString("value_text"));
+				insertStatement.setDate(7, results.getDate("value_datetime"));
+				insertStatement.setString(8, results.getString("uuid"));
 				
 				insertStatement.addBatch();
 				++count;
