@@ -41,6 +41,7 @@ public class GenerationCoordinator implements Observer {
         INITIAL_STATUSES.put("program", new StatusInfo("program", 0, 0));
         INITIAL_STATUSES.put("form", new StatusInfo("form", 0, 0));
         INITIAL_STATUSES.put("identifier", new StatusInfo("identifier", 0, 0));
+        INITIAL_STATUSES.put("keypop_vulnerable", new StatusInfo("keypop_vulnerable", 0, 0));
         INITIAL_STATUSES.put("observation", new StatusInfo("observation", 0, 0));
         INITIAL_STATUSES.put("dsd", new StatusInfo("dsd", 0, 0));
         INITIAL_STATUSES.put("medication", new StatusInfo("medication", 0, 0));

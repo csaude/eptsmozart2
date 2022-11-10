@@ -40,11 +40,6 @@ public abstract class ObservableGenerator extends Observable implements Generato
 		toBeGenerated += increment;
 	}
 	
-	@Override
-	public synchronized void setChanged() {
-		super.setChanged();
-	}
-	
 	protected  void runSql(String sql, Map<Integer, Object> params) throws SQLException {
 		try(Connection connection = ConnectionPool.getConnection();
 			PreparedStatement ps = connection.prepareStatement(sql)) {

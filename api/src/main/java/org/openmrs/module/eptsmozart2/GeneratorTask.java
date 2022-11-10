@@ -8,6 +8,7 @@ import org.openmrs.module.eptsmozart2.etl.FormTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.FormTypeTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.Generator;
 import org.openmrs.module.eptsmozart2.etl.IdentifierTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.KeyPopVulnerableTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.LaboratoryGenerator;
 import org.openmrs.module.eptsmozart2.etl.LocationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.MedicationTableGenerator;
@@ -109,6 +110,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			toBeInvoked.add(generator);
 
 			generator = new IdentifierTableGenerator();
+			generator.addObserver(this);
+			toBeInvoked.add(generator);
+
+			generator = new KeyPopVulnerableTableGenerator();
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
