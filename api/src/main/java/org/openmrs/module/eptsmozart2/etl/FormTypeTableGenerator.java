@@ -39,6 +39,9 @@ public class FormTypeTableGenerator extends ObservableGenerator {
 		try {
 			createTable(getCreateTableSql());
 			etl();
+			if (toBeGenerated == 0) {
+				hasRecords = Boolean.FALSE;
+			}
 			return null;
 		}
 		finally {

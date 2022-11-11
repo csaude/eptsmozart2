@@ -14,6 +14,8 @@ public class StatusInfo {
 	
 	private Integer toBeGenerated;
 	
+	private Boolean hasRecords = Boolean.TRUE;
+	
 	public StatusInfo() {
 	}
 	
@@ -21,6 +23,13 @@ public class StatusInfo {
 		this.table = table;
 		this.generated = generated;
 		this.toBeGenerated = toBeGenerated;
+	}
+	
+	public StatusInfo(String table, Integer generated, Integer toBeGenerated, Boolean hasRecords) {
+		this.table = table;
+		this.generated = generated;
+		this.toBeGenerated = toBeGenerated;
+		this.hasRecords = hasRecords;
 	}
 	
 	public String getTable() {
@@ -45,5 +54,13 @@ public class StatusInfo {
 	
 	public void setToBeGenerated(Integer toBeGenerated) {
 		this.toBeGenerated = toBeGenerated;
+	}
+	
+	public Boolean getHasRecords() {
+		return hasRecords;
+	}
+	
+	public void setHasRecords(Boolean hasRecords) {
+		this.hasRecords = hasRecords;
 	}
 }

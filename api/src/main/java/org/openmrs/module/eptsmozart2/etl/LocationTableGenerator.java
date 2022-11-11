@@ -30,6 +30,9 @@ public class LocationTableGenerator extends ObservableGenerator {
 		try {
 			createTable(Utils.readFileToString(CREATE_TABLE_FILE_NAME));
 			locationEtl();
+			if (toBeGenerated == 0) {
+				hasRecords = Boolean.FALSE;
+			}
 			return null;
 		}
 		finally {

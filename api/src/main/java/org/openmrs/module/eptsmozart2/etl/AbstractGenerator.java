@@ -34,6 +34,9 @@ public abstract class AbstractGenerator extends ObservableGenerator {
             resultSet = statement.executeQuery(countQuery());
             resultSet.next();
             toBeGenerated = resultSet.getInt(1);
+            if(toBeGenerated == 0) {
+                hasRecords = Boolean.FALSE;
+            }
             resultSet.close();
             int batchSize = Mozart2Properties.getInstance().getBatchSize();
             if(toBeGenerated > batchSize) {

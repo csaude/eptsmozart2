@@ -36,6 +36,9 @@ public class ObservationLookupTableGenerator extends ObservableGenerator {
 		try {
 			createTable(getCreateTableSql());
 			conceptETL();
+			if (toBeGenerated == 0) {
+				hasRecords = Boolean.FALSE;
+			}
 			return null;
 		}
 		finally {

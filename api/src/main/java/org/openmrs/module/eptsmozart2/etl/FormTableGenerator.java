@@ -48,6 +48,9 @@ public class FormTableGenerator extends ObservableGenerator {
 			createTable(getCreateTableSql());
 			etlEncounterDatetimeBasedRecords();
 			etlValueDatetimeBasedRecords();
+			if (toBeGenerated == 0) {
+				hasRecords = Boolean.FALSE;
+			}
 			return null;
 		}
 		finally {

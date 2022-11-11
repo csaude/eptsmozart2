@@ -38,6 +38,9 @@ public class PatientStateTableGenerator extends ObservableGenerator {
 			// 121 - TARV: VISITA DOMICILIARIA
 			etlObsBasedRecords(new Integer[] { 21 }, new Integer[] { 2031, 23944, 23945, 2016 }, new Integer[] { 1366, 1706,
 			        23863 });
+			if (toBeGenerated == 0) {
+				hasRecords = Boolean.FALSE;
+			}
 			return null;
 		}
 		finally {

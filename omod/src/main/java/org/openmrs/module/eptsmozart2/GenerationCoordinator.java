@@ -78,7 +78,8 @@ public class GenerationCoordinator implements Observer {
             Map<String, StatusInfo> progressStatuses = new LinkedHashMap<>(INITIAL_STATUSES);
             GENERATOR_TASK.GENERATORS.stream().forEach(generator -> {
                 progressStatuses.replace(generator.getTable(),
-                        new StatusInfo(generator.getTable(), generator.getCurrentlyGenerated(), generator.getToBeGenerated()));
+                        new StatusInfo(generator.getTable(), generator.getCurrentlyGenerated(),
+                                            generator.getToBeGenerated(), generator.getHasRecords()));
             });
 
             // clear the task

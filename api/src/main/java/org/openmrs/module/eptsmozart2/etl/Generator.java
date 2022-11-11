@@ -24,6 +24,8 @@ public interface Generator extends Callable<Void> {
 	
 	Integer getToBeGenerated();
 
+	Boolean getHasRecords();
+
 	void incrementCurrentlyGenerated(Integer increment);
 
 	void incrementToBeGenerated(Integer increment);

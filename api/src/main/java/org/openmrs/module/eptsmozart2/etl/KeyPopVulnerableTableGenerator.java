@@ -34,6 +34,9 @@ public class KeyPopVulnerableTableGenerator extends ObservableGenerator {
 		try {
 			createTable(Utils.readFileToString(CREATE_TABLE_FILE_NAME));
 			etl();
+			if (toBeGenerated == 0) {
+				hasRecords = Boolean.FALSE;
+			}
 			return null;
 		}
 		finally {

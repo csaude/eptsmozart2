@@ -20,6 +20,8 @@ public abstract class ObservableGenerator extends Observable implements Generato
 	
 	protected Integer currentlyGenerated = 0;
 	
+	protected Boolean hasRecords = Boolean.TRUE;
+	
 	@Override
 	public Integer getCurrentlyGenerated() {
 		return currentlyGenerated;
@@ -28,6 +30,11 @@ public abstract class ObservableGenerator extends Observable implements Generato
 	@Override
 	public Integer getToBeGenerated() {
 		return toBeGenerated;
+	}
+	
+	@Override
+	public Boolean getHasRecords() {
+		return hasRecords;
 	}
 	
 	@Override

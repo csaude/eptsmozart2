@@ -207,7 +207,7 @@
                     $j('#last-generation-info').css('display','block');
                 }
                 data['statuses'].forEach(tableEntry => {
-                    if(tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
+                    if(tableEntry.toBeGenerated !== tableEntry.generated || (tableEntry.generated === 0 && tableEntry.hasRecords)) {
                         continueCheckingProgress = true;
                     }
                     tableProgress(tableEntry);
@@ -339,9 +339,10 @@
                     });
                 } else {
                     data['statuses'].forEach(tableEntry => {
-                        if (tableEntry.toBeGenerated !== tableEntry.generated || tableEntry.generated === 0) {
+                        if (tableEntry.toBeGenerated !== tableEntry.generated || (tableEntry.generated === 0 && tableEntry.hasRecords)) {
                             continueCheckingProgress = true;
-                        } else if(tableEntry.toBeGenerated === tableEntry.generated && tableEntry.generated > 0) {
+                        } else if((tableEntry.toBeGenerated === tableEntry.generated && tableEntry.generated > 0) ||
+                            (tableEntry.toBeGenerated === 0 && !tableEntry.hasRecords)) {
                             tableProgressBarMap[tableEntry.table].keepOn = false;
                         }
                         tableProgress(tableEntry);
