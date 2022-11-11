@@ -1,17 +1,10 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.apache.commons.collections.map.HashedMap;
-import org.openmrs.module.eptsmozart2.ConnectionPool;
-import org.openmrs.module.eptsmozart2.DbUtils;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,9 +14,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public class FormTableGenerator extends ObservableGenerator {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(FormTableGenerator.class);
+public class FormTableGenerator extends InsertFromSelectGenerator {
 	
 	public static final String CREATE_TABLE_FILE_NAME = "form.sql";
 	
@@ -32,6 +23,7 @@ public class FormTableGenerator extends ObservableGenerator {
 	
 	public static final Integer[] VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 52, 53 };
 	
+	@Override
 	protected String getCreateTableSql() throws IOException {
 		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
 	}
@@ -42,20 +34,9 @@ public class FormTableGenerator extends ObservableGenerator {
 	}
 	
 	@Override
-	public Void call() throws Exception {
-		long startTime = System.currentTimeMillis();
-		try {
-			createTable(getCreateTableSql());
-			etlEncounterDatetimeBasedRecords();
-			etlValueDatetimeBasedRecords();
-			if (toBeGenerated == 0) {
-				hasRecords = Boolean.FALSE;
-			}
-			return null;
-		}
-		finally {
-			LOGGER.info("MozART II {} table generation duration: {} ms", getTable(), System.currentTimeMillis() - startTime);
-		}
+	protected void etl() throws SQLException {
+		etlEncounterDatetimeBasedRecords();
+		etlValueDatetimeBasedRecords();
 	}
 	
 	private void etlEncounterDatetimeBasedRecords() throws SQLException {

@@ -1,60 +1,42 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.ConnectionPool;
-import org.openmrs.module.eptsmozart2.DbUtils;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 7/8/22.
  */
-public class PatientStateTableGenerator extends ObservableGenerator {
+public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
-	
-	private static final String CREATE_TABLE_FILE_NAME = "patient_state.sql";
-	
-	@Override
-	public Void call() throws SQLException, IOException {
-		long startTime = System.currentTimeMillis();
-		try {
-			createTable(getCreateTableSql());
-			etlPersonDeathState();
-			etlProgramBasedRecords();
-			
-			// FICHA RESUMO & FICHA CLINICA
-			etlObsBasedRecords(new Integer[] { 6, 9, 53 }, new Integer[] { 6273, 6272 }, null);
-			
-			// 121 - TARV: VISITA DOMICILIARIA
-			etlObsBasedRecords(new Integer[] { 21 }, new Integer[] { 2031, 23944, 23945, 2016 }, new Integer[] { 1366, 1706,
-			        23863 });
-			if (toBeGenerated == 0) {
-				hasRecords = Boolean.FALSE;
-			}
-			return null;
-		}
-		finally {
-			LOGGER.info("MozART II {} table generation duration: {} ms", getTable(), System.currentTimeMillis() - startTime);
-		}
-	}
+	public static final String CREATE_TABLE_FILE_NAME = "patient_state.sql";
 	
 	@Override
 	public String getTable() {
 		return "patient_state";
 	}
 	
+	@Override
 	protected String getCreateTableSql() throws IOException {
 		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
+	}
+	
+	@Override
+	protected void etl() throws SQLException {
+		etlPersonDeathState();
+		etlProgramBasedRecords();
+		
+		// FICHA RESUMO & FICHA CLINICA
+		etlObsBasedRecords(new Integer[] { 6, 9, 53 }, new Integer[] { 6273, 6272 }, null);
+		
+		// 121 - TARV: VISITA DOMICILIARIA
+		etlObsBasedRecords(new Integer[] { 21 }, new Integer[] { 2031, 23944, 23945, 2016 }, new Integer[] { 1366, 1706,
+		        23863 });
 	}
 	
 	private void etlProgramBasedRecords() throws SQLException {

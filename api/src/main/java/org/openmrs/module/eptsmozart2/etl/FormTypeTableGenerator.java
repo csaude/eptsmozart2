@@ -18,9 +18,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
-public class FormTypeTableGenerator extends ObservableGenerator {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(FormTypeTableGenerator.class);
+public class FormTypeTableGenerator extends InsertFromSelectGenerator {
 	
 	public static final String CREATE_TABLE_FILE_NAME = "form_type.sql";
 	
@@ -34,22 +32,7 @@ public class FormTypeTableGenerator extends ObservableGenerator {
 	}
 	
 	@Override
-	public Void call() throws Exception {
-		long startTime = System.currentTimeMillis();
-		try {
-			createTable(getCreateTableSql());
-			etl();
-			if (toBeGenerated == 0) {
-				hasRecords = Boolean.FALSE;
-			}
-			return null;
-		}
-		finally {
-			LOGGER.info("MozART II {} table generation duration: {} ms", getTable(), System.currentTimeMillis() - startTime);
-		}
-	}
-	
-	private void etl() throws SQLException {
+	protected void etl() throws SQLException {
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".form_type (form_type_id, form_type_name, form_type_uuid, encounter_type_id, encounter_type_name) ")

@@ -6,6 +6,7 @@ import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,7 +14,7 @@ import java.sql.Statement;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 7/21/22.
  */
-public class LocationTableGenerator extends ObservableGenerator {
+public class LocationTableGenerator extends InsertFromSelectGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
@@ -25,22 +26,12 @@ public class LocationTableGenerator extends ObservableGenerator {
 	}
 	
 	@Override
-	public Void call() throws Exception {
-		long startTime = System.currentTimeMillis();
-		try {
-			createTable(Utils.readFileToString(CREATE_TABLE_FILE_NAME));
-			locationEtl();
-			if (toBeGenerated == 0) {
-				hasRecords = Boolean.FALSE;
-			}
-			return null;
-		}
-		finally {
-			LOGGER.info("MozART II {} table generation duration: {} ms", getTable(), System.currentTimeMillis() - startTime);
-		}
+	protected String getCreateTableSql() throws IOException {
+		return Utils.readFileToString(CREATE_TABLE_FILE_NAME);
 	}
 	
-	private void locationEtl() throws SQLException {
+	@Override
+	protected void etl() throws SQLException {
         String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".location (location_id,location_uuid, name, province_name, province_district) ")
                 .append("SELECT location_id,uuid,name,state_province,county_district FROM ")
