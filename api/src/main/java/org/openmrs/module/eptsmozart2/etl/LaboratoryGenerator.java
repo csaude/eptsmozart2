@@ -65,11 +65,11 @@ public class LaboratoryGenerator extends AbstractGenerator {
             batchSize = Integer.MAX_VALUE;
         String insertSql = new StringBuilder("INSERT INTO ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName())
-                .append(".laboratory (encounter_uuid, encounter_date, encounter_type, patient_uuid, ")
-                .append("concept_id, concept_name, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
-                .append("result_qualitative_name, result_numeric, result_units, result_comment, date_created, ")
-                .append("specimen_type_id, specimen_type, labtest_uuid) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+                .append(".laboratory (encounter_uuid, ")
+                .append("lab_test_id, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
+                .append("result_numeric, result_units, result_comment, ")
+                .append("specimen_type_id, labtest_uuid) ")
+                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
         PreparedStatement orderDateSpecimenStatement = null;
         ResultSet orderDateSpecimenTypeResults = null;
@@ -80,12 +80,10 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 insertStatement.clearParameters();
             }
             int count = 0;
-            String orderDateSpecimenQuery = new StringBuilder("SELECT o.*, cn.name as value_coded_name, ")
-                    .append("cn.name as value_coded_name FROM ")
-                    .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o LEFT JOIN ")
+            String orderDateSpecimenQuery = new StringBuilder("SELECT * FROM ")
                     .append(Mozart2Properties.getInstance().getDatabaseName())
-                    .append(".concept_name cn on cn.concept_id = o.value_coded AND !cn.voided AND cn.locale = 'en' AND ")
-                    .append("cn.locale_preferred WHERE !o.voided and o.concept_id IN (6246, 23821, 23832) and encounter_id = ?").toString();
+                    .append(".obs WHERE !voided and concept_id IN (6246, 23821, 23832) and encounter_id = ?")
+                    .toString();
 
             orderDateSpecimenStatement = ConnectionPool.getConnection().prepareStatement(orderDateSpecimenQuery);
             Set<Integer> positionsNotSet = new HashSet<>();
@@ -102,34 +100,30 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         eight561305.put(encounterId, eighty561305Values);
                     }
                     eighty561305Values.put(-1, insertSql);
+                    eighty561305Values.put(-2, encounterType);
                     eighty561305Values.put(1, results.getString("encounter_uuid"));
-                    eighty561305Values.put(2, results.getDate("encounter_date"));
-                    eighty561305Values.put(3, encounterType);
-                    eighty561305Values.put(4, results.getString("patient_uuid"));
+
 
                     if(encounterType == 13 || encounterType == 51 || encounterType == 6) {
-                        eighty561305Values.put(10, results.getTimestamp("obs_datetime"));
+                        eighty561305Values.put(6, results.getTimestamp("obs_datetime"));
                     }
 
                     if(conceptId == 856) {
-                        eighty561305Values.put(856, results.getString("concept_name"));
-                        eighty561305Values.put(13, results.getDouble("value_numeric"));
-                        eighty561305Values.put(14, CONCEPT_UNITS.get(conceptId));
+                        eighty561305Values.put(856, "856");
+                        eighty561305Values.put(8, results.getDouble("value_numeric"));
+                        eighty561305Values.put(9, CONCEPT_UNITS.get(conceptId));
 
                         // Common values
-                        eighty561305Values.put(15, results.getString("comments"));
-                        eighty561305Values.put(16, results.getTimestamp("date_created"));
-                        eighty561305Values.put(19, results.getString("uuid"));
+                        eighty561305Values.put(10, results.getString("comments"));
+                        eighty561305Values.put(12, results.getString("uuid"));
                     } else if(conceptId == 1305) {
-                        eighty561305Values.put(1305, results.getString("concept_name"));
-                        eighty561305Values.put(11, results.getInt("value_coded"));
-                        eighty561305Values.put(12, results.getString("value_coded_name"));
+                        eighty561305Values.put(1305, "1305");
+                        eighty561305Values.put(7, results.getInt("value_coded"));
 
                         // Common properties between 856 & 1305 (856 takes precedence, i.e. only set if they are not set.
                         if(!eighty561305Values.containsKey(856)) {
-                            eighty561305Values.put(15, results.getString("comments"));
-                            eighty561305Values.put(16, results.getTimestamp("date_created"));
-                            eighty561305Values.put(19, results.getString("uuid"));
+                            eighty561305Values.put(10, results.getString("comments"));
+                            eighty561305Values.put(12, results.getString("uuid"));
                         }
                     }
 
@@ -137,33 +131,17 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     continue;
                 }
 
-                positionsNotSet.addAll(Arrays.asList(7, 8,9,10,11,12,13,14, 17, 18));
+                positionsNotSet.addAll(Arrays.asList(3, 4,5,6,7, 8,9, 11));
                 insertStatement.setString(1, results.getString("encounter_uuid"));
-                insertStatement.setDate(2, results.getDate("encounter_date"));
-                insertStatement.setInt(3, encounterType);
-                insertStatement.setString(4, results.getString("patient_uuid"));
 
-                String conceptName = results.getString("concept_name");
-                if(conceptName == null) {
-                    positionsNotSet.add(6);
-                } else {
-                    insertStatement.setString(6, conceptName);
-                }
-
-                insertStatement.setInt(5, conceptId);
+                insertStatement.setInt(2, conceptId);
                 if(conceptId == 23722) {
                     // request and order_date
-                    insertStatement.setInt(5, results.getInt("value_coded"));
-                    conceptName = results.getString("value_coded_name");
-                    if(conceptName == null) {
-                        positionsNotSet.add(6);
-                    } else {
-                        insertStatement.setString(6, conceptName);
-                    }
-                    insertStatement.setInt(7, conceptId);
-                    insertStatement.setTimestamp(8, results.getTimestamp("obs_datetime"));
-                    positionsNotSet.remove(7);
-                    positionsNotSet.remove(8);
+                    insertStatement.setInt(2, results.getInt("value_coded"));
+                    insertStatement.setInt(3, conceptId);
+                    insertStatement.setTimestamp(4, results.getTimestamp("obs_datetime"));
+                    positionsNotSet.remove(3);
+                    positionsNotSet.remove(4);
                 }
 
                 boolean orderResultDateSet = false;
@@ -174,54 +152,45 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     while(orderDateSpecimenTypeResults.next()) {
                         int resultConceptId = orderDateSpecimenTypeResults.getInt("concept_id");
                         if(resultConceptId == 6246) {
-                            insertStatement.setDate(8, orderDateSpecimenTypeResults.getDate("value_datetime"));
-                            positionsNotSet.remove(8);
+                            insertStatement.setDate(4, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            positionsNotSet.remove(4);
                             orderResultDateSet = true;
                         } else if(resultConceptId == 23821) {
                             //sample_collection_date
-                            insertStatement.setDate(9, orderDateSpecimenTypeResults.getDate("value_datetime"));
-                            positionsNotSet.remove(9);
+                            insertStatement.setDate(5, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            positionsNotSet.remove(5);
                             orderResultDateSet = true;
                         } else if(resultConceptId == 23832) {
-                            positionsNotSet.remove(17);
-                            positionsNotSet.remove(18);
-                            insertStatement.setInt(17, orderDateSpecimenTypeResults.getInt("value_coded"));
-                            insertStatement.setString(18, orderDateSpecimenTypeResults.getString("value_coded_name"));
+                            positionsNotSet.remove(11);
+                            insertStatement.setInt(11, orderDateSpecimenTypeResults.getInt("value_coded"));
                         }
                     }
                 }
 
                 if(!orderResultDateSet && conceptId != 23722 && (encounterType == 13 || encounterType == 51 || encounterType == 6)) {
                     //result_report_date
-                    insertStatement.setTimestamp(10, results.getTimestamp("obs_datetime"));
-                    positionsNotSet.remove(10);
+                    insertStatement.setTimestamp(6, results.getTimestamp("obs_datetime"));
+                    positionsNotSet.remove(6);
                 }
 
                 if(Arrays.asList(1305, 22772).contains(conceptId)) {
-                    //11. result_qualitative_id, 12. result_qualitative_name
-                    insertStatement.setInt(11, results.getInt("value_coded"));
-                    positionsNotSet.remove(11);
-                    conceptName = results.getString("value_coded_name");
-                    if(conceptName != null) {
-                        insertStatement.setString(12, conceptName);
-                        positionsNotSet.remove(12);
-                    }
-
+                    //7. result_qualitative_id
+                    insertStatement.setInt(7, results.getInt("value_coded"));
+                    positionsNotSet.remove(7);
                 }
 
                 if(Arrays.asList(5497, 23896, 1695, 856, 730).contains(conceptId)) {
-                    insertStatement.setDouble(13, results.getDouble("value_numeric"));
-                    positionsNotSet.remove(13);
+                    insertStatement.setDouble(8, results.getDouble("value_numeric"));
+                    positionsNotSet.remove(8);
 
                     if(conceptId != 1695 && conceptId != 23896) {
-                        insertStatement.setString(14, CONCEPT_UNITS.get(conceptId));
-                        positionsNotSet.remove(14);
+                        insertStatement.setString(9, CONCEPT_UNITS.get(conceptId));
+                        positionsNotSet.remove(9);
                     }
                 }
 
-                insertStatement.setString(15, results.getString("comments"));
-                insertStatement.setTimestamp(16, results.getTimestamp("date_created"));
-                insertStatement.setString(19, results.getString("uuid"));
+                insertStatement.setString(10, results.getString("comments"));
+                insertStatement.setString(12, results.getString("uuid"));
 
                 setEmptyPositions(positionsNotSet);
                 insertStatement.addBatch();
@@ -270,18 +239,13 @@ public class LaboratoryGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT o.*, ")
-		        .append("e.uuid as encounter_uuid, e.encounter_type, o.person_id as patient_id, p.patient_uuid, ")
-		        .append("e.encounter_datetime as encounter_date, cn.name as concept_name, cn1.name as value_coded_name FROM ")
+		StringBuilder sb = new StringBuilder("SELECT o.*, e.encounter_type, e.uuid as encounter_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p ON o.person_id = p.patient_id JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
-                .append(" LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".concept_name cn on cn.concept_id = o.concept_id AND !cn.voided AND cn.locale = 'en' AND ")
-		        .append("cn.locale_preferred LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".concept_name cn1 on cn1.concept_id = o.value_coded AND !cn1.voided AND cn1.locale = 'en' AND ")
-		        .append("cn1.locale_preferred  WHERE !o.voided AND ((o.concept_id = ").append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
+		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
+                .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND ((o.concept_id = ")
+                .append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
                 .append(" AND o.value_coded IN ").append(inClause(FICHA_CLINICA_LAB_ANSWERS)).append(") OR o.concept_id IN ")
                 .append(inClause(LAB_CONCEPT_IDS)).append(") AND o.obs_datetime <= '")
                 .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
@@ -387,51 +351,35 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 Iterator<Map.Entry<Integer, Map<Integer, Object>>> entriesIterator = eight561305.entrySet().iterator();
                 while(entriesIterator.hasNext()) {
                     Map.Entry<Integer, Map<Integer, Object>> entry = entriesIterator.next();
-                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(7, 8,9, 17, 18));
+                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(3, 4,5, 11));
                     Map<Integer, Object> enc8561305 = entry.getValue();
                     if(!(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) && !lastIteration) continue;
-                    Integer encounterId = entry.getKey();
-                    int encounterType = (Integer) enc8561305.get(3);
+                    int encounterType = (Integer) enc8561305.get(-2);
                     insertStatement.setString(1, (String) enc8561305.get(1));
-                    insertStatement.setDate(2, (Date) enc8561305.get(2));
-                    insertStatement.setInt(3, encounterType);
-                    insertStatement.setString(4, (String) enc8561305.get(4));
-                    insertStatement.setInt(5, 856);
+                    insertStatement.setInt(2, 856);
 
 
                     if(encounterType == 13 || encounterType == 51 || encounterType == 6) {
-                        insertStatement.setTimestamp(10, (Timestamp) enc8561305.get(10));
+                        insertStatement.setTimestamp(6, (Timestamp) enc8561305.get(6));
                     } else {
-                        emptyPositions.add(10);
+                        emptyPositions.add(6);
                     }
 
-                    if(enc8561305.get(15) == null) {
-                        emptyPositions.add(15);
+                    if(enc8561305.get(10) == null) {
+                        emptyPositions.add(10);
                     } else {
-                        insertStatement.setString(15, (String) enc8561305.get(15));
+                        insertStatement.setString(10, (String) enc8561305.get(10));
                     }
                     
-                    insertStatement.setTimestamp(16, (Timestamp) enc8561305.get(16));
-                    insertStatement.setString(17, (String) enc8561305.get(17));
-                    insertStatement.setString(19, (String) enc8561305.get(19));
+                    insertStatement.setString(11, (String) enc8561305.get(11));
+                    insertStatement.setString(12, (String) enc8561305.get(12));
 
                     if(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) {
                         //Combined
-                        if(enc8561305.get(856) != null) {
-                            insertStatement.setString(6, (String) enc8561305.get(856));
-                        } else {
-                            emptyPositions.add(6);
-                        }
+                        insertStatement.setInt(7, (Integer) enc8561305.get(7));
 
-                        insertStatement.setInt(11, (Integer) enc8561305.get(11));
-                        if(enc8561305.get(12) != null) {
-                            insertStatement.setString(12, (String) enc8561305.get(12));
-                        } else {
-                            emptyPositions.add(12);
-                        }
-
-                        insertStatement.setDouble(13, (Double) enc8561305.get(13));
-                        insertStatement.setString(14, (String) enc8561305.get(14));
+                        insertStatement.setDouble(8, (Double) enc8561305.get(8));
+                        insertStatement.setString(9, (String) enc8561305.get(9));
                         entriesIterator.remove();
                         runInsert = true;
                         setEmptyPositions(emptyPositions);
@@ -440,40 +388,21 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         toBeGenerated--;
                         currentlyGenerated--;
                     } else if(enc8561305.containsKey(856) && lastIteration) {
-                        if(enc8561305.get(856) != null) {
-                            insertStatement.setString(6, (String) enc8561305.get(856));
-                        } else {
-                            emptyPositions.add(6);
-                        }
-
-                        insertStatement.setDouble(13, (Double) enc8561305.get(13));
-                        insertStatement.setString(14, (String) enc8561305.get(14));
+                        insertStatement.setDouble(8, (Double) enc8561305.get(8));
+                        insertStatement.setString(9, (String) enc8561305.get(9));
                         entriesIterator.remove();
                         runInsert = true;
-                        emptyPositions.add(11);
-                        emptyPositions.add(12);
+                        emptyPositions.add(7);
                         setEmptyPositions(emptyPositions);
                         insertStatement.addBatch();
                         rowsToInserted++;
                         currentlyGenerated--;
                     } else if(enc8561305.containsKey(1305) && lastIteration) {
-                        if(enc8561305.get(1305) != null) {
-                            insertStatement.setString(6, (String) enc8561305.get(1305));
-                        } else {
-                            emptyPositions.add(6);
-                        }
-
-                        insertStatement.setInt(11, (Integer) enc8561305.get(11));
-                        if(enc8561305.get(12) != null) {
-                            insertStatement.setString(12, (String) enc8561305.get(12));
-                        } else {
-                            emptyPositions.add(12);
-                        }
-
+                        insertStatement.setInt(7, (Integer) enc8561305.get(7));
                         entriesIterator.remove();
                         runInsert = true;
-                        emptyPositions.add(13);
-                        emptyPositions.add(14);
+                        emptyPositions.add(8);
+                        emptyPositions.add(9);
                         setEmptyPositions(emptyPositions);
                         insertStatement.addBatch();
                         rowsToInserted++;
@@ -502,17 +431,15 @@ public class LaboratoryGenerator extends AbstractGenerator {
 			while (iter.hasNext()) {
 				int pos = iter.next();
 				switch (pos) {
-					case 13:
+					case 8:
 						insertStatement.setNull(pos, Types.DOUBLE);
 						break;
-					case 8:
-					case 9:
-					case 10:
+					case 4:
+					case 5:
+					case 6:
 						insertStatement.setNull(pos, Types.DATE);
 						break;
-                    case 6:
-					case 7:
-					case 12:
+					case 3:
 						insertStatement.setNull(pos, Types.VARCHAR);
 						break;
 					default:
