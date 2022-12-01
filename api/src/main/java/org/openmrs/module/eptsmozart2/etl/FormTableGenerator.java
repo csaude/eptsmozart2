@@ -41,9 +41,9 @@ public class FormTableGenerator extends InsertFromSelectGenerator {
 	
 	private void etlEncounterDatetimeBasedRecords() throws SQLException {
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, ")
-		        .append("patient_uuid, created_date, encounter_date, change_date, location_uuid, source_database) ")
-		        .append("SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_uuid, ")
+		        .append(".form (encounter_id, encounter_uuid, form_id, encounter_type, patient_uuid, ")
+		        .append("created_date, encounter_date, change_date, location_uuid, source_database) ")
+		        .append("SELECT e.encounter_id, e.uuid, f.form_id, e.encounter_type, p.patient_uuid, ")
 		        .append("e.date_created, e.encounter_datetime, e.date_changed, l.uuid, '")
 		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
@@ -51,8 +51,7 @@ public class FormTableGenerator extends InsertFromSelectGenerator {
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided ").append("AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_DATETIME_BASED_ENCOUNTER_TYPE_IDS))
 		        .append(" AND e.encounter_datetime <= ?  JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".form f on f.form_id = e.form_id JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter_type et on e.encounter_type = et.encounter_type_id JOIN ")
+		        .append(".form f on f.form_id = e.form_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id ").append(" ORDER BY e.encounter_id").toString();
 		
@@ -64,9 +63,9 @@ public class FormTableGenerator extends InsertFromSelectGenerator {
 	private void etlValueDatetimeBasedRecords() throws SQLException {
 		final Integer[] CONCEPTS = new Integer[] { 23891, 23866 };
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".form (encounter_id, encounter_uuid, form_id, form_name, encounter_type, encounter_type_name, ")
-		        .append("patient_uuid, created_date, encounter_date, change_date, location_uuid, source_database) ")
-		        .append("SELECT e.encounter_id, e.uuid, f.form_id, f.name, et.encounter_type_id, et.name, p.patient_uuid, ")
+		        .append(".form (encounter_id, encounter_uuid, form_id, encounter_type, patient_uuid, ")
+		        .append("created_date, encounter_date, change_date, location_uuid, source_database) ")
+		        .append("SELECT e.encounter_id, e.uuid, f.form_id, e.encounter_type, p.patient_uuid, ")
 		        .append("e.date_created, o.value_datetime, e.date_changed, l.uuid, '")
 		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p JOIN ")
@@ -74,8 +73,6 @@ public class FormTableGenerator extends InsertFromSelectGenerator {
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
 		        .append(inClause(VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS)).append(" JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".form f on f.form_id = e.form_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter_type et on e.encounter_type = et.encounter_type_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
