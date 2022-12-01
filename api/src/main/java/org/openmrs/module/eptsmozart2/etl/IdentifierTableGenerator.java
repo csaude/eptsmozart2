@@ -11,6 +11,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.openmrs.module.eptsmozart2.Utils.inClause;
+
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/15/22.
  */
@@ -19,6 +21,8 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "identifier.sql";
+	
+	public static final Integer[] IDENTIFIER_TYPES = new Integer[] { 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 17 };
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
@@ -73,7 +77,8 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	protected String countQuery() {
 		return new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_identifier pi JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON pi.patient_id = p.patient_id AND !pi.voided").toString();
+		        .append(".patient p ON pi.patient_id = p.patient_id AND !pi.voided AND pi.identifier_type IN ")
+		        .append(inClause(IDENTIFIER_TYPES)).toString();
 	}
 	
 	@Override
@@ -82,8 +87,8 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		        .append("pi.preferred as 'primary', pi.uuid as identifier_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient_identifier pi JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON pi.patient_id = p.patient_id AND !pi.voided ")
-		        .append("ORDER BY pi.patient_identifier_id");
+		        .append(".patient p ON pi.patient_id = p.patient_id AND !pi.voided AND pi.identifier_type IN ")
+		        .append(inClause(IDENTIFIER_TYPES)).append(" ORDER BY pi.patient_identifier_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
