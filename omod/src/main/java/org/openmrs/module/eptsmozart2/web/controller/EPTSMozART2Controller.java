@@ -82,6 +82,13 @@ public class EPTSMozART2Controller {
 	@RequestMapping(value = "/module/eptsmozart2/eptsmozart2.json", method = RequestMethod.POST, produces = "application/json")
 	@ResponseBody
 	public Map<String, Object> onPost(@RequestParam(value = "endDate", required = false) String endDateString) {
+		List<String> globalPropertyErrors = Mozart2Properties.getInstance().validateProperties();
+		Map<String, Object> errors = new HashMap<>();
+		if(!globalPropertyErrors.isEmpty()) {
+			errors.put("globalPropertyErrors", globalPropertyErrors);
+			return errors;
+		}
+
 		if (!GENERATOR_TASK.isExecuting()) {
 			log.debug("Submitting Mozart2 Generation Task to Executor thread.");
 			LocalDate endDate = null;

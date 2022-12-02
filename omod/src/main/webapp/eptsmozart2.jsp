@@ -200,28 +200,40 @@
             })
             .then(data => {
                 console.log('Returned data:', data);
-                $j('#progress-table').css('visibility', 'visible');
-                var continueCheckingProgress = false;
-                if(data['lastGeneration']) {
-                    updateLastGenerationData(data['lastGeneration']);
-                    $j('#last-generation-info').css('display','block');
-                }
-                data['statuses'].forEach(tableEntry => {
-                    if(tableEntry.toBeGenerated !== tableEntry.generated || (tableEntry.generated === 0 && tableEntry.hasRecords)) {
-                        continueCheckingProgress = true;
-                    }
-                    tableProgress(tableEntry);
-                });
-                if(continueCheckingProgress) {
-                    progressUpdateSchedule = setTimeout(requestStatusAndUpgradeProgress, TIME_INTERVAL_BETWEEN_STATUS_CHECK);
-                } else {
-                    if(progressUpdateSchedule) {
-                        clearTimeout(progressUpdateSchedule);
-                    }
+                if(data['globalPropertyErrors']) {
                     $j('#mozart2-button').prop('disabled', false);
                     $j('#mozart2-cancel-button').css('visibility', 'hidden');
                     $j('#end-date-picker').prop('disabled', false);
                     $j('#end-date-picker').datepicker('setDate', new Date());
+                    $j('#dialog > ul').html('');
+                    data['globalPropertyErrors'].forEach(error => {
+                        $j('#dialog > ul').append('<li>' + error +'</li>')
+                    });
+                    $j('#dialog').dialog('open');
+                } else {
+                    $j('#progress-table').css('visibility', 'visible');
+                    var continueCheckingProgress = false;
+                    if (data['lastGeneration']) {
+                        updateLastGenerationData(data['lastGeneration']);
+                        $j('#last-generation-info').css('display', 'block');
+                    }
+                    data['statuses'].forEach(tableEntry => {
+                        if (tableEntry.toBeGenerated !== tableEntry.generated || (tableEntry.generated === 0 && tableEntry.hasRecords)) {
+                            continueCheckingProgress = true;
+                        }
+                        tableProgress(tableEntry);
+                    });
+                    if (continueCheckingProgress) {
+                        progressUpdateSchedule = setTimeout(requestStatusAndUpgradeProgress, TIME_INTERVAL_BETWEEN_STATUS_CHECK);
+                    } else {
+                        if (progressUpdateSchedule) {
+                            clearTimeout(progressUpdateSchedule);
+                        }
+                        $j('#mozart2-button').prop('disabled', false);
+                        $j('#mozart2-cancel-button').css('visibility', 'hidden');
+                        $j('#end-date-picker').prop('disabled', false);
+                        $j('#end-date-picker').datepicker('setDate', new Date());
+                    }
                 }
             }).catch(error => {
                 console.log(error);
@@ -378,6 +390,10 @@
         });
 
         $j('#end-date-picker').datepicker('setDate', new Date());
+
+        $j('#dialog').dialog({
+            autoOpen: false
+        });
     });
 </script>
 
@@ -544,4 +560,8 @@
 <div id="stack-trace-dialog" title='<openmrs:message code="eptsmozart2.generation.stack.trace.full.label"/>'>
 </div>
 
+<div id="dialog" title='<openmrs:message code="eptsmozart2.problems.detected"/>'>
+    <openmrs:message code="eptsmozart2.global.properties.notification"/>
+    <ul></ul>
+</div>
 <%@ include file="/WEB-INF/template/footer.jsp"%>

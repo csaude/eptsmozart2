@@ -13,7 +13,9 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -188,13 +190,7 @@ public class Mozart2Properties {
 	}
 	
 	public String getLocationsIdsString() {
-		String locationsIdsString = Context.getAdministrationService().getGlobalProperty(MOZART2_LOCATION_IDS_GP_NAME);
-		
-		if (StringUtils.isBlank(locationsIdsString)) {
-			throw new IllegalStateException(
-			        "MozART2 database cannot be generated because there is no location specified in the global property value");
-		}
-		return locationsIdsString;
+		return Context.getAdministrationService().getGlobalProperty(MOZART2_LOCATION_IDS_GP_NAME);
 	}
 	
 	public Set<Integer> getLocationsIds() {
@@ -253,5 +249,38 @@ public class Mozart2Properties {
 	
 	public void setEndDate(LocalDate endDate) {
 		this.endDate = endDate;
+	}
+	
+	public List<String> validateProperties() {
+		List<String> validationErrors = new ArrayList<>();
+		validateNewDatabaseName(validationErrors);
+		validateLocationIds(validationErrors);
+		return validationErrors;
+	}
+	
+	protected void validateNewDatabaseName(List<String> errors) {
+		String newDatabaseName = Mozart2Properties.getInstance().getNewDatabaseName();
+		if ("openmrs".equalsIgnoreCase(newDatabaseName)) {
+			errors.add(OpenmrsUtil.getMessage("eptsmozart2.invalid.new.db.global.property"));
+		}
+	}
+	
+	protected void validateLocationIds(List<String> errors) {
+		String locationsIdsString = Context.getAdministrationService().getGlobalProperty(MOZART2_LOCATION_IDS_GP_NAME);
+		if (StringUtils.isBlank(locationsIdsString)) {
+			errors.add(OpenmrsUtil.getMessage("eptsmozart2.empty.location.ids.global.property"));
+		} else {
+			String[] locIdStrings = locationsIdsString.split(",");
+			for (String locIdString : locIdStrings) {
+				try {
+					Integer.parseInt(locIdString.trim());
+				}
+				catch (NumberFormatException e) {
+					String em = OpenmrsUtil.getMessage("eptsmozart2.invalid.location.ids.global.property", locIdString);
+					LOGGER.warn(em);
+					errors.add(em);
+				}
+			}
+		}
 	}
 }
