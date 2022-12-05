@@ -76,10 +76,6 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
-			generator = new FormTypeTableGenerator();
-			generator.addObserver(this);
-			toBeInvoked.add(generator);
-
 			generator = new ObservationLookupTableGenerator();
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
@@ -98,10 +94,6 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			toBeInvoked.add(generator);
 
 			generator = new PatientStateTableGenerator();
-			generator.addObserver(this);
-			toBeInvoked.add(generator);
-
-			generator = new ProgramTableGenerator();
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
