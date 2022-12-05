@@ -35,8 +35,8 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		etlObsBasedRecords(new Integer[] { 6, 9, 53 }, new Integer[] { 6273, 6272 }, null);
 		
 		// 121 - TARV: VISITA DOMICILIARIA
-		etlObsBasedRecords(new Integer[] { 21 }, new Integer[] { 2031, 23944, 23945, 2016 }, new Integer[] { 1366, 1706,
-		        23863 });
+		Integer[] valueCoded = new Integer[] { 1366, 1706, 23863 };
+		etlObsBasedRecords(new Integer[] { 21 }, new Integer[] { 2031, 23944, 23945, 2016 }, valueCoded);
 	}
 	
 	private void etlProgramBasedRecords() throws SQLException {
@@ -45,7 +45,7 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append(".patient_state (patient_uuid, program_id, program_enrolment_date, program_completed_date, ")
 		        .append("location_uuid, enrolment_uuid, source_id, state_id, state_date, state_uuid) ")
 		        .append("SELECT p.patient_uuid, pg.program_id, pg.date_enrolled, pg.date_completed, ")
-		        .append("l.uuid,  pg.uuid, 2 as source_id, pws.concept_id, ")
+		        .append("l.uuid,  pg.uuid, pg.program_id, pws.concept_id, ")
 		        .append("ps.start_date, ps.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p INNER JOIN ")
@@ -68,7 +68,7 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
 		StringBuilder sb = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state(patient_uuid, source_id, ").append("state_id, state_date, state_uuid) ")
+		        .append(".patient_state(patient_uuid, source_id, state_id, state_date, state_uuid) ")
 		        .append("SELECT p.patient_uuid, e.form_id, o.value_coded, o.obs_datetime, o.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
@@ -88,7 +88,7 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	private void etlPersonDeathState() throws SQLException {
 		String insert = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient_state (patient_uuid, source_id, state_id, state_date) ")
-		        .append("SELECT pe.uuid, 1 as source_id, 1366 as state_id, death_date FROM ")
+		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".person pe WHERE pe.dead = 1 AND pe.death_date <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
