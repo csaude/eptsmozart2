@@ -398,6 +398,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         rowsToInserted++;
                         currentlyGenerated--;
                     } else if(enc8561305.containsKey(1305) && lastIteration) {
+                        insertStatement.setInt(2, 1305);
                         insertStatement.setInt(7, (Integer) enc8561305.get(7));
                         entriesIterator.remove();
                         runInsert = true;
