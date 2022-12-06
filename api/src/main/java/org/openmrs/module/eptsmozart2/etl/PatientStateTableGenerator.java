@@ -90,9 +90,9 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append(".patient_state (patient_uuid, source_id, state_id, state_date) ")
 		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".person pe WHERE pe.dead = 1 AND pe.death_date <= '")
+		        .append(".person pe WHERE pe.dead = 1 AND (pe.death_date is NULL or pe.death_date <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("' AND pe.person_id IN (SELECT patient_id FROM ")
+		        .append("') AND pe.person_id IN (SELECT patient_id FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient)").toString();
 		
 		runSql(insert, null);
