@@ -173,13 +173,15 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     positionsNotSet.remove(6);
                 }
 
-                if(Arrays.asList(1305, 22772).contains(conceptId)) {
+                if(Arrays.asList(22772).contains(conceptId)) {
                     //7. result_qualitative_id
-                    insertStatement.setInt(7, results.getInt("value_coded"));
+                    final int RESULT_POSITIVE_CONCEPT_ID = 703;
+                    insertStatement.setInt(2, results.getInt("value_coded"));
+                    insertStatement.setInt(7, RESULT_POSITIVE_CONCEPT_ID);
                     positionsNotSet.remove(7);
                 }
 
-                if(Arrays.asList(5497, 23896, 1695, 856, 730).contains(conceptId)) {
+                if(Arrays.asList(5497, 23896, 1695, 730).contains(conceptId)) {
                     insertStatement.setDouble(8, results.getDouble("value_numeric"));
                     positionsNotSet.remove(8);
 

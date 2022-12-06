@@ -86,7 +86,7 @@
     }
 
     function openErrorDetailsDialog() {
-        $j('#stack-trace-dialog').dialog();
+        $j('#stack-trace-dialog').dialog('open');
         return true;
     }
 
@@ -390,6 +390,10 @@
         });
 
         $j('#end-date-picker').datepicker('setDate', new Date());
+
+        $j('#stack-trace-dialog').dialog({
+            autoOpen: false
+        });
 
         $j('#dialog').dialog({
             autoOpen: false
