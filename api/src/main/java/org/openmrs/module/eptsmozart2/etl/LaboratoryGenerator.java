@@ -108,6 +108,17 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         eighty561305Values.put(6, results.getTimestamp("obs_datetime"));
                     }
 
+                    if(encounterType == 13 || encounterType == 51) {
+                        orderDateSpecimenStatement.setInt(1, encounterId);
+                        orderDateSpecimenTypeResults = orderDateSpecimenStatement.executeQuery();
+                        while(orderDateSpecimenTypeResults.next()) {
+                            int resultConceptId = orderDateSpecimenTypeResults.getInt("concept_id");
+                            if(resultConceptId == 6246) {
+                                eighty561305Values.put(4, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            }
+                        }
+                    }
+
                     if(conceptId == 856) {
                         eighty561305Values.put(856, "856");
                         eighty561305Values.put(8, results.getDouble("value_numeric"));
@@ -146,7 +157,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
                 boolean orderResultDateSet = false;
                 if(encounterType == 13 || encounterType == 51) {
-                    orderDateSpecimenStatement.setInt(1, results.getInt("encounter_id"));
+                    orderDateSpecimenStatement.setInt(1, encounterId);
                     orderDateSpecimenTypeResults = orderDateSpecimenStatement.executeQuery();
 
                     while(orderDateSpecimenTypeResults.next()) {
@@ -353,13 +364,18 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 Iterator<Map.Entry<Integer, Map<Integer, Object>>> entriesIterator = eight561305.entrySet().iterator();
                 while(entriesIterator.hasNext()) {
                     Map.Entry<Integer, Map<Integer, Object>> entry = entriesIterator.next();
-                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(3, 4,5, 11));
+                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(3, 5, 11));
                     Map<Integer, Object> enc8561305 = entry.getValue();
                     if(!(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) && !lastIteration) continue;
                     int encounterType = (Integer) enc8561305.get(-2);
                     insertStatement.setString(1, (String) enc8561305.get(1));
                     insertStatement.setInt(2, 856);
 
+                    if(enc8561305.containsKey(4)) {
+                        insertStatement.setDate(4, (Date) enc8561305.get(4));
+                    } else {
+                        emptyPositions.add(4);
+                    }
 
                     if(encounterType == 13 || encounterType == 51 || encounterType == 6) {
                         insertStatement.setTimestamp(6, (Timestamp) enc8561305.get(6));

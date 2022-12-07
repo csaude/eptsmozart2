@@ -5,7 +5,7 @@
 	<!-- Base Module Properties -->
 	<id>${project.parent.artifactId}</id>
 	<name>${project.parent.name}</name>
-	<version>${project.parent.version}</version>
+	<version>${project.parent.version}.${revisionNumber}</version>
 	<package>org.openmrs.module.eptsmozart2</package>
 	<author>mhawilamhawila</author>
 	<description>
