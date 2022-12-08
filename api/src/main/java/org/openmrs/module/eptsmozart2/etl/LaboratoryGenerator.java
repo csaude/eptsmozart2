@@ -104,7 +104,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     eighty561305Values.put(1, results.getString("encounter_uuid"));
 
 
-                    if(encounterType == 13 || encounterType == 51 || encounterType == 6) {
+                    if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
                         eighty561305Values.put(6, results.getTimestamp("obs_datetime"));
                     }
 
@@ -114,7 +114,14 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         while(orderDateSpecimenTypeResults.next()) {
                             int resultConceptId = orderDateSpecimenTypeResults.getInt("concept_id");
                             if(resultConceptId == 6246) {
+                                // result_report_date
                                 eighty561305Values.put(4, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            } else if(resultConceptId == 23821) {
+                                //sample_collection_date
+                                eighty561305Values.put(5, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            } else if(resultConceptId == 23832) {
+                                //specimen_type_id
+                                eighty561305Values.put(11, orderDateSpecimenTypeResults.getInt("value_coded"));
                             }
                         }
                     }
@@ -178,7 +185,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     }
                 }
 
-                if(!orderResultDateSet && conceptId != 23722 && (encounterType == 13 || encounterType == 51 || encounterType == 6)) {
+                if(conceptId != 23722 && Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
                     //result_report_date
                     insertStatement.setTimestamp(6, results.getTimestamp("obs_datetime"));
                     positionsNotSet.remove(6);
@@ -364,7 +371,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                 Iterator<Map.Entry<Integer, Map<Integer, Object>>> entriesIterator = eight561305.entrySet().iterator();
                 while(entriesIterator.hasNext()) {
                     Map.Entry<Integer, Map<Integer, Object>> entry = entriesIterator.next();
-                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(3, 5, 11));
+                    Set<Integer> emptyPositions = new HashSet<>(Arrays.asList(3));
                     Map<Integer, Object> enc8561305 = entry.getValue();
                     if(!(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) && !lastIteration) continue;
                     int encounterType = (Integer) enc8561305.get(-2);
@@ -377,10 +384,22 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         emptyPositions.add(4);
                     }
 
-                    if(encounterType == 13 || encounterType == 51 || encounterType == 6) {
+                    if(enc8561305.containsKey(5)) {
+                        insertStatement.setDate(5, (Date) enc8561305.get(5));
+                    } else {
+                        emptyPositions.add(5);
+                    }
+
+                    if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
                         insertStatement.setTimestamp(6, (Timestamp) enc8561305.get(6));
                     } else {
                         emptyPositions.add(6);
+                    }
+
+                    if(enc8561305.containsKey(11)) {
+                        insertStatement.setInt(11, (Integer) enc8561305.get(11));
+                    } else {
+                        emptyPositions.add(11);
                     }
 
                     if(enc8561305.get(10) == null) {
