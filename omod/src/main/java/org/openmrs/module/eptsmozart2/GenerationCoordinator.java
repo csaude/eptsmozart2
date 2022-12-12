@@ -54,6 +54,7 @@ public class GenerationCoordinator implements Observer {
     public Map<String, StatusInfo> runGeneration() {
         if(!GENERATOR_TASK.isExecuting()) {
             log.debug("Submitting Mozart2 Generation Task to Executor thread.");
+            generationException = null;
             if(SINGLE_THREAD_EXECUTOR.isShutdown() || SINGLE_THREAD_EXECUTOR.isTerminated()) {
                 SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
             }

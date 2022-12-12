@@ -396,19 +396,18 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         emptyPositions.add(6);
                     }
 
+                    if(enc8561305.containsKey(10)) {
+                        insertStatement.setString(10, (String) enc8561305.get(10));
+                    } else {
+                        emptyPositions.add(10);
+                    }
+
                     if(enc8561305.containsKey(11)) {
                         insertStatement.setInt(11, (Integer) enc8561305.get(11));
                     } else {
                         emptyPositions.add(11);
                     }
 
-                    if(enc8561305.get(10) == null) {
-                        emptyPositions.add(10);
-                    } else {
-                        insertStatement.setString(10, (String) enc8561305.get(10));
-                    }
-                    
-                    insertStatement.setString(11, (String) enc8561305.get(11));
                     insertStatement.setString(12, (String) enc8561305.get(12));
 
                     if(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) {
