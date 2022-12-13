@@ -425,7 +425,7 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         insertStatement.addBatch();
                         rowsToInserted++;
                         toBeGenerated--;
-                        currentlyGenerated--;
+                        currentlyGenerated -= 2;
                     } else if(enc8561305.containsKey(856) && lastIteration) {
                         insertStatement.setDouble(8, (Double) enc8561305.get(8));
                         insertStatement.setString(9, (String) enc8561305.get(9));
