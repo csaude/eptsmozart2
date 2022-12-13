@@ -52,11 +52,11 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_program pg ON p.patient_id = pg.patient_id AND !pg.voided LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l ON l.location_id=pg.location_id JOIN ")
+		        .append(".location l ON l.location_id=pg.location_id LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(
 		            ".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided AND (ps.start_date is NULL or ps.start_date <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("') INNER JOIN ")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("') LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state").toString();
 		
