@@ -22,4 +22,6 @@ public class EPTSMozART2Config {
 	public final static String DATETIME_DISPLAY_PATTERN = "yyyy-MM-dd HH:mm:ss";
 	
 	public final static String DATE_DISPLAY_PATTERN = "yyyy-MM-dd";
+	
+	public final static String MOZART2_DUMP_FILENAME_GP_NAME = "eptsmozart2.mozart2.dump.file.name";
 }

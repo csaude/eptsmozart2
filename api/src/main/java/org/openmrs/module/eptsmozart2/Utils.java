@@ -119,6 +119,14 @@ public class Utils {
 	}
 	
 	public static String getDumpFilename() {
+		String filename = Context.getAdministrationService().getGlobalProperty(
+		    EPTSMozART2Config.MOZART2_DUMP_FILENAME_GP_NAME);
+		if (StringUtils.isNotBlank(filename)) {
+			if (filename.endsWith(".sql")) {
+				return filename;
+			}
+			return filename.concat(".sql");
+		}
 		return new StringBuilder(Mozart2Properties.getInstance().getNewDatabaseName()).append(".")
 		        .append(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME).replace(':', '_')).append(".sql")
 		        .toString();

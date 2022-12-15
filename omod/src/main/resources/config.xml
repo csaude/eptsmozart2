@@ -74,6 +74,12 @@
 			subsequent runs.
 		</description>
 	</globalProperty>
+	<globalProperty>
+		<property>@MODULE_ID@.mozart2.dump.file.name</property>
+		<description>
+			The name of the mozart2 sql dump file to be generated. If not provided one will be generated.
+		</description>
+	</globalProperty>
 
 	<!--
 	<dwr>
