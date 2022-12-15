@@ -22,6 +22,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -157,7 +158,7 @@ public class Mozart2Generation {
 	}
 	
 	public String getSqlDumpFilename() {
-		return StringUtils.substringAfterLast(sqlDumpPath, "/");
+		return StringUtils.substringAfterLast(sqlDumpPath, File.separator);
 	}
 	
 	public String getErrorMessage() {
