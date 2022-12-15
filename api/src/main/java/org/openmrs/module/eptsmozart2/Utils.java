@@ -122,13 +122,16 @@ public class Utils {
 		String filename = Context.getAdministrationService().getGlobalProperty(
 		    EPTSMozART2Config.MOZART2_DUMP_FILENAME_GP_NAME);
 		if (StringUtils.isNotBlank(filename)) {
-			if (filename.endsWith(".sql")) {
-				return filename;
+			String dateSuffix = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "");
+			filename = StringUtils.removeEnd(filename, ".sql");
+			if (filename.endsWith("_")) {
+				return filename.concat(dateSuffix).concat(".sql");
+			} else {
+				return filename.concat("_").concat(dateSuffix).concat(".sql");
 			}
-			return filename.concat(".sql");
 		}
 		return new StringBuilder(Mozart2Properties.getInstance().getNewDatabaseName()).append(".")
-		        .append(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME).replace(':', '_')).append(".sql")
+		        .append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace(':', '_')).append(".sql")
 		        .toString();
 	}
 	
