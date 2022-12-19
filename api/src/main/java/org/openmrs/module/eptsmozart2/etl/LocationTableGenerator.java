@@ -43,16 +43,19 @@ public class LocationTableGenerator extends InsertFromSelectGenerator {
 
             String sismaHddIdUpdateSql = getUpdateCodeQuery("sisma_hdd_id", 1);
             int updatedRows = statement.executeUpdate(sismaHddIdUpdateSql);
-            LOGGER.debug("{} location has their sisma hdd id updated", updatedRows);
+            LOGGER.debug("{} locations has their sisma hdd id updated", updatedRows);
 
             String datimIdUpdateSql = getUpdateCodeQuery("datim_id", 2);
             updatedRows = statement.executeUpdate(datimIdUpdateSql);
-            LOGGER.debug("{} location has their datim id updated", updatedRows);
+            LOGGER.debug("{} locations has their datim id updated", updatedRows);
 
             String sismaIdUpdateSql = getUpdateCodeQuery("sisma_id", 4);
             updatedRows = statement.executeUpdate(sismaIdUpdateSql);
-            LOGGER.debug("{} location has their datim id updated", updatedRows);
+            LOGGER.debug("{} locations has their datim id updated", updatedRows);
 
+            updatedRows = statement.executeUpdate(getMarkSelectedLocationsuUpdateQuery());
+			LOGGER.debug("{} locations have been selected for this mozart2 operation", updatedRows);
+			
             toBeGenerated += moreToGo;
             currentlyGenerated += moreToGo;
         } catch (SQLException e) {
@@ -70,5 +73,11 @@ public class LocationTableGenerator extends InsertFromSelectGenerator {
 		        .append(".location_attribute la ").append("SET l.").append(codeColumn)
 		        .append(" = la.value_reference WHERE l.location_id=la.location_id AND la.attribute_type_id = ")
 		        .append(attributeTypeId).append(" AND !la.voided").toString();
+	}
+	
+	private String getMarkSelectedLocationsuUpdateQuery() {
+		return new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".location SET selected = TRUE WHERE location_id IN (")
+		        .append(Mozart2Properties.getInstance().getLocationsIdsString()).append(")").toString();
 	}
 }

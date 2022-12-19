@@ -190,7 +190,10 @@ public class Mozart2Properties {
 	}
 	
 	public String getLocationsIdsString() {
-		return Context.getAdministrationService().getGlobalProperty(MOZART2_LOCATION_IDS_GP_NAME);
+		String locationIds = Context.getAdministrationService().getGlobalProperty(MOZART2_LOCATION_IDS_GP_NAME);
+		locationIds = StringUtils.trim(locationIds);
+		locationIds = StringUtils.removeEnd(locationIds, ",");
+		return locationIds;
 	}
 	
 	public Set<Integer> getLocationsIds() {
