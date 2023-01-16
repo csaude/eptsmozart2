@@ -66,4 +66,16 @@
             <column name="end_date_used" type="date"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="eptsmozart2-2023-01-16-14-56-32" author="Willa Mhawila">
+        <preConditions>
+            <columnExists tableName="eptsmozart2_generation" columnName="error_message"/>
+        </preConditions>
+        <comment>
+            Changing the column length of error_message by switching to text
+        </comment>
+        <modifyColumn tableName="eptsmozart2_generation">
+            <column name="error_message" type="text" />
+        </modifyColumn>
+    </changeSet>
 </databaseChangeLog>
