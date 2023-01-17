@@ -6,7 +6,7 @@ CREATE TABLE `medication` (
   `formulation_id` int(11) DEFAULT NULL,
   `formulation_drug` int(11) DEFAULT NULL,
   `quantity` double(255,0) DEFAULT NULL,
-  `dosage` varchar(255) DEFAULT NULL,
+  `dosage` TEXT DEFAULT NULL,
   `next_pickup_date` datetime DEFAULT NULL,
   `mode_dispensation_id` int(11) DEFAULT NULL,
   `med_line_id` int(11) DEFAULT NULL,
