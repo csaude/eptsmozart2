@@ -9,5 +9,6 @@ CREATE TABLE `observation` (
   `value_datetime` datetime DEFAULT NULL,
   `obs_uuid` char(38) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `observation_obs_uuid` (`obs_uuid`),
   KEY `observation_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8

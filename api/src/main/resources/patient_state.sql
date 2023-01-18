@@ -11,6 +11,7 @@ CREATE TABLE `patient_state` (
   `state_date` date DEFAULT NULL,
   `state_uuid` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `patient_state_uuid` (`state_uuid`),
   KEY `patient_state_patient_uuid` (`patient_uuid`),
   KEY `program_date_enrolled` (`program_enrolment_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8

@@ -15,5 +15,6 @@ CREATE TABLE `medication` (
   `adherence_id` int(11) DEFAULT NULL,
   `medication_uuid` char(38) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `medication_medication_uuid` (`medication_uuid`),
   KEY `medication_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8

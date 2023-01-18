@@ -4,5 +4,5 @@ CREATE TABLE `clinical_consultation` (
   `consultation_date` date DEFAULT NULL,
   `scheduled_date` date DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `clinical_consultation_encounter_uuid` (`encounter_uuid`)
+  UNIQUE KEY `clinical_consultation_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8

@@ -4,5 +4,6 @@ CREATE TABLE `dsd` (
   `dsd_id` int(11) NOT NULL,
   `dsd_state_id` int(11) NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `dsd_uniqueness_key` (`encounter_uuid`, `dsd_id`),
   KEY `dsd_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8

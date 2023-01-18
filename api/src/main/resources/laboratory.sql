@@ -13,5 +13,6 @@ CREATE TABLE `laboratory` (
   `specimen_type_id` int(11) DEFAULT NULL,
   `labtest_uuid` char(38) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `laboratory_labtest_uuid` (`labtest_uuid`),
   KEY `laboratory_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
