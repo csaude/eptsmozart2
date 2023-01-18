@@ -1,11 +1,16 @@
 package org.openmrs.module.eptsmozart2.etl;
 
+import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
@@ -59,14 +64,27 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("') LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state").toString();
-		
+
 		runSql(insertStatement, null);
+
+		// Update programs enrolments without any states associated with them
+		String updateSql = new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+				.append(".patient_state SET state_uuid = enrolment_uuid WHERE program_id IS NOT NULL AND state_uuid IS NULL").toString();
+		try(Connection connection = ConnectionPool.getConnection();
+			Statement statement = connection.createStatement()) {
+			statement.executeUpdate(updateSql);
+		} catch (SQLException e) {
+			LOGGER.error("An error has occured while updating records to {} table, running SQL: {}", getTable(), updateSql, e);
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
+			throw e;
+		}
 	}
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
 		StringBuilder sb = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state(patient_uuid, source_id, state_id, state_date, state_uuid) ")
-		        .append("SELECT p.patient_uuid, e.form_id, o.value_coded, o.obs_datetime, o.uuid FROM ")
+		        .append(".patient_state(patient_uuid, location_uuid, source_id, state_id, state_date, state_uuid) ")
+		        .append("SELECT p.patient_uuid, l.uuid, e.form_id, o.value_coded, o.obs_datetime, o.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
@@ -79,13 +97,16 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		if (valueCoded != null) {
 			sb.append(" AND o.value_coded IN ").append(inClause(valueCoded));
 		}
+		sb.append(" LEFT JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l ON l.location_id=o.location_id");
+		
 		runSql(sb.toString(), null);
 	}
 	
 	private void etlPersonDeathState() throws SQLException {
 		String insert = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state (patient_uuid, source_id, state_id, state_date) ")
-		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date FROM ")
+		        .append(".patient_state (patient_uuid, source_id, state_id, state_date, state_uuid) ")
+		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date, pe.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".person pe WHERE pe.dead = 1 AND (pe.death_date is NULL or pe.death_date <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
