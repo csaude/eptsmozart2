@@ -1,10 +1,8 @@
 CREATE TABLE `medication` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `encounter_uuid` char(38) DEFAULT NULL,
-  `medication_pickup_date` varchar(255) DEFAULT NULL,
   `regimen_id` int(11) DEFAULT NULL,
   `formulation_id` int(11) DEFAULT NULL,
-  `formulation_drug` int(11) DEFAULT NULL,
   `quantity` double(255,0) DEFAULT NULL,
   `dosage` TEXT DEFAULT NULL,
   `next_pickup_date` datetime DEFAULT NULL,
@@ -17,6 +15,5 @@ CREATE TABLE `medication` (
   `adherence_id` int(11) DEFAULT NULL,
   `medication_uuid` char(38) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `medication_encounter_uuid` (`encounter_uuid`),
-  KEY `medication_pickup_date_key` (`medication_pickup_date`)
+  KEY `medication_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
