@@ -25,7 +25,8 @@ public class ObservationLookupTableGenerator extends InsertFromSelectGenerator {
 	
 	@Override
 	protected void etl() throws SQLException {
-		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".observation_lookup (concept_id, concept_name) ").append("SELECT concept_id, name FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".concept_name ")
 		        .append("WHERE !voided AND locale='en' AND concept_name_type='FULLY_SPECIFIED'").toString();
