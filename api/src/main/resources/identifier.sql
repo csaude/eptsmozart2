@@ -3,7 +3,7 @@ CREATE TABLE `identifier` (
   `patient_uuid` char(38) DEFAULT NULL,
   `identifier_type` int(11) DEFAULT NULL,
   `identifier_value` varchar(255) DEFAULT NULL,
-  `primary` tinyint(4) DEFAULT NULL,
+  `preferred` tinyint(4) DEFAULT NULL,
   `identifier_uuid` varchar(38) DEFAULT NULL,
   PRIMARY KEY (`identifier_seq`),
   UNIQUE KEY `identifier_uuid` (`identifier_uuid`),

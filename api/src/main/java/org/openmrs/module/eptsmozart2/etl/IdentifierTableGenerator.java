@@ -34,7 +34,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".identifier (patient_uuid, identifier_type, identifier_value, `primary`, ")
+		        .append(".identifier (patient_uuid, identifier_type, identifier_value, `preferred`, ")
 		        .append("identifier_uuid) VALUES (?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
@@ -47,7 +47,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 				insertStatement.setString(1, results.getString("patient_uuid"));
 				insertStatement.setInt(2, results.getInt("identifier_type"));
 				insertStatement.setString(3, results.getString("identifier"));
-				insertStatement.setBoolean(4, results.getBoolean("primary"));
+				insertStatement.setBoolean(4, results.getBoolean("preferred"));
 				insertStatement.setString(5, results.getString("identifier_uuid"));
 				
 				insertStatement.addBatch();
@@ -84,7 +84,7 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		StringBuilder sb = new StringBuilder("SELECT pi.patient_id, p.patient_uuid, pi.identifier_type, pi.identifier, ")
-		        .append("pi.preferred as 'primary', pi.uuid as identifier_uuid FROM ")
+		        .append("pi.preferred, pi.uuid as identifier_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".patient_identifier pi JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON pi.patient_id = p.patient_id AND !pi.voided AND pi.identifier_type IN ")
