@@ -35,7 +35,7 @@ public class DSDTableGenerator extends AbstractGenerator {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".dsd (encounter_uuid, dsd_id, dsd_state_id) VALUES (?, ?, ?)").toString();
+		        .append(".dsd (encounter_uuid, dsd_id, dsd_state_id, dsd_uuid) VALUES (?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -47,6 +47,7 @@ public class DSDTableGenerator extends AbstractGenerator {
 				insertStatement.setString(1, results.getString("encounter_uuid"));
 				insertStatement.setInt(2, results.getInt("dsd_id"));
 				insertStatement.setInt(3, results.getInt("dsd_state_id"));
+				insertStatement.setString(4, results.getString("dsd_uuid"));
 				
 				insertStatement.addBatch();
 				++count;
@@ -93,7 +94,7 @@ public class DSDTableGenerator extends AbstractGenerator {
 		StringBuilder sb = new StringBuilder(
 		        "SELECT o1.encounter_id, o1.value_coded as dsd_id, o2.value_coded as dsd_state_id, o1.date_created, ")
 		        .append("e.uuid as encounter_uuid, e.encounter_type, e.form_id as source_id, o1.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_datetime as encounter_date FROM ")
+		        .append("p.patient_uuid, e.encounter_datetime as encounter_date, o1.uuid as dsd_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o1 JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o2 on o1.obs_group_id = o2.obs_group_id AND ")
