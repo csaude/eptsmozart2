@@ -36,7 +36,8 @@ public class ClinicalConsultationTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".clinical_consultation (encounter_uuid, consultation_date, scheduled_date) VALUES (?, ?, ?)")
 		        .toString();
 		try {
