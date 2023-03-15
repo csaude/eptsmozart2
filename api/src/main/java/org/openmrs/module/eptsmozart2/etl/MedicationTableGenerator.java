@@ -157,8 +157,10 @@ public class MedicationTableGenerator extends AbstractGenerator {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
 								}
 								formulationsDosagesQuantities.get(obsGrouper).put(FORMULATION_ID_POS, medObsResults.getInt("value_drug"));
+								formulationsDosagesQuantities.get(obsGrouper).put(MEDICATION_UUID_POS, medObsResults.getString("uuid"));
 							} else {
 								insertStatement.setInt(FORMULATION_ID_POS, medObsResults.getInt("value_drug"));
+								insertStatement.setString(MEDICATION_UUID_POS, medObsResults.getString("uuid"));
 								positionsNotSet.removeAll(Arrays.asList(FORMULATION_ID_POS));
 							}
 							break;
@@ -251,7 +253,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 						insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
 						
 						insertStatement.setInt(REGIMEN_ID_POS, results.getInt("value_coded"));
-						insertStatement.setInt(MEDICATION_UUID_POS, results.getInt("concept_id"));
+						insertStatement.setString(MEDICATION_UUID_POS, results.getString("medication_uuid"));
 
 						if(parameterCache.containsKey(NEXT_PICKUP_DATE_POS)) {
 							insertStatement.setDate(NEXT_PICKUP_DATE_POS, (Date) parameterCache.get(NEXT_PICKUP_DATE_POS));
@@ -413,6 +415,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	private void setFormulationDosageQuantity(Map<Integer, Object> group, Set<Integer> positionsNotSet) throws SQLException {
 		if (group.containsKey(FORMULATION_ID_POS)) {
 			insertStatement.setInt(FORMULATION_ID_POS, (int) group.get(FORMULATION_ID_POS));
+			insertStatement.setString(MEDICATION_UUID_POS, (String) group.get(MEDICATION_UUID_POS));
 			positionsNotSet.removeAll(Arrays.asList(FORMULATION_ID_POS));
 		} else {
 			insertStatement.setNull(FORMULATION_ID_POS, Types.INTEGER);
