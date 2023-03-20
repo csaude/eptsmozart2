@@ -62,7 +62,7 @@ public class FormTableGenerator extends InsertFromSelectGenerator {
 	
 	private void etlValueDatetimeBasedRecords() throws SQLException {
 		final Integer[] CONCEPTS = new Integer[] { 23891, 23866 };
-		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		String insertSql = new StringBuilder("INSERT IGNORE INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".form (encounter_id, encounter_uuid, form_id, encounter_type, patient_uuid, ")
 		        .append("created_date, encounter_date, change_date, location_uuid, source_database) ")
 		        .append("SELECT e.encounter_id, e.uuid, f.form_id, e.encounter_type, p.patient_uuid, ")
