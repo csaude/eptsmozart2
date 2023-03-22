@@ -6,6 +6,7 @@ CREATE TABLE `patient_state` (
   `program_completed_date` datetime DEFAULT NULL,
   `location_uuid` char(38) DEFAULT NULL,
   `enrollment_uuid` char(38) DEFAULT NULL,
+  `encounter_uuid` char(38) DEFAULT NULL,
   `source_id` int(11) DEFAULT NULL,
   `state_id` int(11) DEFAULT NULL,
   `state_date` date DEFAULT NULL,

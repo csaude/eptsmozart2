@@ -82,9 +82,11 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	}
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
-		StringBuilder sb = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state(patient_uuid, location_uuid, source_id, state_id, state_date, state_uuid) ")
-		        .append("SELECT p.patient_uuid, l.uuid, e.form_id, o.value_coded, o.obs_datetime, o.uuid FROM ")
+		StringBuilder sb = new StringBuilder("INSERT INTO ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(
+		            ".patient_state(patient_uuid, location_uuid, encounter_uuid, source_id, state_id, state_date, state_uuid) ")
+		        .append("SELECT p.patient_uuid, l.uuid, e.uuid, e.form_id, o.value_coded, o.obs_datetime, o.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
