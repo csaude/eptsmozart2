@@ -154,7 +154,7 @@ public class Mozart2Properties {
 	}
 	
 	public String getSourceOpenmrsInstance() {
-		return Context.getAdministrationService().getGlobalProperty(OpenmrsConstants.GLOBAL_PROPERTY_APPLICATION_NAME);
+		return Context.getAdministrationService().getGlobalProperty(OpenmrsConstants.GLOBAL_PROPERTY_DEFAULT_LOCATION_NAME);
 	}
 	
 	public String getHost() {
