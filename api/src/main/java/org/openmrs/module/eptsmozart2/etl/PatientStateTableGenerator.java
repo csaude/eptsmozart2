@@ -47,8 +47,8 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	private void etlProgramBasedRecords() throws SQLException {
 		String insertStatement = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state (patient_uuid, program_id, program_enrolment_date, program_completed_date, ")
-		        .append("location_uuid, enrolment_uuid, source_id, state_id, state_date, state_uuid) ")
+		        .append(".patient_state (patient_uuid, program_id, program_enrollment_date, program_completed_date, ")
+		        .append("location_uuid, enrollment_uuid, source_id, state_id, state_date, state_uuid) ")
 		        .append("SELECT p.patient_uuid, pg.program_id, pg.date_enrolled, pg.date_completed, ")
 		        .append("l.uuid,  pg.uuid, pg.program_id, pws.concept_id, ")
 		        .append("ps.start_date, ps.uuid FROM ")
@@ -67,9 +67,9 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 
 		runSql(insertStatement, null);
 
-		// Update programs enrolments without any states associated with them
+		// Update programs enrollments without any states associated with them
 		String updateSql = new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-				.append(".patient_state SET state_uuid = enrolment_uuid WHERE program_id IS NOT NULL AND state_uuid IS NULL").toString();
+				.append(".patient_state SET state_uuid = enrollment_uuid WHERE program_id IS NOT NULL AND state_uuid IS NULL").toString();
 		try(Connection connection = ConnectionPool.getConnection();
 			Statement statement = connection.createStatement()) {
 			statement.executeUpdate(updateSql);
