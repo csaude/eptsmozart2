@@ -10,6 +10,7 @@ CREATE TABLE `patient_state` (
   `source_id` int(11) DEFAULT NULL,
   `state_id` int(11) DEFAULT NULL,
   `state_date` date DEFAULT NULL,
+  `created_date` datetime DEFAULT NULL,
   `state_uuid` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `patient_state_uuid` (`state_uuid`),
