@@ -169,6 +169,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 							if(obsGrouper != null) {
 								if (!formulationsDosagesQuantities.containsKey(obsGrouper)) {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
+									formulationsDosagesQuantities.get(obsGrouper).put(MEDICATION_UUID_POS, medObsResults.getString("uuid"));
 								}
 								formulationsDosagesQuantities.get(obsGrouper).put(QUANTITY_POS, medObsResults.getDouble("value_numeric"));
 							} else {
@@ -181,6 +182,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 							if(obsGrouper != null) {
 								if (!formulationsDosagesQuantities.containsKey(obsGrouper)) {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
+									formulationsDosagesQuantities.get(obsGrouper).put(MEDICATION_UUID_POS, medObsResults.getString("uuid"));
 								}
 								formulationsDosagesQuantities.get(obsGrouper).put(DOSAGE_POS, medObsResults.getString("value_text"));
 							} else {
@@ -413,10 +415,10 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	}
 	
 	private void setFormulationDosageQuantity(Map<Integer, Object> group, Set<Integer> positionsNotSet) throws SQLException {
+		insertStatement.setString(MEDICATION_UUID_POS, (String) group.get(MEDICATION_UUID_POS));
 		if (group.containsKey(FORMULATION_ID_POS)) {
 			insertStatement.setInt(FORMULATION_ID_POS, (int) group.get(FORMULATION_ID_POS));
-			insertStatement.setString(MEDICATION_UUID_POS, (String) group.get(MEDICATION_UUID_POS));
-			positionsNotSet.removeAll(Arrays.asList(FORMULATION_ID_POS));
+			positionsNotSet.remove(FORMULATION_ID_POS);
 		} else {
 			insertStatement.setNull(FORMULATION_ID_POS, Types.INTEGER);
 		}
