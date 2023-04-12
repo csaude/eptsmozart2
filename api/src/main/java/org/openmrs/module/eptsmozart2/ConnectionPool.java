@@ -40,7 +40,7 @@ public class ConnectionPool {
 		pooledDataSource = cpds;
 	}
 	
-	public static Connection getConnection() throws SQLException {
+	public static synchronized Connection getConnection() throws SQLException {
 		try {
 			return pooledDataSource.getConnection();
 		}
