@@ -102,7 +102,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 			String fetchMoreObsSql = new StringBuilder("SELECT o.* FROM ")
 					.append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o ")
 					.append("WHERE o.encounter_id = ? AND o.concept_id IN (1711, 1715, 165256, 23740, 5096, 165174, 21151, 23742, 21190, 21187,")
-					.append("21188, 23739, 23742, 1792, 2015, 6223, 1190)").toString();
+					.append("21188, 23739, 23742, 1792, 2015, 6223, 1190) AND NOT voided").toString();
 			
 			fetchMedsDetailsStatement = connection.prepareStatement(fetchMoreObsSql);
 			int count = 0;
@@ -344,20 +344,18 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	
 	@Override
 	protected String countQuery() {
-		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ")
+		return new StringBuilder("SELECT COUNT(*) FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866")
-		        .append(" WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
-		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" END AND CASE WHEN o.concept_id = 23866 THEN o.value_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ELSE o.obs_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' END");
-		return sb.toString();
+				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
+				.append("WHERE (e.encounter_type = 52 AND o.concept_id = 23866 AND o.value_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
+				.append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') OR (e.encounter_type IN (6,9,18) AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
+				.append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("')").toString();
 	}
 	
 	@Override
@@ -372,14 +370,14 @@ public class MedicationTableGenerator extends AbstractGenerator {
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS))
-		        .append(" WHERE !o.voided AND CASE WHEN e.encounter_type = 52 THEN o.concept_id = 23866 ")
-		        .append("WHEN e.encounter_type = 53 THEN o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
-		        .append(" ELSE o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" END AND CASE WHEN o.concept_id = 23866 THEN o.value_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ELSE o.obs_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' END ORDER BY o.obs_id");
+				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
+				.append("WHERE (e.encounter_type = 52 AND o.concept_id = 23866 AND o.value_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+		        .append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
+		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') OR (e.encounter_type IN (6,9,18) AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
+		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') ORDER BY o.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
