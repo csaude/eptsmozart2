@@ -24,12 +24,12 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
-	private static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1343, 1465, 1982, 5085, 5086, 5089, 5356, 6332,
-	        165174 };
+	public static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1343, 1465, 1982, 5085, 5086, 5089, 5356, 6332,
+	        165174, 23808 };
 	
-	private static final int VALUE_DATETIME_CONCEPT = 1190;
+	public static final int VALUE_DATETIME_CONCEPT = 1190;
 	
-	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 35, 53 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 35, 53 };
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
@@ -52,8 +52,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 			}
 			int count = 0;
 			while (results.next() && count < batchSize) {
+				final int conceptId = results.getInt("concept_id");
 				insertStatement.setString(1, results.getString("encounter_uuid"));
-				insertStatement.setInt(2, results.getInt("concept_id"));
+				insertStatement.setInt(2, conceptId);
 				insertStatement.setDate(3, results.getDate("obs_datetime"));
 				
 				double valueNumeric = results.getDouble("value_numeric");
@@ -70,7 +71,13 @@ public class ObservationTableGenerator extends AbstractGenerator {
 					insertStatement.setInt(5, valueCoded);
 				}
 				
-				insertStatement.setString(6, results.getString("value_text"));
+				//MOZ-2:162
+				if (conceptId == 23808) {
+					insertStatement.setString(6, results.getString("comments"));
+				} else {
+					insertStatement.setString(6, results.getString("value_text"));
+				}
+				
 				insertStatement.setDate(7, results.getDate("value_datetime"));
 				insertStatement.setString(8, results.getString("uuid"));
 				
