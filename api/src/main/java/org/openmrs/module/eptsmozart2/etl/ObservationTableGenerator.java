@@ -24,7 +24,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
-	public static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1343, 1465, 1982, 5085, 5086, 5089, 5356, 6332,
+	public static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1343, 1369, 1465, 1982, 5085, 5086, 5089, 5356, 6332,
 	        165174, 23808 };
 	
 	public static final int VALUE_DATETIME_CONCEPT = 1190;
@@ -71,8 +71,8 @@ public class ObservationTableGenerator extends AbstractGenerator {
 					insertStatement.setInt(5, valueCoded);
 				}
 				
-				//MOZ-2:162
-				if (conceptId == 23808) {
+				//MOZ-2:162 & MOZ2-163
+				if (conceptId == 23808 || conceptId == 1369) {
 					insertStatement.setString(6, results.getString("comments"));
 				} else {
 					insertStatement.setString(6, results.getString("value_text"));
