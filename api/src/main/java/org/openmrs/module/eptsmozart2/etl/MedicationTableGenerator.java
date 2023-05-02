@@ -54,6 +54,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	protected final int ARV_SIDE_EFFECT_ID_POS = 12;
 	protected final int ADHERENCE_ID_POS = 13;
 	protected final int MEDICATION_UUID_POS = 14;
+	protected final int MEDICATION_PICKUP_DATE_POS = 15;
 
 	static {
 		Map<Integer, String> firstLine = new HashMap<>();
@@ -85,10 +86,10 @@ public class MedicationTableGenerator extends AbstractGenerator {
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".medication (encounter_uuid, regimen_id, formulation_id, quantity, dosage, next_pickup_date, ")
-				.append("mode_dispensation_id, med_line_id, type_dispensation_id, alternative_line_id, reason_change_regimen_id, ")
-				.append("arv_side_effects_id, adherence_id, medication_uuid) ")
-		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append(".medication (encounter_uuid, regimen_id, formulation_id, quantity_prescribed, dosage, next_pickup_date, ")
+				.append("mode_dispensation_id, med_sequence_id, type_dispensation_id, alternative_line_id, reason_change_regimen_id, ")
+				.append("med_side_effects_id, adherence_id, medication_uuid, medication_pickup_date) ")
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
 		PreparedStatement fetchMedsDetailsStatement = null;
@@ -118,6 +119,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 				final int currentConceptId = results.getInt("concept_id");
 
 				insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
+				insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, results.getTimestamp("encounter_datetime"));
 
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
@@ -165,7 +167,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 							}
 							break;
 						case 1715:case 23740:
-							// quantity
+							// quantity_prescribed
 							if(obsGrouper != null) {
 								if (!formulationsDosagesQuantities.containsKey(obsGrouper)) {
 									formulationsDosagesQuantities.put(obsGrouper, new HashedMap());
@@ -253,6 +255,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 					while(obsGroupers.hasNext()) {
 						group = formulationsDosagesQuantities.get(obsGroupers.next());
 						insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
+						insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, results.getTimestamp("encounter_datetime"));
 						
 						insertStatement.setInt(REGIMEN_ID_POS, results.getInt("value_coded"));
 						insertStatement.setString(MEDICATION_UUID_POS, results.getString("medication_uuid"));
@@ -364,7 +367,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 		        "SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
 		        .append(
 		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime as encounter_date FROM ")
+		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
