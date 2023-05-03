@@ -25,11 +25,11 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
 	public static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1343, 1369, 1465, 1982, 5085, 5086, 5089, 5356, 6300,
-	        6332, 165174, 23808 };
+	        6332, 165174, 23808, 165326 };
 	
 	public static final int VALUE_DATETIME_CONCEPT = 1190;
 	
-	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 35, 53 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 35, 51, 53 };
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
@@ -57,9 +57,22 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				insertStatement.setInt(2, conceptId);
 				insertStatement.setDate(3, results.getDate("obs_datetime"));
 				
+				String valueText = results.getString("value_text");
 				double valueNumeric = results.getDouble("value_numeric");
 				if (results.wasNull()) {
-					insertStatement.setNull(4, Types.DOUBLE);
+					//MOZ2-167
+					if (conceptId == 165326) {
+						try {
+							valueNumeric = Double.parseDouble(valueText);
+							insertStatement.setDouble(4, valueNumeric);
+						}
+						catch (NumberFormatException e) {
+							// Ignore
+							insertStatement.setNull(4, Types.DOUBLE);
+						}
+					} else {
+						insertStatement.setNull(4, Types.DOUBLE);
+					}
 				} else {
 					insertStatement.setDouble(4, valueNumeric);
 				}
@@ -75,7 +88,7 @@ public class ObservationTableGenerator extends AbstractGenerator {
 				if (conceptId == 23808 || conceptId == 1369) {
 					insertStatement.setString(6, results.getString("comments"));
 				} else {
-					insertStatement.setString(6, results.getString("value_text"));
+					insertStatement.setString(6, valueText);
 				}
 				
 				insertStatement.setDate(7, results.getDate("value_datetime"));
