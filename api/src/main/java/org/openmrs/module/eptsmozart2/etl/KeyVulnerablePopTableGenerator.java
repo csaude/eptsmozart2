@@ -34,8 +34,8 @@ public class KeyVulnerablePopTableGenerator extends InsertFromSelectGenerator {
 	protected void etl() throws SQLException {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".key_vulnerable_pop (encounter_uuid, pop_type, pop_id, pop_other) ")
-		        .append("SELECT e.uuid as encounter_uuid, o.concept_id, o.value_coded, o.value_text FROM ")
+		        .append(".key_vulnerable_pop (encounter_uuid, pop_type, pop_id, pop_other, key_vulnerable_pop_uuid) ")
+		        .append("SELECT e.uuid as encounter_uuid, o.concept_id, o.value_coded, o.value_text, o.uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
