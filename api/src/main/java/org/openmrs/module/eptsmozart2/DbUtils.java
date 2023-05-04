@@ -23,9 +23,11 @@ public class DbUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbUtils.class);
 	
 	public static void createNewDatabase() throws SQLException {
+        String drop = "DROP DATABASE IF EXISTS " + Mozart2Properties.getInstance().getNewDatabaseName();
         String sql = "CREATE DATABASE IF NOT EXISTS " + Mozart2Properties.getInstance().getNewDatabaseName();
         try (Connection connection = ConnectionPool.getConnection();
              Statement s = connection.createStatement()) {
+            s.execute(drop);
             s.execute(sql);
         } catch (SQLException sqle) {
             LOGGER.error("An error occured while running sql: {}", sql, sqle);
