@@ -48,10 +48,11 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		String insertStatement = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient_state (patient_uuid, program_id, program_enrollment_date, program_completed_date, ")
-		        .append("location_uuid, enrollment_uuid, source_id, state_id, state_date, created_date, state_uuid) ")
+		        .append("location_uuid, enrollment_uuid, source_id, state_id, state_date, created_date, state_uuid, source_database) ")
 		        .append("SELECT p.patient_uuid, pg.program_id, pg.date_enrolled, pg.date_completed, ")
 		        .append("l.uuid,  pg.uuid, pg.program_id, pws.concept_id, ")
-		        .append("ps.start_date, ps.date_created, ps.uuid FROM ")
+		        .append("ps.start_date, ps.date_created, ps.uuid, '")
+				.append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
@@ -85,9 +86,10 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		StringBuilder sb = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
-		            ".patient_state(patient_uuid, location_uuid, encounter_uuid, source_id, state_id, state_date, created_date, state_uuid) ")
+		            ".patient_state(patient_uuid, location_uuid, encounter_uuid, source_id, state_id, state_date, created_date, state_uuid, source_database) ")
 		        .append(
-		            "SELECT p.patient_uuid, l.uuid, e.uuid, e.form_id, o.value_coded, o.obs_datetime, o.date_created, o.uuid FROM ")
+		            "SELECT p.patient_uuid, l.uuid, e.uuid, e.form_id, o.value_coded, o.obs_datetime, o.date_created, o.uuid, '")
+		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
@@ -108,8 +110,9 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	
 	private void etlPersonDeathState() throws SQLException {
 		String insert = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state (patient_uuid, source_id, state_id, state_date, state_uuid) ")
-		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date, pe.uuid FROM ")
+		        .append(".patient_state (patient_uuid, source_id, state_id, state_date, state_uuid, source_database) ")
+		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date, pe.uuid, '")
+		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database  FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".person pe WHERE pe.dead = 1 AND (pe.death_date is NULL or pe.death_date <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
