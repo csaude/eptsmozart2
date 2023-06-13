@@ -84,7 +84,7 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ")
+		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".medication (encounter_uuid, regimen_id, formulation_id, quantity_prescribed, dosage, next_pickup_date, ")
 				.append("mode_dispensation_id, med_sequence_id, type_dispensation_id, alternative_line_id, reason_change_regimen_id, ")

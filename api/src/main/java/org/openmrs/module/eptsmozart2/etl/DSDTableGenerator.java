@@ -34,7 +34,8 @@ public class DSDTableGenerator extends AbstractGenerator {
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".dsd (encounter_uuid, dsd_id, dsd_state_id, dsd_uuid) VALUES (?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
