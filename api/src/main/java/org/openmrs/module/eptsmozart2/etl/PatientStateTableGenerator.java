@@ -48,38 +48,27 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		String insertStatement = new StringBuilder("INSERT INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient_state (patient_uuid, program_id, program_enrollment_date, program_completed_date, ")
-		        .append("location_uuid, enrollment_uuid, source_id, state_id, state_date, created_date, state_uuid, source_database) ")
+		        .append(
+		            "location_uuid, enrollment_uuid, source_id, state_id, state_date, created_date, state_uuid, source_database) ")
 		        .append("SELECT p.patient_uuid, pg.program_id, pg.date_enrolled, pg.date_completed, ")
 		        .append("l.uuid,  pg.uuid, pg.program_id, pws.concept_id, ")
 		        .append("ps.start_date, ps.date_created, ps.uuid, '")
-				.append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database FROM ")
+		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance())
+		        .append("' AS source_database FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_program pg ON p.patient_id = pg.patient_id AND !pg.voided LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l ON l.location_id=pg.location_id LEFT JOIN ")
+		        .append(".location l ON l.location_id=pg.location_id INNER JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(
-		            ".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided AND (ps.start_date is NULL or ps.start_date <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("') LEFT JOIN ")
+		            ".patient_state ps on ps.patient_program_id=pg.patient_program_id AND !ps.voided AND ps.start_date <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".program_workflow_state pws on pws.program_workflow_state_id=ps.state").toString();
-
+		
 		runSql(insertStatement, null);
-
-		// Update programs enrollments without any states associated with them
-		String updateSql = new StringBuilder("UPDATE ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-				.append(".patient_state SET state_uuid = enrollment_uuid WHERE program_id IS NOT NULL AND state_uuid IS NULL").toString();
-		try(Connection connection = ConnectionPool.getConnection();
-			Statement statement = connection.createStatement()) {
-			statement.executeUpdate(updateSql);
-		} catch (SQLException e) {
-			LOGGER.error("An error has occured while updating records to {} table, running SQL: {}", getTable(), updateSql, e);
-			this.setChanged();
-			Utils.notifyObserversAboutException(this, e);
-			throw e;
-		}
 	}
 	
 	private void etlObsBasedRecords(Integer[] encounterTypes, Integer[] concepts, Integer[] valueCoded) throws SQLException {
@@ -114,9 +103,9 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date, pe.uuid, '")
 		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database  FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".person pe WHERE pe.dead = 1 AND (pe.death_date is NULL or pe.death_date <= '")
+		        .append(".person pe WHERE pe.dead AND pe.death_date <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("') AND pe.person_id IN (SELECT patient_id FROM ")
+		        .append("' AND pe.person_id IN (SELECT patient_id FROM ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient)").toString();
 		
 		runSql(insert, null);
