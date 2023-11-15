@@ -200,9 +200,11 @@ public class MedicationTableGenerator extends AbstractGenerator {
 							break;
 						case 165174:
 							// mode_dispensation
-							parameterCache.put(MODE_DISPENSATION_ID_POS, medObsResults.getInt("value_coded"));
-							insertStatement.setInt(MODE_DISPENSATION_ID_POS, medObsResults.getInt("value_coded"));
-							positionsNotSet.remove(MODE_DISPENSATION_ID_POS);
+							if(currentEncounterTypeId == 18) {
+								parameterCache.put(MODE_DISPENSATION_ID_POS, medObsResults.getInt("value_coded"));
+								insertStatement.setInt(MODE_DISPENSATION_ID_POS, medObsResults.getInt("value_coded"));
+								positionsNotSet.remove(MODE_DISPENSATION_ID_POS);
+							}
 							break;
 						case 21151:case 23893:case 21190:case 21187:case 21188:
 							// med_line
