@@ -98,9 +98,11 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 	}
 	
 	private void etlPersonDeathState() throws SQLException {
-		String insert = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient_state (patient_uuid, source_id, state_id, state_date, state_uuid, source_database) ")
-		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date, pe.uuid, '")
+		String insert = new StringBuilder("INSERT INTO ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(
+		            ".patient_state (patient_uuid, source_id, state_id, state_date, created_date, state_uuid, source_database) ")
+		        .append("SELECT pe.uuid, 0 as source_id, 1366 as state_id, death_date, pe.date_changed, pe.uuid, '")
 		        .append(Mozart2Properties.getInstance().getSourceOpenmrsInstance()).append("' AS source_database  FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".person pe WHERE pe.dead AND pe.death_date <= '")
