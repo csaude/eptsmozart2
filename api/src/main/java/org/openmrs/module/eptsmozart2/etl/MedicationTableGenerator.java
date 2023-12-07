@@ -35,7 +35,9 @@ public class MedicationTableGenerator extends AbstractGenerator {
 	public static final Integer[] REGIMEN_CONCEPT_IDS = new Integer[] { 1087, 1088, 21187, 21188, 21190, 23893 };
 	
 	public static final Integer[] REGIMEN_CONCEPT_IDS_ENCTYPE_53 = new Integer[] { 1088, 21187, 21188, 21190, 23893 };
-	
+
+	public static final Integer ENCTYPE_52_VALUEDATETIME_CONCEPT_ID = 23866;
+
 	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 18, 52, 53 };
 
 	public static final Map<Integer, Map<Integer, String>> ENC_TYPE5_MED_LINES = new HashMap<>(5);
@@ -123,6 +125,9 @@ public class MedicationTableGenerator extends AbstractGenerator {
 
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
+					if(currentConceptId == ENCTYPE_52_VALUEDATETIME_CONCEPT_ID) {
+						insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, results.getTimestamp("value_datetime"));
+					}
 					insertStatement.setString(MEDICATION_UUID_POS, results.getString("medication_uuid"));
 					insertStatement.setNull(REGIMEN_ID_POS, Types.INTEGER);
 					setEmptyPositions(positionsNotSet);
@@ -355,7 +360,8 @@ public class MedicationTableGenerator extends AbstractGenerator {
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
-				.append("WHERE (e.encounter_type = 52 AND o.concept_id = 23866 AND o.value_datetime <= '")
+				.append("WHERE (e.encounter_type = 52 AND o.concept_id = ")
+				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND o.value_datetime <= '")
 				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 				.append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
 				.append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
@@ -376,7 +382,8 @@ public class MedicationTableGenerator extends AbstractGenerator {
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
-				.append("WHERE (e.encounter_type = 52 AND o.concept_id = 23866 AND o.value_datetime <= '")
+				.append("WHERE (e.encounter_type = 52 AND o.concept_id = ")
+				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND o.value_datetime <= '")
 				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 		        .append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
 		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
