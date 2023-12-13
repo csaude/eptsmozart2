@@ -1,6 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.openmrs.User;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.api.EPTSMozART2GenerationService;
 import org.slf4j.Logger;
@@ -8,8 +9,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Observable;
@@ -123,6 +125,30 @@ public class GenerationCoordinator implements Observer {
                             generationRecord.setDateEnded(LocalDateTime.now());
                             generationRecord.setStatus(Mozart2Generation.Status.COMPLETED);
                             moz2GenService.saveMozartGeneration(generationRecord);
+
+                            // Audit info into mozart2 database
+                            try {
+                                String createTableSql = Utils.readFileToString("audit_info.sql");
+                                User user = generationRecord.getExecutor();
+                                String executor = new StringBuilder(user.getUserId()).append("(").append(user.getUsername()).append(")").toString();
+                                String insertSql = new StringBuilder("INSERT INTO `audit_info`(`date_started`, `date_ended`, `batch_size`, `executor`, ")
+                                        .append("`locations`, `status`, `end_date_used`) VALUES('").append(generationRecord.getDateStarted()).append("', '")
+                                        .append(generationRecord.getDateEnded()).append("', ").append(generationRecord.getBatchSize()).append(", '")
+                                        .append(executor).append("', '").append(Mozart2Properties.getInstance().getLocationsIdsString()).append("', '")
+                                        .append(generationRecord.getStatus()).append("', '").append(generationRecord.getEndDateUsed()).append("')")
+                                        .toString();
+
+                                String[] sqls = new String[] {
+                                        createTableSql,
+                                        insertSql
+                                };
+                                DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getNewDatabaseName());
+
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            } catch (IOException ioe) {
+                                ioe.printStackTrace();
+                            }
                             break;
                         case "dumpFileDone":
                             generationRecord.setSqlDumpPath((String) params.get("filename"));

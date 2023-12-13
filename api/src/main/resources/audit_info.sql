@@ -1,0 +1,9 @@
+CREATE TABLE `audit_info` (
+  `date_started` datetime NOT NULL,
+  `date_ended` datetime NOT NULL,
+  `batch_size` int(11) DEFAULT NULL,
+  `executor` VARCHAR(255) DEFAULT NULL,
+  `locations` VARCHAR(255) DEFAULT NULL,
+  `status` enum('ERROR','COMPLETED','CANCELLED') DEFAULT NULL,
+  `end_date_used` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
