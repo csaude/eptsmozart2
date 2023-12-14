@@ -43,6 +43,7 @@
     var tableProgressBarMap = {};
     var errorMessagePrefix = '<openmrs:message code="eptsmozart2.generation.error.message"/>: ';
     var lastGeneration = <c:choose><c:when test="${not empty lastGeneration}">${lastGeneration.id}</c:when><c:otherwise>-1</c:otherwise></c:choose>;
+    var defaultQuarter = getDeaultQuarter();
 
     class HttpError extends Error {
         constructor(response) {
@@ -133,6 +134,23 @@
         return date.getFullYear() + '-' + month + '-' + day;
     }
 
+    function formatDateToReverseISO(date) {
+        var month = date.getMonth() + 1;
+        if(month < 10) {
+            month = '0' + month;
+        }
+        var day = date.getDate();
+        if(day < 10) {
+            day = '0' + day;
+        }
+        return day + '-' + month + '-' + date.getFullYear();
+    }
+
+    function reverseDatePresentation(dateString) {
+        var sections = dateString.split('-');
+        return sections[2] + '-' + sections[1] + '-' + sections[0];
+    }
+
     function cancelMozart2Generation() {
         if(progressUpdateSchedule) {
             clearTimeout(progressUpdateSchedule);
@@ -166,8 +184,8 @@
                 $j('#mozart2-button').prop('disabled', false);
                 $j('#mozart2-cancel-button').prop('disabled', false);
                 $j('#mozart2-cancel-button').css('visibility', 'hidden');
-                $j('#end-date-picker').prop('disabled', false);
-                $j('#end-date-picker').datepicker('setDate', new Date());
+                $j('#enable-custom-date').prop('disabled', false);
+                setupDatepickerInputBasedOnCustomEndDateCheckbox();
             }).catch(error => {
                 console.log(error);
             });
@@ -175,6 +193,7 @@
 
     function requestMozart2Generation() {
         $j('#mozart2-button').prop('disabled', true);
+        $j('#enable-custom-date').prop('disabled', true);
         $j('#end-date-picker').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'visible');
         $j('#mozart2-generation-error-msg').css('visibility', 'hidden');
@@ -188,7 +207,7 @@
             })
         };
         var reqUrl = localOpenmrsContextPath + '/module/eptsmozart2/eptsmozart2.json?endDate='
-                + formatDateToISO($j('#end-date-picker').datepicker('getDate'));
+                + reverseDatePresentation($j('#end-date-picker').val());
 
         fetch(reqUrl, requestOptions)
             .then(response => {
@@ -203,8 +222,8 @@
                 if(data['globalPropertyErrors']) {
                     $j('#mozart2-button').prop('disabled', false);
                     $j('#mozart2-cancel-button').css('visibility', 'hidden');
-                    $j('#end-date-picker').prop('disabled', false);
-                    $j('#end-date-picker').datepicker('setDate', new Date());
+                    $j('#enable-custom-date').prop('disabled', false);
+                    setupDatepickerInputBasedOnCustomEndDateCheckbox();
                     $j('#dialog > ul').html('');
                     data['globalPropertyErrors'].forEach(error => {
                         $j('#dialog > ul').append('<li>' + error +'</li>')
@@ -231,8 +250,7 @@
                         }
                         $j('#mozart2-button').prop('disabled', false);
                         $j('#mozart2-cancel-button').css('visibility', 'hidden');
-                        $j('#end-date-picker').prop('disabled', false);
-                        $j('#end-date-picker').datepicker('setDate', new Date());
+                        $j('#enable-custom-date').prop('disabled', false);
                     }
                 }
             }).catch(error => {
@@ -242,7 +260,7 @@
 
     function initialStatusRequest() {
         $j('#mozart2-button').prop('disabled', true);
-        $j('#end-date-picker').prop('disabled', true);
+        $j('#enable-custom-date').prop('disabled', true);
         $j('#mozart2-cancel-button').css('visibility', 'hidden');
 
         var requestOptions = {
@@ -272,7 +290,7 @@
 
                     if(data['isRunning']) {
                         if(data['lastGeneration']) {
-                            $j('#end-date-picker').datepicker('setDate', new Date(data['lastGeneration']['endDateUsed']));
+                            $j('#end-date-picker').val(formatDateToReverseISO(new Date(data['lastGeneration']['endDateUsed'])));
                         }
                     }
                 }
@@ -302,7 +320,8 @@
                     $j('#progress-table').css('visibility', 'visible');
                 } else {
                     $j('#mozart2-button').prop('disabled', false);
-                    $j('#end-date-picker').prop('disabled', false);
+                    $j('#enable-custom-date').prop('disabled', false);
+                    setupDatepickerInputBasedOnCustomEndDateCheckbox();
                 }
 
                 if(continueCheckingProgress) {
@@ -313,7 +332,8 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
-                    $j('#end-date-picker').prop('disabled', false);
+                    $j('#enable-custom-date').prop('disabled', false);
+                    setupDatepickerInputBasedOnCustomEndDateCheckbox();
                 }
             }).catch(error => {
                 console.log(error);
@@ -367,12 +387,56 @@
                         clearTimeout(progressUpdateSchedule);
                     }
                     $j('#mozart2-button').prop('disabled', false);
-                    $j('#end-date-picker').prop('disabled', false);
+                    $j('#enable-custom-date').prop('disabled', false);
+                    setupDatepickerInputBasedOnCustomEndDateCheckbox();
                     $j('#mozart2-cancel-button').css('visibility', 'hidden');
                 }
             }).catch(error => {
                 console.log(error);
             });
+    }
+
+    function getDeaultQuarter() {
+        var today = new Date();
+        var currentYear = today.getFullYear();
+        var lastYear = currentYear - 1;
+        var nextYear = currentYear + 1;
+        var q1EndDate = new Date(lastYear + '-12-20');
+        var q2EndDate = new Date(currentYear + '-03-20');
+        var q3EndDate = new Date(currentYear + '-06-20');
+        var q4EndDate = new Date(currentYear + '-09-20');
+
+        if(today.getTime() > (new Date(currentYear + '-12-20')).getTime()) {
+            q1EndDate = new Date(currentYear + '-12-20');
+            q2EndDate = new Date(nextYear + '-03-20');
+            q3EndDate = new Date(nextYear + '-06-20');
+            q4EndDate = new Date(nextYear + '-09-20');
+        }
+
+        var defaults = {
+            endDate: q4EndDate,
+            quarter: 'Q4'
+        };
+        if(today.getTime()  > q1EndDate.getTime() && today.getTime() <= q2EndDate.getTime()) {
+            defaults.endDate = q1EndDate;
+            defaults.quarter = 'Q1';
+        } else if(today.getTime() > q2EndDate.getTime() && today.getTime() <= q3EndDate.getTime()) {
+            defaults.endDate = q2EndDate;
+            defaults.quarter = 'Q2'
+        } else if(today.getTime() > q3EndDate.getTime() && today.getTime() <= q4EndDate.getTime()) {
+            defaults.endDate = q3EndDate;
+            defaults.quarter = 'Q3';
+        }
+
+        return defaults;
+    }
+
+    function setupDatepickerInputBasedOnCustomEndDateCheckbox() {
+        if($j('#enable-custom-date').is(':checked')) {
+            $j('#end-date-picker').prop('disabled', false);
+        } else {
+            $j('#end-date-picker').prop('disabled', true);
+        }
     }
 
     $j(document).ready(function() {
@@ -382,14 +446,8 @@
 
         $j('#generation-history-table').dataTable();
 
-        $j('#end-date-picker').datepicker({
-            changeMonth: true,
-            changeYear: true,
-            dateFormat: 'dd-mm-yy',
-            maxDate: new Date()
-        });
-
-        $j('#end-date-picker').datepicker('setDate', new Date());
+        $j('#end-date-picker').val(formatDateToReverseISO(defaultQuarter['endDate']));
+        $j('#quarter-name').html(' ' + defaultQuarter['quarter'] + ' <openmrs:message code="eptsmozart2.endDate.quarter.message.suffix"/> ' + formatDateToReverseISO(defaultQuarter['endDate']));
 
         $j('#stack-trace-dialog').dialog({
             autoOpen: false
@@ -397,6 +455,26 @@
 
         $j('#dialog').dialog({
             autoOpen: false
+        });
+
+        $j('#enable-custom-date').click(function() {
+            if($j('#enable-custom-date').is(':checked')) {
+                $j('#default-end-date-message').hide();
+                $j('#end-date-picker').prop('disabled', false);
+
+                $j('#end-date-picker').datepicker({
+                    changeMonth: true,
+                    changeYear: true,
+                    dateFormat: 'dd-mm-yy',
+                    maxDate: new Date(),
+                });
+                $j('#end-date-picker').datepicker('setDate', defaultQuarter['endDate']);
+            } else {
+                $j('#default-end-date-message').show();
+                $j('#end-date-picker').removeClass('hasDatepicker');
+                $j('#end-date-picker').val(formatDateToReverseISO(defaultQuarter['endDate']));
+                $j('#end-date-picker').prop('disabled', true);
+            }
         });
     });
 </script>
@@ -479,9 +557,12 @@
         <li><a href="#mozart2-history-tab"><openmrs:message code="eptsmozart2.history.tab.label"/></a></li>
     </ul>
     <div id="mozart2-generation-tab">
-        <label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate"/>
-        <button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
-        <br/>
+        <div id="default-end-date-message" style="font-weight: bold;"><em><openmrs:message code="eptsmozart2.endDate.quarter.message.prefix"/><span id="quarter-name"></span></em></div>
+        <div><input type="checkbox" id="enable-custom-date"><openmrs:message code="eptsmozart2.custom.endDate.message"/></div>
+        <div>
+            <label for="end-date-picker"> <openmrs:message code="eptsmozart2.endDate.label"/></label>&nbsp;<input type="text" id="end-date-picker" name="endDate" disabled/>
+            <button id = "mozart2-button" onclick="requestMozart2Generation()" class="button"><openmrs:message code="eptsmozart2.generate.mozart2.button.label"/></button>
+        </div>
         <div id="progress-table" style = "visibility: hidden;">
             <table cellpadding="5" border="0" cellspacing="5" width="80%">
                 <thead>
