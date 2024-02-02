@@ -24,8 +24,9 @@ public class ObservationTableGenerator extends AbstractGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
-	public static final Integer[] CONCEPT_IDS = new Integer[] { 1190, 1255, 1256, 1343, 1369, 1465, 1982, 5085, 5086, 5089,
-	        5356, 6223, 6300, 6315, 6332, 23716, 23783, 23807, 23808, 23811, 23887, 165174, 165326, 165463 };
+	public static final Integer[] CONCEPT_IDS = new Integer[] { 1406, 1190, 1255, 1256, 1343, 1369, 1465, 1982, 2015, 5085,
+	        5086, 5089, 5356, 6223, 6300, 6315, 6332, 23716, 23753, 23755, 23757, 23759, 23764, 23783, 23807, 23808, 23811,
+	        23887, 24031, 165174, 165324, 165325, 165326, 165463 };
 	
 	public static final int VALUE_DATETIME_CONCEPT = 1190;
 	
