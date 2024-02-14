@@ -28,11 +28,6 @@ public class PatientTableGenerator extends AbstractGenerator {
 	}
 	
 	@Override
-	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
-		return null;
-	}
-	
-	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;

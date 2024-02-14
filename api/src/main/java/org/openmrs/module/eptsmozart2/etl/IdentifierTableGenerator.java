@@ -25,11 +25,6 @@ public class IdentifierTableGenerator extends AbstractGenerator {
 	public static final Integer[] IDENTIFIER_TYPES = new Integer[] { 1, 2, 5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 17 };
 	
 	@Override
-	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
-		return prepareInsertStatement(resultSet, null);
-	}
-	
-	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;

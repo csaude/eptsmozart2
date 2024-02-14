@@ -31,7 +31,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
  */
 public class LaboratoryTableGenerator extends AbstractGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LaboratoryGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "laboratory.sql";
 
@@ -91,11 +91,7 @@ public class LaboratoryTableGenerator extends AbstractGenerator {
 	    POSITIVITY_LEVELS.put(165187, "2+");
 	    POSITIVITY_LEVELS.put(165188, "3+");
     }
-	
-	@Override
-	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
-		return prepareInsertStatement(resultSet, null);
-	}
+
 	
 	@Override
     protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {

@@ -111,8 +111,6 @@ public abstract class AbstractGenerator extends ObservableGenerator {
 		}
 	}
 	
-	protected abstract PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException;
-	
 	protected abstract PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException;
 	
 	protected abstract String getCreateTableSql() throws IOException;

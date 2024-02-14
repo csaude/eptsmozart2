@@ -26,11 +26,6 @@ public class DSDTableGenerator extends AbstractGenerator {
 	private static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 35 };
 	
 	@Override
-	protected PreparedStatement prepareInsertStatement(ResultSet resultSet) throws SQLException {
-		return prepareInsertStatement(resultSet, null);
-	}
-	
-	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;

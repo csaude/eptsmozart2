@@ -16,6 +16,7 @@ import org.openmrs.module.eptsmozart2.etl.ObservationLookupTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.ObservationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientStateTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.PatientTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.TBDataTableGenerator;
 import org.openmrs.scheduler.Task;
 import org.openmrs.scheduler.TaskDefinition;
 import org.slf4j.Logger;
@@ -116,6 +117,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			toBeInvoked.add(generator);
 
 			generator = new ClinicalConsultationTableGenerator();
+			generator.addObserver(this);
+			toBeInvoked.add(generator);
+
+			generator = new TBDataTableGenerator();
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
