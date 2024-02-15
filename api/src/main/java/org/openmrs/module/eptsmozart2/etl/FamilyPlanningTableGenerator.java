@@ -11,39 +11,38 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22.
  */
-public class STITableGenerator extends AbstractGenerator {
+public class FamilyPlanningTableGenerator extends AbstractGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(STITableGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FamilyPlanningTableGenerator.class);
 	
-	private static final String CREATE_TABLE_FILE_NAME = "sti.sql";
+	private static final String CREATE_TABLE_FILE_NAME = "family_planning.sql";
 	
-	public static final Integer[] CONCEPT_IDS = new Integer[] { 174, 6258 };
+	public static final Integer[] CONCEPT_IDS = new Integer[] { 374 };
 	
 	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9 };
 	
 	protected final int ENCOUNTER_UUID_POS = 1;
 	
-	protected final int STI_CONCEPT_ID_POS = 2;
+	protected final int FP_CONCEPT_ID_POS = 2;
 	
-	protected final int STI_DATE_POS = 3;
+	protected final int FP_DATE_POS = 3;
 	
-	protected final int STI_VALUE_POS = 4;
+	protected final int FP_METHOD_POS = 4;
 	
-	protected final int STI_UUID_POS = 5;
+	protected final int FP_UUID_POS = 5;
 	
 	@Override
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".sti (encounter_uuid, sti_concept_id, sti_date, sti_value, sti_uuid) ")
+		        .append(".family_planning (encounter_uuid, fp_concept_id, fp_date, fp_method, fp_uuid) ")
 		        .append("VALUES (?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {
@@ -54,10 +53,10 @@ public class STITableGenerator extends AbstractGenerator {
 			int count = 0;
 			while (results.next() && count < batchSize) {
 				insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
-				insertStatement.setInt(STI_CONCEPT_ID_POS, results.getInt("concept_id"));
-				insertStatement.setDate(STI_DATE_POS, results.getDate("obs_datetime"));
-				insertStatement.setInt(STI_VALUE_POS, results.getInt("value_coded"));
-				insertStatement.setString(STI_UUID_POS, results.getString("uuid"));
+				insertStatement.setInt(FP_CONCEPT_ID_POS, results.getInt("concept_id"));
+				insertStatement.setDate(FP_DATE_POS, results.getDate("obs_datetime"));
+				insertStatement.setInt(FP_METHOD_POS, results.getInt("value_coded"));
+				insertStatement.setString(FP_UUID_POS, results.getString("uuid"));
 				insertStatement.addBatch();
 				++count;
 			}
@@ -73,7 +72,7 @@ public class STITableGenerator extends AbstractGenerator {
 	
 	@Override
 	public String getTable() {
-		return "sti";
+		return "family_planning";
 	}
 	
 	@Override

@@ -49,6 +49,7 @@ public class GenerationCoordinator implements Observer {
         INITIAL_STATUSES.put("tb_data", new StatusInfo("tb_data", 0, 0));
         INITIAL_STATUSES.put("clinical_consultation", new StatusInfo("clinical_consultation", 0, 0));
         INITIAL_STATUSES.put("sti", new StatusInfo("sti", 0, 0));
+        INITIAL_STATUSES.put("family_planning", new StatusInfo("family_planning", 0, 0));
     }
 
     public GenerationCoordinator() {
