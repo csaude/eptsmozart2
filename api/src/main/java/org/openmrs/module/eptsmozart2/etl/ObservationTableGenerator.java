@@ -20,7 +20,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
  */
 public class ObservationTableGenerator extends AbstractGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ObservationTableGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
