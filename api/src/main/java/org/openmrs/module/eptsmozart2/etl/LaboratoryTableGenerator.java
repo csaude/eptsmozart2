@@ -29,7 +29,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22.
  */
-public class LaboratoryGenerator extends AbstractGenerator {
+public class LaboratoryTableGenerator extends AbstractGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
 	
@@ -38,7 +38,20 @@ public class LaboratoryGenerator extends AbstractGenerator {
 	// Map of encounterId to values related with obs 856 & 1305 for MOZ2-83 implementation
 	private Map<Integer, Map<Integer, Object>> eight561305 = new HashMap<>();
 	
-	public static final Integer[] LAB_CONCEPT_IDS = new Integer[] { 730, 856, 1305, 1695, 5497, 22772, 23896 };
+	public static final Integer[] LAB_CONCEPT_IDS = new Integer[] {
+	        730, 856, 1305, 1695, 5497, 22772, 23896, 1692, 21, 1694, 654, 1693,
+            653, 887, 1011, 790, 1299, 23723, 23774, 23951, 23952, 307, 12, 2094
+    };
+
+	public static final List<Integer> VALUE_NUMERIC_CONCEPT_IDS = Arrays.asList(new Integer[]{
+            5497, 23896, 1695, 730, 1692, 21, 1694,654,1693, 653, 887, 1011, 790, 1299
+    });
+
+	public static final int POSITIVITY_LEVEL_CONCEPT_ID = 165185;
+
+	public static final int POSITIVE_CONCEPT_ID = 703;
+
+	public static final List<Integer> VALUE_CODED_CONCEPT_IDS = Arrays.asList(23723, 23774, 23951, 23952, 307, 12, 2094);
 
 	public static final Integer[] FICHA_CLINICA_LAB_ANSWERS = new Integer[] { 856, 1695 };
 
@@ -48,10 +61,35 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
 	public static final Map<Integer, String> CONCEPT_UNITS = new HashMap<>();
 
+	public static final Map<Integer, String> POSITIVITY_LEVELS = new HashMap<>();
+
+	protected final int ENCOUNTER_UUID_POS = 1;
+	protected final int LAB_TEST_ID_POS = 2;
+	protected final int REQUEST_POS = 3;
+	protected final int ORDER_DATE_POS = 4;
+	protected final int SAMPLE_COLL_DATE_POS = 5;
+	protected final int RESULT_REPORT_DATE_POS = 6;
+	protected final int RESULT_QUAL_POS = 7;
+	protected final int RESULT_NUM_POS = 8;
+	protected final int RESULT_UNITS_POS = 9;
+	protected final int RESULT_COMMENT_POS = 10;
+	protected final int SPECIMEN_TYPE_POS = 11;
+	protected final int LABTEST_UUID_POS = 12;
 	static {
 	    CONCEPT_UNITS.put(730, "%");
 	    CONCEPT_UNITS.put(856,"copies/ml");
 	    CONCEPT_UNITS.put(5497,"cells/dL");
+	    CONCEPT_UNITS.put(21,"g/dL");
+	    CONCEPT_UNITS.put(653,"U/L");
+	    CONCEPT_UNITS.put(654,"U/L");
+	    CONCEPT_UNITS.put(1011,"U/L");
+	    CONCEPT_UNITS.put(1299,"U/L");
+	    CONCEPT_UNITS.put(790,"Ummol/L");
+	    CONCEPT_UNITS.put(887,"Ummol/L");
+
+	    POSITIVITY_LEVELS.put(165186, "1+");
+	    POSITIVITY_LEVELS.put(165187, "2+");
+	    POSITIVITY_LEVELS.put(165188, "3+");
     }
 	
 	@Override
@@ -73,6 +111,8 @@ public class LaboratoryGenerator extends AbstractGenerator {
 
         PreparedStatement orderDateSpecimenStatement = null;
         ResultSet orderDateSpecimenTypeResults = null;
+        PreparedStatement positivityStatement = null;
+        ResultSet positivityStatementResults = null;
         try {
             if (insertStatement == null) {
                 insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
@@ -85,7 +125,13 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     .append(".obs WHERE !voided and concept_id IN (6246, 23821, 23832) and encounter_id = ?")
                     .toString();
 
+            String positivityQuery = new StringBuilder("SELECT * FROM ")
+                    .append(Mozart2Properties.getInstance().getDatabaseName())
+                    .append(".obs WHERE !voided and concept_id = ").append(POSITIVITY_LEVEL_CONCEPT_ID)
+                    .append(" AND encounter_id = ?").toString();
+
             orderDateSpecimenStatement = ConnectionPool.getConnection().prepareStatement(orderDateSpecimenQuery);
+            positivityStatement = ConnectionPool.getConnection().prepareStatement(positivityQuery);
             Set<Integer> positionsNotSet = new HashSet<>();
             while (results.next() && count < batchSize) {
                 Integer encounterType = results.getInt("encounter_type");
@@ -101,11 +147,11 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     }
                     eighty561305Values.put(-1, insertSql);
                     eighty561305Values.put(-2, encounterType);
-                    eighty561305Values.put(1, results.getString("encounter_uuid"));
+                    eighty561305Values.put(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
 
 
                     if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
-                        eighty561305Values.put(6, results.getTimestamp("obs_datetime"));
+                        eighty561305Values.put(RESULT_REPORT_DATE_POS, results.getTimestamp("obs_datetime"));
                     }
 
                     if(encounterType == 13 || encounterType == 51) {
@@ -115,33 +161,33 @@ public class LaboratoryGenerator extends AbstractGenerator {
                             int resultConceptId = orderDateSpecimenTypeResults.getInt("concept_id");
                             if(resultConceptId == 6246) {
                                 // result_report_date
-                                eighty561305Values.put(4, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                                eighty561305Values.put(ORDER_DATE_POS, orderDateSpecimenTypeResults.getDate("value_datetime"));
                             } else if(resultConceptId == 23821) {
                                 //sample_collection_date
-                                eighty561305Values.put(5, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                                eighty561305Values.put(SAMPLE_COLL_DATE_POS, orderDateSpecimenTypeResults.getDate("value_datetime"));
                             } else if(resultConceptId == 23832) {
                                 //specimen_type_id
-                                eighty561305Values.put(11, orderDateSpecimenTypeResults.getInt("value_coded"));
+                                eighty561305Values.put(SPECIMEN_TYPE_POS, orderDateSpecimenTypeResults.getInt("value_coded"));
                             }
                         }
                     }
 
                     if(conceptId == 856) {
                         eighty561305Values.put(856, "856");
-                        eighty561305Values.put(8, results.getDouble("value_numeric"));
-                        eighty561305Values.put(9, CONCEPT_UNITS.get(conceptId));
+                        eighty561305Values.put(RESULT_NUM_POS, results.getDouble("value_numeric"));
+                        eighty561305Values.put(RESULT_UNITS_POS, CONCEPT_UNITS.get(conceptId));
 
                         // Common values
-                        eighty561305Values.put(10, results.getString("comments"));
-                        eighty561305Values.put(12, results.getString("uuid"));
+                        eighty561305Values.put(RESULT_COMMENT_POS, results.getString("comments"));
+                        eighty561305Values.put(LABTEST_UUID_POS, results.getString("uuid"));
                     } else if(conceptId == 1305) {
                         eighty561305Values.put(1305, "1305");
-                        eighty561305Values.put(7, results.getInt("value_coded"));
+                        eighty561305Values.put(RESULT_QUAL_POS, results.getInt("value_coded"));
 
                         // Common properties between 856 & 1305 (856 takes precedence, i.e. only set if they are not set.
                         if(!eighty561305Values.containsKey(856)) {
-                            eighty561305Values.put(10, results.getString("comments"));
-                            eighty561305Values.put(12, results.getString("uuid"));
+                            eighty561305Values.put(RESULT_COMMENT_POS, results.getString("comments"));
+                            eighty561305Values.put(LABTEST_UUID_POS, results.getString("uuid"));
                         }
                     }
 
@@ -149,20 +195,23 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     continue;
                 }
 
-                positionsNotSet.addAll(Arrays.asList(3, 4,5,6,7, 8,9, 11));
-                insertStatement.setString(1, results.getString("encounter_uuid"));
-
-                insertStatement.setInt(2, conceptId);
+                positionsNotSet.addAll(Arrays.asList(REQUEST_POS, ORDER_DATE_POS, SAMPLE_COLL_DATE_POS,
+                                                     RESULT_REPORT_DATE_POS, RESULT_QUAL_POS,
+                                                     RESULT_NUM_POS, RESULT_UNITS_POS, SPECIMEN_TYPE_POS)
+                );
+                
+                insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
+                insertStatement.setInt(LAB_TEST_ID_POS, conceptId);
+                insertStatement.setString(RESULT_COMMENT_POS, results.getString("comments"));
                 if(conceptId == 23722) {
                     // request and order_date
-                    insertStatement.setInt(2, results.getInt("value_coded"));
-                    insertStatement.setInt(3, conceptId);
-                    insertStatement.setTimestamp(4, results.getTimestamp("obs_datetime"));
-                    positionsNotSet.remove(3);
-                    positionsNotSet.remove(4);
+                    insertStatement.setInt(LAB_TEST_ID_POS, results.getInt("value_coded"));
+                    insertStatement.setInt(REQUEST_POS, conceptId);
+                    insertStatement.setTimestamp(ORDER_DATE_POS, results.getTimestamp("obs_datetime"));
+                    positionsNotSet.remove(REQUEST_POS);
+                    positionsNotSet.remove(ORDER_DATE_POS);
                 }
 
-                boolean orderResultDateSet = false;
                 if(encounterType == 13 || encounterType == 51) {
                     orderDateSpecimenStatement.setInt(1, encounterId);
                     orderDateSpecimenTypeResults = orderDateSpecimenStatement.executeQuery();
@@ -170,47 +219,63 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     while(orderDateSpecimenTypeResults.next()) {
                         int resultConceptId = orderDateSpecimenTypeResults.getInt("concept_id");
                         if(resultConceptId == 6246) {
-                            insertStatement.setDate(4, orderDateSpecimenTypeResults.getDate("value_datetime"));
-                            positionsNotSet.remove(4);
-                            orderResultDateSet = true;
+                            insertStatement.setDate(ORDER_DATE_POS, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            positionsNotSet.remove(ORDER_DATE_POS);
                         } else if(resultConceptId == 23821) {
                             //sample_collection_date
-                            insertStatement.setDate(5, orderDateSpecimenTypeResults.getDate("value_datetime"));
-                            positionsNotSet.remove(5);
-                            orderResultDateSet = true;
+                            insertStatement.setDate(SAMPLE_COLL_DATE_POS, orderDateSpecimenTypeResults.getDate("value_datetime"));
+                            positionsNotSet.remove(SAMPLE_COLL_DATE_POS);
                         } else if(resultConceptId == 23832) {
-                            positionsNotSet.remove(11);
-                            insertStatement.setInt(11, orderDateSpecimenTypeResults.getInt("value_coded"));
+                            positionsNotSet.remove(SPECIMEN_TYPE_POS);
+                            insertStatement.setInt(SPECIMEN_TYPE_POS, orderDateSpecimenTypeResults.getInt("value_coded"));
                         }
                     }
                 }
 
                 if(conceptId != 23722 && Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
                     //result_report_date
-                    insertStatement.setTimestamp(6, results.getTimestamp("obs_datetime"));
-                    positionsNotSet.remove(6);
+                    insertStatement.setTimestamp(RESULT_REPORT_DATE_POS, results.getTimestamp("obs_datetime"));
+                    positionsNotSet.remove(RESULT_REPORT_DATE_POS);
                 }
 
-                if(Arrays.asList(22772).contains(conceptId)) {
+                if(VALUE_CODED_CONCEPT_IDS.contains(conceptId)) {
+                    int RESULT_QUALTATIVE_ID = results.getInt("value_coded");
+                    insertStatement.setInt(RESULT_QUAL_POS, RESULT_QUALTATIVE_ID);
+                    positionsNotSet.remove(RESULT_QUAL_POS);
+
+                    // Handle the positivity level if value_coded is 703 (POSITIVE_CONCEPT_ID
+                    if(RESULT_QUALTATIVE_ID == POSITIVE_CONCEPT_ID) {
+                        positivityStatement.setInt(1, encounterId);
+                        positivityStatementResults = positivityStatement.executeQuery();
+                        if(positivityStatementResults.next()) {
+                            int positivityLevelConceptId = positivityStatementResults.getInt("value_coded");
+                            String positivityLevel = "Unknown";
+                            if(POSITIVITY_LEVELS.containsKey(positivityLevelConceptId)) {
+                                positivityLevel = POSITIVITY_LEVELS.get(positivityLevelConceptId);
+                            }
+                            insertStatement.setString(RESULT_COMMENT_POS, positivityLevel);
+                        }
+                    }
+                }
+                
+                if(22772 == conceptId) {
                     //7. result_qualitative_id
-                    final int RESULT_POSITIVE_CONCEPT_ID = 703;
-                    insertStatement.setInt(2, results.getInt("value_coded"));
-                    insertStatement.setInt(7, RESULT_POSITIVE_CONCEPT_ID);
-                    positionsNotSet.remove(7);
+                    insertStatement.setInt(LAB_TEST_ID_POS, results.getInt("value_coded"));
+                    insertStatement.setInt(RESULT_QUAL_POS, POSITIVE_CONCEPT_ID);
+                    positionsNotSet.remove(RESULT_QUAL_POS);
                 }
 
-                if(Arrays.asList(5497, 23896, 1695, 730).contains(conceptId)) {
-                    insertStatement.setDouble(8, results.getDouble("value_numeric"));
-                    positionsNotSet.remove(8);
+                if(VALUE_NUMERIC_CONCEPT_IDS.contains(conceptId)) {
+                    insertStatement.setDouble(RESULT_NUM_POS, results.getDouble("value_numeric"));
+                    positionsNotSet.remove(RESULT_NUM_POS);
 
-                    if(conceptId != 1695 && conceptId != 23896) {
-                        insertStatement.setString(9, CONCEPT_UNITS.get(conceptId));
-                        positionsNotSet.remove(9);
+                    if(CONCEPT_UNITS.containsKey(conceptId)) {
+                        insertStatement.setString(RESULT_UNITS_POS, CONCEPT_UNITS.get(conceptId));
+                        positionsNotSet.remove(RESULT_UNITS_POS);
                     }
                 }
 
-                insertStatement.setString(10, results.getString("comments"));
-                insertStatement.setString(12, results.getString("uuid"));
+                insertStatement.setString(LABTEST_UUID_POS, results.getString("uuid"));
 
                 setEmptyPositions(positionsNotSet);
                 insertStatement.addBatch();
@@ -229,6 +294,14 @@ public class LaboratoryGenerator extends AbstractGenerator {
             }
             if(orderDateSpecimenStatement != null) {
                 orderDateSpecimenStatement.close();
+            }
+
+            if(positivityStatementResults != null) {
+                positivityStatementResults.close();
+            }
+
+            if(positivityStatement != null) {
+                positivityStatement.close();
             }
         }
     }
@@ -378,47 +451,47 @@ public class LaboratoryGenerator extends AbstractGenerator {
                     Map<Integer, Object> enc8561305 = entry.getValue();
                     if(!(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) && !lastIteration) continue;
                     int encounterType = (Integer) enc8561305.get(-2);
-                    insertStatement.setString(1, (String) enc8561305.get(1));
-                    insertStatement.setInt(2, 856);
+                    insertStatement.setString(ENCOUNTER_UUID_POS, (String) enc8561305.get(1));
+                    insertStatement.setInt(LAB_TEST_ID_POS, 856);
 
-                    if(enc8561305.containsKey(4)) {
-                        insertStatement.setDate(4, (Date) enc8561305.get(4));
+                    if(enc8561305.containsKey(ORDER_DATE_POS)) {
+                        insertStatement.setDate(ORDER_DATE_POS, (Date) enc8561305.get(ORDER_DATE_POS));
                     } else {
-                        emptyPositions.add(4);
+                        emptyPositions.add(ORDER_DATE_POS);
                     }
 
-                    if(enc8561305.containsKey(5)) {
-                        insertStatement.setDate(5, (Date) enc8561305.get(5));
+                    if(enc8561305.containsKey(SAMPLE_COLL_DATE_POS)) {
+                        insertStatement.setDate(SAMPLE_COLL_DATE_POS, (Date) enc8561305.get(SAMPLE_COLL_DATE_POS));
                     } else {
-                        emptyPositions.add(5);
+                        emptyPositions.add(SAMPLE_COLL_DATE_POS);
                     }
 
                     if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
-                        insertStatement.setTimestamp(6, (Timestamp) enc8561305.get(6));
+                        insertStatement.setTimestamp(RESULT_REPORT_DATE_POS, (Timestamp) enc8561305.get(RESULT_REPORT_DATE_POS));
                     } else {
-                        emptyPositions.add(6);
+                        emptyPositions.add(RESULT_REPORT_DATE_POS);
                     }
 
-                    if(enc8561305.containsKey(10)) {
-                        insertStatement.setString(10, (String) enc8561305.get(10));
+                    if(enc8561305.containsKey(RESULT_COMMENT_POS)) {
+                        insertStatement.setString(RESULT_COMMENT_POS, (String) enc8561305.get(RESULT_COMMENT_POS));
                     } else {
-                        emptyPositions.add(10);
+                        emptyPositions.add(RESULT_COMMENT_POS);
                     }
 
-                    if(enc8561305.containsKey(11)) {
-                        insertStatement.setInt(11, (Integer) enc8561305.get(11));
+                    if(enc8561305.containsKey(SPECIMEN_TYPE_POS)) {
+                        insertStatement.setInt(SPECIMEN_TYPE_POS, (Integer) enc8561305.get(SPECIMEN_TYPE_POS));
                     } else {
-                        emptyPositions.add(11);
+                        emptyPositions.add(SPECIMEN_TYPE_POS);
                     }
 
-                    insertStatement.setString(12, (String) enc8561305.get(12));
+                    insertStatement.setString(LABTEST_UUID_POS, (String) enc8561305.get(LABTEST_UUID_POS));
 
                     if(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) {
                         //Combined
-                        insertStatement.setInt(7, (Integer) enc8561305.get(7));
+                        insertStatement.setInt(RESULT_QUAL_POS, (Integer) enc8561305.get(RESULT_QUAL_POS));
 
-                        insertStatement.setDouble(8, (Double) enc8561305.get(8));
-                        insertStatement.setString(9, (String) enc8561305.get(9));
+                        insertStatement.setDouble(RESULT_NUM_POS, (Double) enc8561305.get(RESULT_NUM_POS));
+                        insertStatement.setString(RESULT_UNITS_POS, (String) enc8561305.get(RESULT_UNITS_POS));
                         entriesIterator.remove();
                         runInsert = true;
                         setEmptyPositions(emptyPositions);
@@ -427,22 +500,22 @@ public class LaboratoryGenerator extends AbstractGenerator {
                         toBeGenerated--;
                         currentlyGenerated -= 2;
                     } else if(enc8561305.containsKey(856) && lastIteration) {
-                        insertStatement.setDouble(8, (Double) enc8561305.get(8));
-                        insertStatement.setString(9, (String) enc8561305.get(9));
+                        insertStatement.setDouble(RESULT_NUM_POS, (Double) enc8561305.get(RESULT_NUM_POS));
+                        insertStatement.setString(RESULT_UNITS_POS, (String) enc8561305.get(RESULT_UNITS_POS));
                         entriesIterator.remove();
                         runInsert = true;
-                        emptyPositions.add(7);
+                        emptyPositions.add(RESULT_QUAL_POS);
                         setEmptyPositions(emptyPositions);
                         insertStatement.addBatch();
                         rowsToInserted++;
                         currentlyGenerated--;
                     } else if(enc8561305.containsKey(1305) && lastIteration) {
-                        insertStatement.setInt(2, 1305);
-                        insertStatement.setInt(7, (Integer) enc8561305.get(7));
+                        insertStatement.setInt(LAB_TEST_ID_POS, 1305);
+                        insertStatement.setInt(RESULT_QUAL_POS, (Integer) enc8561305.get(RESULT_QUAL_POS));
                         entriesIterator.remove();
                         runInsert = true;
-                        emptyPositions.add(8);
-                        emptyPositions.add(9);
+                        emptyPositions.add(RESULT_NUM_POS);
+                        emptyPositions.add(RESULT_UNITS_POS);
                         setEmptyPositions(emptyPositions);
                         insertStatement.addBatch();
                         rowsToInserted++;
