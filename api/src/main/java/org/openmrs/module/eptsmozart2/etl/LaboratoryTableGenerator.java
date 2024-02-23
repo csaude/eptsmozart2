@@ -31,7 +31,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
  */
 public class LaboratoryTableGenerator extends AbstractGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(LaboratoryGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(LaboratoryTableGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "laboratory.sql";
 
