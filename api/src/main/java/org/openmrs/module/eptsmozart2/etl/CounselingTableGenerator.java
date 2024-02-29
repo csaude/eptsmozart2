@@ -183,7 +183,7 @@ public class CounselingTableGenerator extends AbstractGenerator {
                         positionsNotSet.remove(ACCEPT_CONTACT_POS);
                     } else if(resultConceptId == 23775) {
                         insertStatement.setTimestamp(ACCEPT_DATE_POS, counselingObsResults.getTimestamp("value_datetime"));
-                        positionsNotSet.remove(ACCEPT_CONTACT_POS);
+                        positionsNotSet.remove(ACCEPT_DATE_POS);
                     } else if(resultConceptId == 6193) {
                         switch (valueCoded) {
                             case 1956:
