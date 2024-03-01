@@ -8,14 +8,11 @@ import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -23,8 +20,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Observable;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/13/22.
@@ -33,7 +28,7 @@ public class Utils {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
 	
-	private static final String ART_PATIENT_LIST_QUERY_FILE = "art_patient_list_query.sql";
+	private static final String PATIENT_LIST_QUERY_FILE = "patient_list_query.sql";
 	
 	public static final String MOZART2_DIR_NAME = "mozart2";
 	
@@ -54,10 +49,10 @@ public class Utils {
 		return sb.append(numbers[i].toString()).append(")").toString();
 	}
 	
-	public static String getArtPatientListQuery() {
+	public static String getPatientListQuery() {
 		try {
 			return Utils
-			        .readFileToString(ART_PATIENT_LIST_QUERY_FILE)
+			        .readFileToString(PATIENT_LIST_QUERY_FILE)
 			        .replace("sourceDatabase", Mozart2Properties.getInstance().getDatabaseName())
 			        .replace(":locations", Mozart2Properties.getInstance().getLocationsIdsString())
 			        .replace(":endDate",
