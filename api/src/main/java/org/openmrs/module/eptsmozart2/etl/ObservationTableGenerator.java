@@ -18,7 +18,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22.
  */
-public class ObservationTableGenerator extends AbstractGenerator {
+public class ObservationTableGenerator extends AbstractNonScrollableResultSetGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ObservationTableGenerator.class);
 	

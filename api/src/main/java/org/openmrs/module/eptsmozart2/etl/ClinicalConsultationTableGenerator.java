@@ -17,7 +17,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 7/11/22.
  */
-public class ClinicalConsultationTableGenerator extends AbstractGenerator {
+public class ClinicalConsultationTableGenerator extends AbstractNonScrollableResultSetGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
 	

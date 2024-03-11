@@ -16,7 +16,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/15/22.
  */
-public class IdentifierTableGenerator extends AbstractGenerator {
+public class IdentifierTableGenerator extends AbstractNonScrollableResultSetGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(IdentifierTableGenerator.class);
 	

@@ -16,7 +16,7 @@ import static org.openmrs.module.eptsmozart2.Utils.getPatientListQuery;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/14/22.
  */
-public class PatientTableGenerator extends AbstractGenerator {
+public class PatientTableGenerator extends AbstractNonScrollableResultSetGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(PatientTableGenerator.class);
 	

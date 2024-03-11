@@ -16,7 +16,7 @@ import java.sql.Statement;
  */
 public class LocationTableGenerator extends InsertFromSelectGenerator {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractNonScrollableResultSetGenerator.class);
 	
 	private static final String CREATE_TABLE_FILE_NAME = "location.sql";
 	

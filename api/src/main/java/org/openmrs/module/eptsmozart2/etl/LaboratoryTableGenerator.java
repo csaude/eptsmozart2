@@ -15,7 +15,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,7 +28,7 @@ import static org.openmrs.module.eptsmozart2.Utils.inClause;
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22.
  */
-public class LaboratoryTableGenerator extends AbstractGenerator {
+public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(LaboratoryTableGenerator.class);
 	

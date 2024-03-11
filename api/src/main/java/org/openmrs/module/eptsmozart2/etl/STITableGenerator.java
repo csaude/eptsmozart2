@@ -11,14 +11,13 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22.
  */
-public class STITableGenerator extends AbstractGenerator {
+public class STITableGenerator extends AbstractNonScrollableResultSetGenerator {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(STITableGenerator.class);
 	

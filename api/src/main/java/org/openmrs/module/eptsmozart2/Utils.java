@@ -3,7 +3,7 @@ package org.openmrs.module.eptsmozart2;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.eptsmozart2.etl.AbstractGenerator;
+import org.openmrs.module.eptsmozart2.etl.AbstractNonScrollableResultSetGenerator;
 import org.openmrs.util.OpenmrsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,7 @@ import java.util.Observable;
  */
 public class Utils {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGenerator.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractNonScrollableResultSetGenerator.class);
 	
 	private static final String PATIENT_LIST_QUERY_FILE = "patient_list_query.sql";
 	
