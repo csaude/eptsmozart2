@@ -61,6 +61,8 @@ public class TBDataTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	private boolean thereIsNext = false;
 	
+	private Integer encounterId = null;
+	
 	@Override
     protected int etl(Integer batchSize) throws SQLException {
         if (batchSize == null)
@@ -84,7 +86,6 @@ public class TBDataTableGenerator extends AbstractScrollableResultSetGenerator {
                 thereIsNext = scrollableResultSet.next();
             }
             Integer prevEncounterId = null;
-            Integer encounterId = null;
             positionsNotSet.addAll(Arrays.asList(TB_SYMPTOM_POS, SYMPTOM_FEVER_POS, SYMPTOM_WLOSS_POS, SYMPTOM_NSWEAT_POS,
                                                  SYMPTOM_COUGH_POS, SYMPTOM_ASTHENIA_POS, SYMPTOM_TBCONTACT_POS,
                                                  SYMPTOM_ADENOPATHY_POS, TB_DIAGNOSE_POS, TB_TREATMENT_POS, TB_TREATMENTDATE_POS));

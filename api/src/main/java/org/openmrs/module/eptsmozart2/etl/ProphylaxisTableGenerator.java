@@ -56,6 +56,8 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	
 	private boolean thereIsNext = false;
 	
+	private Integer encounterId = null;
+	
 	@Override
 	protected int etl(Integer batchSize) throws SQLException {
         if (batchSize == null)
@@ -79,7 +81,6 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
                 thereIsNext = scrollableResultSet.next();
             }
             Integer prevEncounterId = null;
-            Integer encounterId = null;
             positionsNotSet.addAll(Arrays.asList(PROPHY_TPT_POS, PROPHY_CTX_POS, PROPHY_PREP_POS, NO_UNITS_POS,
                                                  PROPHY_STATUS_POS, INH_SECEFFECTS_POS, CTZ_SECEFFECTS_POS,
                                                  DISP_TYPE_POS, NEXT_PDATE_POS));
