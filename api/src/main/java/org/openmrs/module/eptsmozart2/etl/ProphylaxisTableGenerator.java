@@ -1,6 +1,5 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
@@ -54,102 +52,6 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	
 	protected final int NEXT_PDATE_POS = 11;
 	
-	private boolean thereIsNext = false;
-	
-	private Integer encounterId = null;
-	
-	@Override
-	protected int etl(Integer batchSize) throws SQLException {
-        if (batchSize == null)
-            batchSize = Integer.MAX_VALUE;
-        String insertSql = new StringBuilder("INSERT INTO ")
-                .append(Mozart2Properties.getInstance().getNewDatabaseName())
-                .append(".prophylaxis (encounter_uuid, encounter_date, regimen_prophylaxis_tpt, regimen_prophylaxis_ctx, ")
-                .append("regimen_prophylaxis_prep, no_of_units, prophylaxis_status, secondary_effects_tpt, ")
-                .append("secondary_effects_ctz, dispensation_type, next_pickup_date) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
-
-        try {
-            if (insertStatement == null) {
-                insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
-            } else {
-                insertStatement.clearParameters();
-            }
-            int count = 0;
-            Set<Integer> positionsNotSet = new HashSet<>();
-            if(!thereIsNext) {
-                thereIsNext = scrollableResultSet.next();
-            }
-            Integer prevEncounterId = null;
-            positionsNotSet.addAll(Arrays.asList(PROPHY_TPT_POS, PROPHY_CTX_POS, PROPHY_PREP_POS, NO_UNITS_POS,
-                                                 PROPHY_STATUS_POS, INH_SECEFFECTS_POS, CTZ_SECEFFECTS_POS,
-                                                 DISP_TYPE_POS, NEXT_PDATE_POS));
-            while (thereIsNext && (count < batchSize || Objects.equals(prevEncounterId, encounterId))) {
-                encounterId = scrollableResultSet.getInt("encounter_id");
-                insertStatement.setString(ENCOUNTER_UUID_POS, scrollableResultSet.getString("encounter_uuid"));
-                insertStatement.setTimestamp(ENCOUNTER_DATE_POS, scrollableResultSet.getTimestamp("encounter_datetime"));
-
-                int resultConceptId = scrollableResultSet.getInt("concept_id");
-                int valueCoded = scrollableResultSet.getInt("value_coded");
-                if(resultConceptId == 23985) {
-                    insertStatement.setInt(PROPHY_TPT_POS, valueCoded);
-                    positionsNotSet.remove(PROPHY_TPT_POS);
-                } else if(resultConceptId == 6121) {
-                    insertStatement.setInt(PROPHY_CTX_POS, valueCoded);
-                    positionsNotSet.remove(PROPHY_CTX_POS);
-                } else if(resultConceptId == 165213) {
-                    insertStatement.setInt(PROPHY_PREP_POS, valueCoded);
-                    positionsNotSet.remove(PROPHY_PREP_POS);
-                } else if(resultConceptId == 165217) {
-                    insertStatement.setDouble(NO_UNITS_POS, scrollableResultSet.getDouble("value_numeric"));
-                    positionsNotSet.remove(NO_UNITS_POS);
-                } else if(resultConceptId == 165308 || resultConceptId == 23987) {
-                    insertStatement.setInt(PROPHY_STATUS_POS, valueCoded);
-                    positionsNotSet.remove(PROPHY_STATUS_POS);
-                } else if(resultConceptId == 23762) {
-                    insertStatement.setInt(INH_SECEFFECTS_POS, valueCoded);
-                    positionsNotSet.remove(INH_SECEFFECTS_POS);
-                } else if(resultConceptId == 23763) {
-                    insertStatement.setInt(CTZ_SECEFFECTS_POS, valueCoded);
-                    positionsNotSet.remove(CTZ_SECEFFECTS_POS);
-                } else if(resultConceptId == 23986) {
-                    insertStatement.setInt(DISP_TYPE_POS, valueCoded);
-                    positionsNotSet.remove(DISP_TYPE_POS);
-                } else if(resultConceptId == 23988 ) {
-                    insertStatement.setTimestamp(NEXT_PDATE_POS, scrollableResultSet.getTimestamp("value_datetime"));
-                    positionsNotSet.remove(NEXT_PDATE_POS);
-                }
-
-                thereIsNext = scrollableResultSet.next();
-                if(thereIsNext) {
-                    prevEncounterId = encounterId;
-                    encounterId = scrollableResultSet.getInt("encounter_id");
-                    if(!Objects.equals(prevEncounterId, encounterId)) {
-                        setEmptyPositions(positionsNotSet);
-                        insertStatement.addBatch();
-                        positionsNotSet.addAll(Arrays.asList(PROPHY_TPT_POS, PROPHY_CTX_POS, PROPHY_PREP_POS, NO_UNITS_POS,
-                                                             PROPHY_STATUS_POS, INH_SECEFFECTS_POS, CTZ_SECEFFECTS_POS,
-                                                             DISP_TYPE_POS, NEXT_PDATE_POS));
-                        ++count;
-                    }
-                } else {
-                    setEmptyPositions(positionsNotSet);
-                    insertStatement.addBatch();
-                    encounterId = null;
-                    ++count;
-                }
-            }
-            int[] outcomes = insertStatement.executeBatch();
-            return outcomes.length;
-        }
-        catch (SQLException e) {
-            LOGGER.error("Error preparing insert statement for table {}", getTable());
-            this.setChanged();
-            Utils.notifyObserversAboutException(this, e);
-            throw e;
-        }
-    }
-	
 	@Override
 	public String getTable() {
 		return "prophylaxis";
@@ -175,7 +77,8 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	
 	@Override
 	protected String fetchQuery() {
-		StringBuilder sb = new StringBuilder("SELECT e.encounter_datetime, e.uuid as encounter_uuid, o.* FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.encounter_datetime, e.uuid as encounter_uuid, ")
+		        .append("e.encounter_id as e_encounter_id, o.* FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
@@ -187,7 +90,63 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 		return sb.toString();
 	}
 	
-	private void setEmptyPositions(Set<Integer> positionsNotSet) throws SQLException {
+	@Override
+	protected String insertSql() {
+		return new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".prophylaxis (encounter_uuid, encounter_date, regimen_prophylaxis_tpt, regimen_prophylaxis_ctx, ")
+		        .append("regimen_prophylaxis_prep, no_of_units, prophylaxis_status, secondary_effects_tpt, ")
+		        .append("secondary_effects_ctz, dispensation_type, next_pickup_date) ")
+		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+	}
+	
+	@Override
+    protected Set<Integer> getAllPositionsNotSet() {
+        Set<Integer> positionsNotSet = new HashSet<>();
+        positionsNotSet.addAll(Arrays.asList(PROPHY_TPT_POS, PROPHY_CTX_POS, PROPHY_PREP_POS, NO_UNITS_POS,
+                                             PROPHY_STATUS_POS, INH_SECEFFECTS_POS, CTZ_SECEFFECTS_POS,
+                                             DISP_TYPE_POS, NEXT_PDATE_POS));
+        return positionsNotSet;
+    }
+	
+	@Override
+	protected void setInsertSqlParameters(Set<Integer> positionsNotSet) throws SQLException {
+		insertStatement.setString(ENCOUNTER_UUID_POS, scrollableResultSet.getString("encounter_uuid"));
+		insertStatement.setTimestamp(ENCOUNTER_DATE_POS, scrollableResultSet.getTimestamp("encounter_datetime"));
+		
+		int resultConceptId = scrollableResultSet.getInt("concept_id");
+		int valueCoded = scrollableResultSet.getInt("value_coded");
+		if (resultConceptId == 23985) {
+			insertStatement.setInt(PROPHY_TPT_POS, valueCoded);
+			positionsNotSet.remove(PROPHY_TPT_POS);
+		} else if (resultConceptId == 6121) {
+			insertStatement.setInt(PROPHY_CTX_POS, valueCoded);
+			positionsNotSet.remove(PROPHY_CTX_POS);
+		} else if (resultConceptId == 165213) {
+			insertStatement.setInt(PROPHY_PREP_POS, valueCoded);
+			positionsNotSet.remove(PROPHY_PREP_POS);
+		} else if (resultConceptId == 165217) {
+			insertStatement.setDouble(NO_UNITS_POS, scrollableResultSet.getDouble("value_numeric"));
+			positionsNotSet.remove(NO_UNITS_POS);
+		} else if (resultConceptId == 165308 || resultConceptId == 23987) {
+			insertStatement.setInt(PROPHY_STATUS_POS, valueCoded);
+			positionsNotSet.remove(PROPHY_STATUS_POS);
+		} else if (resultConceptId == 23762) {
+			insertStatement.setInt(INH_SECEFFECTS_POS, valueCoded);
+			positionsNotSet.remove(INH_SECEFFECTS_POS);
+		} else if (resultConceptId == 23763) {
+			insertStatement.setInt(CTZ_SECEFFECTS_POS, valueCoded);
+			positionsNotSet.remove(CTZ_SECEFFECTS_POS);
+		} else if (resultConceptId == 23986) {
+			insertStatement.setInt(DISP_TYPE_POS, valueCoded);
+			positionsNotSet.remove(DISP_TYPE_POS);
+		} else if (resultConceptId == 23988) {
+			insertStatement.setTimestamp(NEXT_PDATE_POS, scrollableResultSet.getTimestamp("value_datetime"));
+			positionsNotSet.remove(NEXT_PDATE_POS);
+		}
+	}
+	
+	@Override
+	protected void setEmptyPositions(Set<Integer> positionsNotSet) throws SQLException {
 		if (!positionsNotSet.isEmpty()) {
 			Iterator<Integer> iter = positionsNotSet.iterator();
 			while (iter.hasNext()) {

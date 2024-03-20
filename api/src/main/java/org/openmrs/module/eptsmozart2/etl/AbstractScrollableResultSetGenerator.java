@@ -12,6 +12,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
@@ -27,6 +29,10 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
 	protected Statement scrollableStatement;
 	
 	protected ResultSet scrollableResultSet;
+	
+	protected boolean thereIsNext = false;
+	
+	protected Integer encounterId = null;
 	
 	@Override
     public Void call() throws SQLException, IOException {
@@ -113,6 +119,55 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
         }
     }
 	
+	protected int etl(Integer batchSize) throws SQLException {
+		if (batchSize == null)
+			batchSize = Integer.MAX_VALUE;
+		String insertSql = insertSql();
+		try {
+			if (insertStatement == null) {
+				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
+			} else {
+				insertStatement.clearParameters();
+			}
+			int count = 0;
+			Set<Integer> positionsNotSet = getAllPositionsNotSet();
+			if (!thereIsNext) {
+				thereIsNext = scrollableResultSet.next();
+				if (thereIsNext) {
+					encounterId = scrollableResultSet.getInt("e_encounter_id");
+				}
+			}
+			Integer prevEncounterId = null;
+			while (thereIsNext && (count < batchSize || Objects.equals(prevEncounterId, encounterId))) {
+				setInsertSqlParameters(positionsNotSet);
+				thereIsNext = scrollableResultSet.next();
+				if (thereIsNext) {
+					prevEncounterId = encounterId;
+					encounterId = scrollableResultSet.getInt("e_encounter_id");
+					if (!Objects.equals(prevEncounterId, encounterId)) {
+						setEmptyPositions(positionsNotSet);
+						insertStatement.addBatch();
+						positionsNotSet = getAllPositionsNotSet();
+						++count;
+					}
+				} else {
+					setEmptyPositions(positionsNotSet);
+					insertStatement.addBatch();
+					encounterId = null;
+					++count;
+				}
+			}
+			int[] outcomes = insertStatement.executeBatch();
+			return outcomes.length;
+		}
+		catch (SQLException e) {
+			LOGGER.error("Error preparing insert statement for table {}", getTable());
+			this.setChanged();
+			Utils.notifyObserversAboutException(this, e);
+			throw e;
+		}
+	}
+	
 	@Override
 	public void cancel() throws SQLException {
 		if (selectStatement != null) {
@@ -126,5 +181,11 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
 	
 	protected abstract String fetchQuery();
 	
-	protected abstract int etl(Integer batchSize) throws SQLException;
+	protected abstract String insertSql();
+	
+	protected abstract Set<Integer> getAllPositionsNotSet();
+	
+	protected abstract void setInsertSqlParameters(Set<Integer> positionsNotSet) throws SQLException;
+	
+	protected abstract void setEmptyPositions(Set<Integer> positionsNotSet) throws SQLException;
 }

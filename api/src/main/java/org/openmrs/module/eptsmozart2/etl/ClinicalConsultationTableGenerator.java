@@ -1,6 +1,5 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 import org.slf4j.Logger;
@@ -13,7 +12,6 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
@@ -50,101 +48,6 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 	protected final int ARM_CIRCUM_POS = 9;
 	
 	protected final int NUTRI_GRADE_POS = 10;
-	
-	private boolean thereIsNext = false;
-	
-	private Integer encounterId = null;
-	
-	@Override
-	protected int etl(Integer batchSize) throws SQLException {
-		if (batchSize == null)
-			batchSize = Integer.MAX_VALUE;
-		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".clinical_consultation (encounter_uuid, consultation_date, scheduled_date, ")
-				.append("bp_diastolic, bp_systolic, who_staging, weight, height, arm_circumference, ")
-				.append("nutritional_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-		        .toString();
-		try {
-			if (insertStatement == null) {
-				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
-			} else {
-				insertStatement.clearParameters();
-			}
-			int count = 0;
-			Set<Integer> positionsNotSet = new HashSet<>();
-			if(!thereIsNext) {
-				thereIsNext = scrollableResultSet.next();
-				if(thereIsNext) {
-					encounterId = scrollableResultSet.getInt("e_encounter_id");
-				}
-			}
-			Integer prevEncounterId = null;
-			positionsNotSet.addAll(Arrays.asList(SCHEDULED_DATE_POS, BP_DIASTOLIC_POS, BP_SYSTOLIC_POS, WHO_STAGING_POS,
-												 WEIGHT_POS, HEIGHT_POS, ARM_CIRCUM_POS,
-												 NUTRI_GRADE_POS));
-			while (thereIsNext && (count < batchSize || Objects.equals(prevEncounterId, encounterId))) {
-				Integer conceptId = scrollableResultSet.getInt("concept_id");
-				insertStatement.setString(ENCOUNTER_UUID_POS, scrollableResultSet.getString("encounter_uuid"));
-				insertStatement.setDate(ENCOUNTER_DATE_POS, scrollableResultSet.getDate("encounter_datetime"));
-
-				if(conceptId != null) {
-					if (conceptId == 1410 || conceptId == 6310) {
-						insertStatement.setDate(SCHEDULED_DATE_POS, scrollableResultSet.getDate("value_datetime"));
-						positionsNotSet.remove(SCHEDULED_DATE_POS);
-					} else if (conceptId == 5086) {
-						insertStatement.setDouble(BP_DIASTOLIC_POS, scrollableResultSet.getDouble("value_numeric"));
-						positionsNotSet.remove(BP_DIASTOLIC_POS);
-					} else if (conceptId == 5085) {
-						insertStatement.setDouble(BP_SYSTOLIC_POS, scrollableResultSet.getDouble("value_numeric"));
-						positionsNotSet.remove(BP_SYSTOLIC_POS);
-					} else if (conceptId == 5356) {
-						insertStatement.setInt(WHO_STAGING_POS, scrollableResultSet.getInt("value_coded"));
-						positionsNotSet.remove(WHO_STAGING_POS);
-					} else if (conceptId == 5089) {
-						insertStatement.setDouble(WEIGHT_POS, scrollableResultSet.getDouble("value_numeric"));
-						positionsNotSet.remove(WEIGHT_POS);
-					} else if (conceptId == 5090) {
-						insertStatement.setDouble(HEIGHT_POS, scrollableResultSet.getDouble("value_numeric"));
-						positionsNotSet.remove(HEIGHT_POS);
-					} else if (conceptId == 1343) {
-						insertStatement.setDouble(ARM_CIRCUM_POS, scrollableResultSet.getDouble("value_numeric"));
-						positionsNotSet.remove(ARM_CIRCUM_POS);
-					} else if (conceptId == 23738) {
-						insertStatement.setInt(NUTRI_GRADE_POS, scrollableResultSet.getInt("value_coded"));
-						positionsNotSet.remove(NUTRI_GRADE_POS);
-					}
-				}
-
-				thereIsNext = scrollableResultSet.next();
-				if(thereIsNext) {
-					prevEncounterId = encounterId;
-					encounterId = scrollableResultSet.getInt("e_encounter_id");
-					if(!Objects.equals(prevEncounterId, encounterId)) {
-						setEmptyPositions(positionsNotSet);
-						insertStatement.addBatch();
-						positionsNotSet.addAll(Arrays.asList(SCHEDULED_DATE_POS, BP_DIASTOLIC_POS, BP_SYSTOLIC_POS, WHO_STAGING_POS,
-															 WEIGHT_POS, HEIGHT_POS, ARM_CIRCUM_POS,
-															 NUTRI_GRADE_POS));
-						++count;
-					}
-				} else {
-					setEmptyPositions(positionsNotSet);
-					insertStatement.addBatch();
-					encounterId = null;
-					++count;
-				}
-			}
-			int[] outcomes = insertStatement.executeBatch();
-			return outcomes.length;
-		}
-		catch (SQLException e) {
-			LOGGER.error("Error preparing insert statement for table {}", getTable());
-			this.setChanged();
-			Utils.notifyObserversAboutException(this, e);
-			throw e;
-		}
-	}
 	
 	@Override
 	public String getTable() {
@@ -184,7 +87,61 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 		return sb.toString();
 	}
 	
-	private void setEmptyPositions(Set<Integer> positionsNotSet) throws SQLException {
+	@Override
+	protected String insertSql() {
+		return new StringBuilder("INSERT IGNORE INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".clinical_consultation (encounter_uuid, consultation_date, scheduled_date, ")
+		        .append("bp_diastolic, bp_systolic, who_staging, weight, height, arm_circumference, ")
+		        .append("nutritional_grade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+	}
+	
+	@Override
+	protected Set<Integer> getAllPositionsNotSet() {
+		Set<Integer> positionsNotSet = new HashSet<>();
+		positionsNotSet.addAll(Arrays.asList(SCHEDULED_DATE_POS, BP_DIASTOLIC_POS, BP_SYSTOLIC_POS, WHO_STAGING_POS,
+											 WEIGHT_POS, HEIGHT_POS, ARM_CIRCUM_POS,
+											 NUTRI_GRADE_POS));
+		return positionsNotSet;
+	}
+	
+	@Override
+	protected void setInsertSqlParameters(Set<Integer> positionsNotSet) throws SQLException {
+		insertStatement.setString(ENCOUNTER_UUID_POS, scrollableResultSet.getString("encounter_uuid"));
+		insertStatement.setDate(ENCOUNTER_DATE_POS, scrollableResultSet.getDate("encounter_datetime"));
+		
+		Integer conceptId = scrollableResultSet.getInt("concept_id");
+		if (conceptId != null) {
+			if (conceptId == 1410 || conceptId == 6310) {
+				insertStatement.setDate(SCHEDULED_DATE_POS, scrollableResultSet.getDate("value_datetime"));
+				positionsNotSet.remove(SCHEDULED_DATE_POS);
+			} else if (conceptId == 5086) {
+				insertStatement.setDouble(BP_DIASTOLIC_POS, scrollableResultSet.getDouble("value_numeric"));
+				positionsNotSet.remove(BP_DIASTOLIC_POS);
+			} else if (conceptId == 5085) {
+				insertStatement.setDouble(BP_SYSTOLIC_POS, scrollableResultSet.getDouble("value_numeric"));
+				positionsNotSet.remove(BP_SYSTOLIC_POS);
+			} else if (conceptId == 5356) {
+				insertStatement.setInt(WHO_STAGING_POS, scrollableResultSet.getInt("value_coded"));
+				positionsNotSet.remove(WHO_STAGING_POS);
+			} else if (conceptId == 5089) {
+				insertStatement.setDouble(WEIGHT_POS, scrollableResultSet.getDouble("value_numeric"));
+				positionsNotSet.remove(WEIGHT_POS);
+			} else if (conceptId == 5090) {
+				insertStatement.setDouble(HEIGHT_POS, scrollableResultSet.getDouble("value_numeric"));
+				positionsNotSet.remove(HEIGHT_POS);
+			} else if (conceptId == 1343) {
+				insertStatement.setDouble(ARM_CIRCUM_POS, scrollableResultSet.getDouble("value_numeric"));
+				positionsNotSet.remove(ARM_CIRCUM_POS);
+			} else if (conceptId == 23738) {
+				insertStatement.setInt(NUTRI_GRADE_POS, scrollableResultSet.getInt("value_coded"));
+				positionsNotSet.remove(NUTRI_GRADE_POS);
+			}
+		}
+		
+	}
+	
+	@Override
+	protected void setEmptyPositions(Set<Integer> positionsNotSet) throws SQLException {
 		if (!positionsNotSet.isEmpty()) {
 			Iterator<Integer> iter = positionsNotSet.iterator();
 			while (iter.hasNext()) {
