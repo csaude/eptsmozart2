@@ -74,6 +74,7 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 	protected final int RESULT_COMMENT_POS = 10;
 	protected final int SPECIMEN_TYPE_POS = 11;
 	protected final int LABTEST_UUID_POS = 12;
+	protected final int ENCOUNTER_DATE_POS = 13;
 	static {
 	    CONCEPT_UNITS.put(730, "%");
 	    CONCEPT_UNITS.put(856,"copies/ml");
@@ -101,8 +102,8 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                 .append(".laboratory (encounter_uuid, ")
                 .append("lab_test_id, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
                 .append("result_numeric, result_units, result_comment, ")
-                .append("specimen_type_id, labtest_uuid) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+                .append("specimen_type_id, labtest_uuid, encounter_date) ")
+                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
         PreparedStatement orderDateSpecimenStatement = null;
         ResultSet orderDateSpecimenTypeResults = null;
@@ -143,6 +144,7 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                     eighty561305Values.put(-1, insertSql);
                     eighty561305Values.put(-2, encounterType);
                     eighty561305Values.put(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
+                    eighty561305Values.put(ENCOUNTER_DATE_POS, results.getTimestamp("encounter_datetime"));
 
 
                     if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
@@ -196,6 +198,7 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                 );
                 
                 insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
+                insertStatement.setTimestamp(ENCOUNTER_DATE_POS, results.getTimestamp("encounter_datetime"));
                 insertStatement.setInt(LAB_TEST_ID_POS, conceptId);
                 insertStatement.setString(RESULT_COMMENT_POS, results.getString("comments"));
                 if(conceptId == 23722) {
@@ -327,7 +330,7 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT o.*, e.encounter_type, e.uuid as encounter_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT o.*, e.encounter_type, e.uuid as encounter_uuid, encounter_datetime FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p ON o.person_id = p.patient_id JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName())
@@ -446,7 +449,8 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                     Map<Integer, Object> enc8561305 = entry.getValue();
                     if(!(enc8561305.containsKey(856) && enc8561305.containsKey(1305)) && !lastIteration) continue;
                     int encounterType = (Integer) enc8561305.get(-2);
-                    insertStatement.setString(ENCOUNTER_UUID_POS, (String) enc8561305.get(1));
+                    insertStatement.setString(ENCOUNTER_UUID_POS, (String) enc8561305.get(ENCOUNTER_UUID_POS));
+                    insertStatement.setTimestamp(ENCOUNTER_DATE_POS, (Timestamp) enc8561305.get(ENCOUNTER_DATE_POS));
                     insertStatement.setInt(LAB_TEST_ID_POS, 856);
 
                     if(enc8561305.containsKey(ORDER_DATE_POS)) {

@@ -1,6 +1,7 @@
 CREATE TABLE `laboratory` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `encounter_uuid` char(38) DEFAULT NULL,
+  `encounter_date` datetime DEFAULT NULL,
   `lab_test_id` int(11) NOT NULL,
   `request` int(11) DEFAULT NULL,
   `order_date` datetime DEFAULT NULL,
