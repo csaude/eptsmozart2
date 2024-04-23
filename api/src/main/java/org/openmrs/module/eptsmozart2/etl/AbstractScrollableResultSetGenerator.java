@@ -47,19 +47,20 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
             toBeGenerated = resultSet.getInt(1);
             if(toBeGenerated == 0) {
                 hasRecords = Boolean.FALSE;
+                return null;
             }
             resultSet.close();
+            if (scrollableStatement == null) {
+                scrollableStatement = ConnectionPool.getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY,
+                                                                                     ResultSet.CONCUR_READ_ONLY);
+                scrollableStatement.setFetchSize(Integer.MIN_VALUE);
+                scrollableResultSet = scrollableStatement.executeQuery(query);
+            }
             int batchSize = Mozart2Properties.getInstance().getBatchSize();
             if(toBeGenerated > batchSize) {
                 LOGGER.debug("Generating {} records for table {} in batches of {}", toBeGenerated, getTable(), batchSize);
                 int temp = toBeGenerated;
                 int batchCount = 1;
-                if (scrollableStatement == null) {
-                    scrollableStatement = ConnectionPool.getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY,
-                                                                                         ResultSet.CONCUR_READ_ONLY);
-                    scrollableStatement.setFetchSize(Integer.MIN_VALUE);
-                    scrollableResultSet = scrollableStatement.executeQuery(query);
-                }
                 while (temp % batchSize > 0) {
                     if (temp / batchSize > 0) {
                         LOGGER.debug("Inserting batch # {} of {} table, inserted:  {}, inserting: {}, remaining: {}",
@@ -79,7 +80,6 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
                 // few records to move.
                 LOGGER.debug("Running ETL for {}", getTable());
                 etl(null);
-                insertStatement.executeBatch();
                 currentlyGenerated += toBeGenerated;
             }
 

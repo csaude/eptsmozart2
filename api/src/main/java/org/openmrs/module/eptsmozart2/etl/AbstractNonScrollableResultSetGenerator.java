@@ -36,6 +36,7 @@ public abstract class AbstractNonScrollableResultSetGenerator extends AbstractGe
             toBeGenerated = resultSet.getInt(1);
             if(toBeGenerated == 0) {
                 hasRecords = Boolean.FALSE;
+                return null;
             }
             resultSet.close();
             int batchSize = Mozart2Properties.getInstance().getBatchSize();
