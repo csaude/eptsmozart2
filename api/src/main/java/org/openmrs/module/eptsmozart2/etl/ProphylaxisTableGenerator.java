@@ -25,10 +25,10 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	
 	private static final String CREATE_TABLE_FILE_NAME = "prophylaxis.sql";
 	
-	public static final Integer[] PROPHYLAXIS_CONCEPT_IDS = new Integer[] { 23985, 6121, 165213, 165217, 165308, 23987,
-	        23762, 23763, 23986, 23988 };
+	public static final Integer[] PROPHYLAXIS_CONCEPT_IDS = new Integer[] { 23985, 6121, 165308, 23987, 23762, 23763, 23986,
+	        23988 };
 	
-	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 60, 80, 81 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 60 };
 	
 	protected final int ENCOUNTER_UUID_POS = 1;
 	
@@ -38,19 +38,15 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	
 	protected final int PROPHY_CTX_POS = 4;
 	
-	protected final int PROPHY_PREP_POS = 5;
+	protected final int PROPHY_STATUS_POS = 5;
 	
-	protected final int NO_UNITS_POS = 6;
+	protected final int INH_SECEFFECTS_POS = 6;
 	
-	protected final int PROPHY_STATUS_POS = 7;
+	protected final int CTZ_SECEFFECTS_POS = 7;
 	
-	protected final int INH_SECEFFECTS_POS = 8;
+	protected final int DISP_TYPE_POS = 8;
 	
-	protected final int CTZ_SECEFFECTS_POS = 9;
-	
-	protected final int DISP_TYPE_POS = 10;
-	
-	protected final int NEXT_PDATE_POS = 11;
+	protected final int NEXT_PDATE_POS = 9;
 	
 	@Override
 	public String getTable() {
@@ -93,18 +89,17 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	@Override
 	protected String insertSql() {
 		return new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".prophylaxis (encounter_uuid, encounter_date, regimen_prophylaxis_tpt, regimen_prophylaxis_ctx, ")
-		        .append("regimen_prophylaxis_prep, no_of_units, prophylaxis_status, secondary_effects_tpt, ")
+		        .append(".prophylaxis (encounter_uuid, encounter_date, regimen_prophylaxis_tpt, ")
+		        .append("regimen_prophylaxis_ctx, prophylaxis_status, secondary_effects_tpt, ")
 		        .append("secondary_effects_ctz, dispensation_type, next_pickup_date) ")
-		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 	}
 	
 	@Override
     protected Set<Integer> getAllPositionsNotSet() {
         Set<Integer> positionsNotSet = new HashSet<>();
-        positionsNotSet.addAll(Arrays.asList(PROPHY_TPT_POS, PROPHY_CTX_POS, PROPHY_PREP_POS, NO_UNITS_POS,
-                                             PROPHY_STATUS_POS, INH_SECEFFECTS_POS, CTZ_SECEFFECTS_POS,
-                                             DISP_TYPE_POS, NEXT_PDATE_POS));
+        positionsNotSet.addAll(Arrays.asList(PROPHY_TPT_POS, PROPHY_CTX_POS,PROPHY_STATUS_POS, INH_SECEFFECTS_POS,
+											 CTZ_SECEFFECTS_POS, DISP_TYPE_POS, NEXT_PDATE_POS));
         return positionsNotSet;
     }
 	
@@ -121,12 +116,6 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 		} else if (resultConceptId == 6121) {
 			insertStatement.setInt(PROPHY_CTX_POS, valueCoded);
 			positionsNotSet.remove(PROPHY_CTX_POS);
-		} else if (resultConceptId == 165213) {
-			insertStatement.setInt(PROPHY_PREP_POS, valueCoded);
-			positionsNotSet.remove(PROPHY_PREP_POS);
-		} else if (resultConceptId == 165217) {
-			insertStatement.setDouble(NO_UNITS_POS, scrollableResultSet.getDouble("value_numeric"));
-			positionsNotSet.remove(NO_UNITS_POS);
 		} else if (resultConceptId == 165308 || resultConceptId == 23987) {
 			insertStatement.setInt(PROPHY_STATUS_POS, valueCoded);
 			positionsNotSet.remove(PROPHY_STATUS_POS);
@@ -154,9 +143,6 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 				switch (pos) {
 					case NEXT_PDATE_POS:
 						insertStatement.setNull(pos, Types.DATE);
-						break;
-					case NO_UNITS_POS:
-						insertStatement.setNull(pos, Types.DOUBLE);
 						break;
 					default:
 						insertStatement.setNull(pos, Types.INTEGER);
