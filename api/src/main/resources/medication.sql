@@ -1,6 +1,12 @@
 CREATE TABLE `medication` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `encounter_uuid` char(38) DEFAULT NULL,
+  `encounter_date` date DEFAULT NULL,
+  `form_id` int(11) DEFAULT NULL,
+  `encounter_type` int(11) DEFAULT NULL,
+  `patient_uuid` char(38) DEFAULT NULL,
+  `encounter_change_date` datetime DEFAULT NULL,
+  `location_uuid` char(38) DEFAULT NULL,
   `regimen_id` int(11) DEFAULT NULL,
   `formulation_id` int(11) DEFAULT NULL,
   `quantity_prescribed` double(255,0) DEFAULT NULL,
@@ -15,6 +21,7 @@ CREATE TABLE `medication` (
   `med_side_effects_id` int(11) DEFAULT NULL,
   `adherence_id` int(11) DEFAULT NULL,
   `medication_uuid` char(38) DEFAULT NULL,
+  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `medication_medication_uuid` (`medication_uuid`),
   KEY `medication_encounter_uuid` (`encounter_uuid`)

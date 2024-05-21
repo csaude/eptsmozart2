@@ -2,6 +2,11 @@ CREATE TABLE `dah` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `encounter_uuid` char(38) NOT NULL,
   `encounter_date` datetime NOT NULL,
+  `form_id` int(11) DEFAULT NULL,
+  `encounter_type` int(11) DEFAULT NULL,
+  `patient_uuid` char(38) DEFAULT NULL,
+  `encounter_change_date` datetime DEFAULT NULL,
+  `location_uuid` char(38) DEFAULT NULL,
   `status_tarv` int(11) DEFAULT NULL,
   `tarv_line` int(11) DEFAULT NULL,
   `tarv_regimen` int(11) DEFAULT NULL,
@@ -10,6 +15,7 @@ CREATE TABLE `dah` (
   `exit_criteria_cvsupressed` int(11) DEFAULT NULL,
   `exit_criteria_cd4` int(11) DEFAULT NULL,
   `exit_criteria_nofluconazol` int(11) DEFAULT NULL,
+  `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `dah_encounter_uuid` (`encounter_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
