@@ -10,9 +10,11 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
@@ -276,6 +278,17 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		} else if (resultConceptId == 165213) {
 			insertStatement.setInt(REG_PROPHY_PREP_POS, valueCoded);
 			positionsNotSet.remove(REG_PROPHY_PREP_POS);
+			// MOZ2-205
+			if (encounterType == 80 && valueCoded == 165214 || valueCoded == 165215) {
+				try {
+					double noOfUnits = Double.parseDouble(scrollableResultSet.getString("comments"));
+					insertStatement.setDouble(NO_UNITS_POS, noOfUnits);
+					positionsNotSet.remove(NO_UNITS_POS);
+				}
+				catch (NumberFormatException|NullPointerException e) {
+					// Ignore
+				}
+			}
 		} else if (resultConceptId == 165217) {
 			insertStatement.setDouble(NO_UNITS_POS, scrollableResultSet.getDouble("value_numeric"));
 			positionsNotSet.remove(NO_UNITS_POS);
@@ -412,6 +425,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 					case NO_UNITS_POS:
 					case PILLS_LEFTOVER_POS:
 						insertStatement.setNull(pos, Types.DOUBLE);
+						break;
 					default:
 						insertStatement.setNull(pos, Types.INTEGER);
 				}
