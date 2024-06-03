@@ -19,7 +19,7 @@ public class FormTableGenerator extends InsertFromSelectGenerator {
 	public static final String CREATE_TABLE_FILE_NAME = "form.sql";
 	
 	public static final Integer[] ENCOUNTER_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 7, 9, 13, 18, 21, 28,
-	        34, 35, 51, 60, 80, 81 };
+	        34, 35, 51, 60, 80, 81, 90 };
 	
 	public static final Integer[] VALUE_DATETIME_BASED_ENCOUNTER_TYPE_IDS = new Integer[] { 52, 53 };
 	

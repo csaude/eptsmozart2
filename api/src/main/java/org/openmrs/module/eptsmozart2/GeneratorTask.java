@@ -47,13 +47,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class GeneratorTask extends Observable implements Observer, Task, Callable<Void> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorTask.class);
-	private static final Integer NUMBER_OF_THREADS = 10;
+	private static final Integer NUMBER_OF_THREADS = 16;
 	private TaskDefinition taskDefinition;
 	private static ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
 
 	private static AtomicBoolean taskIsRunning = new AtomicBoolean(false);
 
-	public static final List<Generator> GENERATORS = new ArrayList<>(10);
+	public static final List<Generator> GENERATORS = new ArrayList<>(NUMBER_OF_THREADS);
 
 	@Override
 	public void execute() {
@@ -72,7 +72,7 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 
 			initializeVariables();
 
-			List<Generator> toBeInvoked = new ArrayList<>(10);
+			List<Generator> toBeInvoked = new ArrayList<>(NUMBER_OF_THREADS);
 			ObservableGenerator generator = new PatientTableGenerator();
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
