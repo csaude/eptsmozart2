@@ -5,6 +5,7 @@ CREATE TABLE `dsd` (
   `form_id` int(11) DEFAULT NULL,
   `encounter_type` int(11) DEFAULT NULL,
   `patient_uuid` char(38) DEFAULT NULL,
+  `encounter_created_date` datetime DEFAULT NULL,
   `encounter_change_date` datetime DEFAULT NULL,
   `location_uuid` char(38) DEFAULT NULL,
   `dsd_id` int(11) NOT NULL,

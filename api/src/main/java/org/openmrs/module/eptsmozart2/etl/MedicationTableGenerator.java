@@ -13,6 +13,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,6 +58,14 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 	protected final int ADHERENCE_ID_POS = 13;
 	protected final int MEDICATION_UUID_POS = 14;
 	protected final int MEDICATION_PICKUP_DATE_POS = 15;
+	protected final int ENCOUNTER_DATE_POS = 16;
+	protected final int ENC_TYPE_POS = 17;
+	protected final int ENC_CREATED_DATE_POS = 18;
+	protected final int ENC_CHANGE_DATE_POS = 19;
+	protected final int FORM_ID_POS = 20;
+	protected final int PATIENT_UUID_POS = 21;
+	protected final int LOC_UUID_POS = 22;
+	protected final int SRC_DB_POS = 23;
 
 	static {
 		Map<Integer, String> firstLine = new HashMap<>();
@@ -85,8 +94,11 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".medication (encounter_uuid, regimen_id, formulation_id, quantity_prescribed, dosage, next_pickup_date, ")
 				.append("mode_dispensation_id, med_sequence_id, type_dispensation_id, alternative_line_id, reason_change_regimen_id, ")
-				.append("med_side_effects_id, adherence_id, medication_uuid, medication_pickup_date) ")
-		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+				.append("med_side_effects_id, adherence_id, medication_uuid, medication_pickup_date, ")
+				.append("encounter_date, encounter_type, encounter_created_date, encounter_change_date, ")
+				.append("form_id, patient_uuid, location_uuid, source_database) ")
+		        .append("VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+				.toString();
 
 		Set<Integer> positionsNotSet = new HashSet<>();
 		PreparedStatement fetchMedsDetailsStatement = null;
@@ -114,9 +126,17 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 				final int currentEncounterId = results.getInt("encounter_id");
 				final int currentEncounterTypeId = results.getInt("encounter_type");
 				final int currentConceptId = results.getInt("concept_id");
-
+				final Timestamp encounterDatetime = results.getTimestamp("encounter_datetime");
 				insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
-				insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, results.getTimestamp("encounter_datetime"));
+				insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, encounterDatetime);
+				insertStatement.setTimestamp(ENCOUNTER_DATE_POS, encounterDatetime);
+				insertStatement.setInt(ENC_TYPE_POS, results.getInt("encounter_type"));
+				insertStatement.setTimestamp(ENC_CREATED_DATE_POS, results.getTimestamp("e_date_created"));
+				insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
+				insertStatement.setInt(FORM_ID_POS, results.getInt("form_id"));
+				insertStatement.setString(PATIENT_UUID_POS, results.getString("patient_uuid"));
+				insertStatement.setString(LOC_UUID_POS, results.getString("loc_uuid"));
+				insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 
 				//MOZ2-41
 				if(currentEncounterTypeId == 52) {
@@ -370,14 +390,18 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 		        "SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
 		        .append(
 		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime FROM ")
+		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime, ")
+				.append("e.date_created as e_date_created, e.date_changed as e_date_changed, ")
+				.append("e.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
-				.append("WHERE (e.encounter_type = 52 AND o.concept_id = ")
+				.append(" JOIN ")
+				.append(Mozart2Properties.getInstance().getDatabaseName())
+				.append(".location l on l.location_id = e.location_id WHERE (e.encounter_type = 52 AND o.concept_id = ")
 				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND o.value_datetime <= '")
 				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 		        .append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))

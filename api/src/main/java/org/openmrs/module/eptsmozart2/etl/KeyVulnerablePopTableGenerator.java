@@ -35,15 +35,21 @@ public class KeyVulnerablePopTableGenerator extends InsertFromSelectGenerator {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
 		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".key_vulnerable_pop (encounter_uuid, pop_type, pop_id, pop_other, key_vulnerable_pop_uuid) ")
-		        .append("SELECT e.uuid as encounter_uuid, o.concept_id, o.value_coded, o.value_text, o.uuid FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".key_vulnerable_pop (encounter_uuid, pop_type, pop_id, pop_other, key_vulnerable_pop_uuid,  ")
+		        .append(
+		            "encounter_date, form_id, encounter_type, patient_uuid, encounter_created_date, encounter_change_date, location_uuid, source_database) ")
+		        .append("SELECT e.uuid as encounter_uuid, o.concept_id, o.value_coded, o.value_text, o.uuid, ")
+		        .append("e.encounter_datetime, e.form_id, e.encounter_type, p.patient_uuid, e.date_created, ")
+		        .append("e.date_changed, l.uuid, '").append(Mozart2Properties.getInstance().getSourceOpenmrsInstance())
+		        .append("' AS source_database FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.encounter_datetime <= '").append(endDate).append("'")
-		        .append(" AND !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS)).toString();
+		        .append(" AND !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id").toString();
 		
 		runSql(insertSql, null);
 	}

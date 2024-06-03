@@ -126,6 +126,20 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	protected final int NEXT_CONSULT_POS = 47;
 	
+	protected final int ENC_TYPE_POS = 48;
+	
+	protected final int ENC_CREATED_DATE_POS = 49;
+	
+	protected final int ENC_CHANGE_DATE_POS = 50;
+	
+	protected final int FORM_ID_POS = 51;
+	
+	protected final int PATIENT_UUID_POS = 52;
+	
+	protected final int LOC_UUID_POS = 53;
+	
+	protected final int SRC_DB_POS = 54;
+	
 	@Override
 	public String getTable() {
 		return "prep";
@@ -152,14 +166,18 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	@Override
 	protected String fetchQuery() {
 		StringBuilder sb = new StringBuilder("SELECT e.encounter_datetime, e.uuid as encounter_uuid, ")
-		        .append("e.encounter_id as e_encounter_id, e.encounter_type, o.* FROM ")
+		        .append("e.encounter_id as e_encounter_id, e.encounter_type, ")
+		        .append("e.date_created as e_date_created, e.date_changed as e_date_changed, ")
+		        .append("e.form_id, p.patient_uuid, l.uuid as loc_uuid, o.* FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND o.concept_id IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
 		        .append(inClause(PREP_CONCEPT_IDS)).append(" ORDER BY o.encounter_id");
 		return sb.toString();
 	}
@@ -180,9 +198,12 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append("renal_failure_signs, pills_leftover, adherence_counseling, condoms_offer, ")
 		        .append("lubricants_offer, pregnant, lactant, prep_interrupted_hivpos, ")
 		        .append("prep_interrupted_sideeffect, prep_interrupted_norisk, ")
-		        .append("prep_interrupted_userrequest, prep_interrupted_other, next_consult_prep) ")
+		        .append("prep_interrupted_userrequest, prep_interrupted_other, next_consult_prep, ")
+		        .append("encounter_type, encounter_created_date, encounter_change_date, ")
+		        .append("form_id, patient_uuid, location_uuid, source_database) ")
 		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
-		        .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
+		        .append("?, ?, ?, ?, ?, ?, ?)").toString();
 	}
 	
 	@Override
@@ -206,6 +227,13 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	protected void setInsertSqlParameters(Set<Integer> positionsNotSet) throws SQLException {
 		insertStatement.setString(ENCOUNTER_UUID_POS, scrollableResultSet.getString("encounter_uuid"));
 		insertStatement.setTimestamp(ENCOUNTER_DATE_POS, scrollableResultSet.getTimestamp("encounter_datetime"));
+		insertStatement.setInt(ENC_TYPE_POS, scrollableResultSet.getInt("encounter_type"));
+		insertStatement.setTimestamp(ENC_CREATED_DATE_POS, scrollableResultSet.getTimestamp("e_date_created"));
+		insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, scrollableResultSet.getTimestamp("e_date_changed"));
+		insertStatement.setInt(FORM_ID_POS, scrollableResultSet.getInt("form_id"));
+		insertStatement.setString(PATIENT_UUID_POS, scrollableResultSet.getString("patient_uuid"));
+		insertStatement.setString(LOC_UUID_POS, scrollableResultSet.getString("loc_uuid"));
+		insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 		
 		int resultConceptId = scrollableResultSet.getInt("concept_id");
 		int valueCoded = scrollableResultSet.getInt("value_coded");

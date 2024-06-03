@@ -5,6 +5,7 @@ CREATE TABLE `sti` (
   `encounter_type` int(11) DEFAULT NULL,
   `patient_uuid` char(38) DEFAULT NULL,
   `encounter_date` date DEFAULT NULL,
+  `encounter_created_date` datetime DEFAULT NULL,
   `encounter_change_date` datetime DEFAULT NULL,
   `location_uuid` char(38) DEFAULT NULL,
   `sti_concept_id` int(11) NOT NULL,

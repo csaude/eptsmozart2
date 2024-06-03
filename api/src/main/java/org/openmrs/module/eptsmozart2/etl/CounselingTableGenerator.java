@@ -103,6 +103,20 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
 	
 	protected final int KEYPOP_LUBS_POS = 35;
 	
+	protected final int ENC_TYPE_POS = 36;
+	
+	protected final int ENC_CREATED_DATE_POS = 37;
+	
+	protected final int ENC_CHANGE_DATE_POS = 38;
+	
+	protected final int FORM_ID_POS = 39;
+	
+	protected final int PATIENT_UUID_POS = 40;
+	
+	protected final int LOC_UUID_POS = 41;
+	
+	protected final int SRC_DB_POS = 42;
+	
 	@Override
     protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
         if (batchSize == null)
@@ -115,9 +129,10 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
                 .append("psychosocial_lotofpills, psychosocial_feelbetter, psychosocial_lackfood, psychosocial_lacksupport, ")
                 .append("psychosocial_depression, psychosocial_notreveal, psychosocial_toxicity, psychosocial_lostpills, ")
                 .append("psychosocial_stigma, psychosocial_transport, psychosocial_gbv, psychosocial_cultural, ")
-                .append("psychosocial_druguse, pp1, pp2, pp3, pp4, pp5, pp6, pp7, keypop_lubricants) ")
+                .append("psychosocial_druguse, pp1, pp2, pp3, pp4, pp5, pp6, pp7, keypop_lubricants, ")
+                .append("encounter_type, encounter_created_date, encounter_change_date, form_id, patient_uuid, location_uuid, source_database) ")
                 .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
-                .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+                .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
         PreparedStatement counselingObsStatement = null;
         ResultSet counselingObsResults = null;
@@ -149,8 +164,14 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
                 ));
 
                 insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
-
                 insertStatement.setTimestamp(ENCOUNTER_DATE_POS, results.getTimestamp("encounter_datetime"));
+                insertStatement.setInt(ENC_TYPE_POS, results.getInt("encounter_type"));
+                insertStatement.setTimestamp(ENC_CREATED_DATE_POS, results.getTimestamp("e_date_created"));
+                insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
+                insertStatement.setInt(FORM_ID_POS, results.getInt("form_id"));
+                insertStatement.setString(PATIENT_UUID_POS, results.getString("patient_uuid"));
+                insertStatement.setString(LOC_UUID_POS, results.getString("loc_uuid"));
+                insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 
                 counselingObsStatement.setInt(1, encounterId);
                 counselingObsResults = counselingObsStatement.executeQuery();
@@ -324,14 +345,17 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT e.encounter_id, e.encounter_datetime, e.uuid as encounter_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.encounter_id, e.encounter_datetime, e.uuid as encounter_uuid, ")
+		        .append("e.encounter_type, e.date_created as e_date_created, e.date_changed as e_date_changed, ")
+		        .append("e.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
-		        .append(ENCOUNTER_TYPE_ID).append(" WHERE !o.voided AND o.concept_id IN ")
+		        .append(ENCOUNTER_TYPE_ID).append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
 		        .append(inClause(COUNSELING_CONCEPT_IDS))
 		        .append(" GROUP BY e.encounter_id, e.encounter_datetime, e.uuid ORDER BY e.encounter_id");
 		

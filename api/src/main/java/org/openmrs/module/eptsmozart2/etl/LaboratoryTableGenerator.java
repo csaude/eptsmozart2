@@ -75,6 +75,16 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 	protected final int SPECIMEN_TYPE_POS = 11;
 	protected final int LABTEST_UUID_POS = 12;
 	protected final int ENCOUNTER_DATE_POS = 13;
+    protected final int ENC_TYPE_POS = 14;
+
+    protected final int ENC_CREATED_DATE_POS = 15;
+
+    protected final int ENC_CHANGE_DATE_POS = 16;
+    protected final int FORM_ID_POS = 17;
+    protected final int PATIENT_UUID_POS = 18;
+    protected final int LOC_UUID_POS = 19;
+    protected final int SRC_DB_POS = 20;
+
 	static {
 	    CONCEPT_UNITS.put(730, "%");
 	    CONCEPT_UNITS.put(856,"copies/ml");
@@ -102,8 +112,9 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                 .append(".laboratory (encounter_uuid, ")
                 .append("lab_test_id, request, order_date, sample_collection_date, result_report_date, result_qualitative_id, ")
                 .append("result_numeric, result_units, result_comment, ")
-                .append("specimen_type_id, labtest_uuid, encounter_date) ")
-                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+                .append("specimen_type_id, labtest_uuid, encounter_date, ")
+                .append("encounter_type, encounter_created_date, encounter_change_date, form_id, patient_uuid, location_uuid, source_database) ")
+                .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 
         PreparedStatement orderDateSpecimenStatement = null;
         ResultSet orderDateSpecimenTypeResults = null;
@@ -145,7 +156,12 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                     eighty561305Values.put(-2, encounterType);
                     eighty561305Values.put(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
                     eighty561305Values.put(ENCOUNTER_DATE_POS, results.getTimestamp("encounter_datetime"));
-
+                    eighty561305Values.put(ENC_TYPE_POS, results.getInt("encounter_type"));
+                    eighty561305Values.put(ENC_CREATED_DATE_POS, results.getTimestamp("e_date_created"));
+                    eighty561305Values.put(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
+                    eighty561305Values.put(FORM_ID_POS, results.getInt("form_id"));
+                    eighty561305Values.put(PATIENT_UUID_POS, results.getString("patient_uuid"));
+                    eighty561305Values.put(LOC_UUID_POS, results.getString("loc_uuid"));
 
                     if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
                         eighty561305Values.put(RESULT_REPORT_DATE_POS, results.getTimestamp("obs_datetime"));
@@ -199,6 +215,13 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                 
                 insertStatement.setString(ENCOUNTER_UUID_POS, results.getString("encounter_uuid"));
                 insertStatement.setTimestamp(ENCOUNTER_DATE_POS, results.getTimestamp("encounter_datetime"));
+                insertStatement.setInt(ENC_TYPE_POS, results.getInt("encounter_type"));
+                insertStatement.setTimestamp(ENC_CREATED_DATE_POS, results.getTimestamp("e_date_created"));
+                insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
+                insertStatement.setInt(FORM_ID_POS, results.getInt("form_id"));
+                insertStatement.setString(PATIENT_UUID_POS, results.getString("patient_uuid"));
+                insertStatement.setString(LOC_UUID_POS, results.getString("loc_uuid"));
+                insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
                 insertStatement.setInt(LAB_TEST_ID_POS, conceptId);
                 insertStatement.setString(RESULT_COMMENT_POS, results.getString("comments"));
                 if(conceptId == 23722) {
@@ -330,12 +353,16 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT o.*, e.encounter_type, e.uuid as encounter_uuid, encounter_datetime FROM ")
+		StringBuilder sb = new StringBuilder("SELECT o.*, e.encounter_type, e.uuid as encounter_uuid, encounter_datetime, ")
+                .append("e.date_created as e_date_created, e.date_changed as e_date_changed, ")
+                .append("e.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName()).append(".patient p ON o.person_id = p.patient_id JOIN ")
                 .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-                .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND ((o.concept_id = ")
+                .append(inClause(ENCOUNTER_TYPE_IDS)).append(" JOIN ")
+                .append(Mozart2Properties.getInstance().getDatabaseName())
+                .append(".location l on l.location_id = e.location_id WHERE !o.voided AND ((o.concept_id = ")
                 .append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
                 .append(" AND o.value_coded IN ").append(inClause(FICHA_CLINICA_LAB_ANSWERS)).append(") OR o.concept_id IN ")
                 .append(inClause(LAB_CONCEPT_IDS)).append(") AND o.obs_datetime <= '")
@@ -451,6 +478,13 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                     int encounterType = (Integer) enc8561305.get(-2);
                     insertStatement.setString(ENCOUNTER_UUID_POS, (String) enc8561305.get(ENCOUNTER_UUID_POS));
                     insertStatement.setTimestamp(ENCOUNTER_DATE_POS, (Timestamp) enc8561305.get(ENCOUNTER_DATE_POS));
+                    insertStatement.setInt(ENC_TYPE_POS, (int) enc8561305.get(ENC_TYPE_POS));
+                    insertStatement.setTimestamp(ENC_CREATED_DATE_POS, (Timestamp) enc8561305.get(ENC_CREATED_DATE_POS));
+                    insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, (Timestamp) enc8561305.get(ENC_CHANGE_DATE_POS));
+                    insertStatement.setInt(FORM_ID_POS, (int) enc8561305.get(FORM_ID_POS));
+                    insertStatement.setString(PATIENT_UUID_POS, (String) enc8561305.get(PATIENT_UUID_POS));
+                    insertStatement.setString(LOC_UUID_POS, (String) enc8561305.get(LOC_UUID_POS));
+                    insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
                     insertStatement.setInt(LAB_TEST_ID_POS, 856);
 
                     if(enc8561305.containsKey(ORDER_DATE_POS)) {
