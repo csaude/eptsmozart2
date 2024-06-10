@@ -27,7 +27,7 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 	
 	public static final Integer[] CONCEPT_IDS = new Integer[] { 1410, 6310, 5085, 5086, 5356, 5089, 5090, 1343, 23738 };
 	
-	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 35 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9 };
 	
 	protected final int ENCOUNTER_UUID_POS = 1;
 	
