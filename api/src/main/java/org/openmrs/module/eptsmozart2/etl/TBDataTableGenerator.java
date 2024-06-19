@@ -145,48 +145,50 @@ public class TBDataTableGenerator extends AbstractScrollableResultSetGenerator {
 		
 		int resultConceptId = scrollableResultSet.getInt("concept_id");
 		int valueCoded = scrollableResultSet.getInt("value_coded");
-		if (resultConceptId == 23758) {
-			insertStatement.setInt(TB_SYMPTOM_POS, valueCoded);
-			positionsNotSet.remove(TB_SYMPTOM_POS);
-		} else if (resultConceptId == 1766) {
-			switch (valueCoded) {
-				case 161:
-					insertStatement.setInt(SYMPTOM_ADENOPATHY_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_ADENOPATHY_POS);
-					break;
-				case 1760:
-					insertStatement.setInt(SYMPTOM_COUGH_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_COUGH_POS);
-					break;
-				case 1762:
-					insertStatement.setInt(SYMPTOM_NSWEAT_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_NSWEAT_POS);
-					break;
-				case 1763:
-					insertStatement.setInt(SYMPTOM_FEVER_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_FEVER_POS);
-					break;
-				case 1764:
-					insertStatement.setInt(SYMPTOM_WLOSS_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_WLOSS_POS);
-					break;
-				case 1765:
-					insertStatement.setInt(SYMPTOM_TBCONTACT_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_TBCONTACT_POS);
-					break;
-				case 23760:
-					insertStatement.setInt(SYMPTOM_ASTHENIA_POS, valueCoded);
-					positionsNotSet.remove(SYMPTOM_ASTHENIA_POS);
-					break;
+		if (!scrollableResultSet.wasNull()) {
+			if (resultConceptId == 23758) {
+				insertStatement.setInt(TB_SYMPTOM_POS, valueCoded);
+				positionsNotSet.remove(TB_SYMPTOM_POS);
+			} else if (resultConceptId == 1766) {
+				switch (valueCoded) {
+					case 161:
+						insertStatement.setInt(SYMPTOM_ADENOPATHY_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_ADENOPATHY_POS);
+						break;
+					case 1760:
+						insertStatement.setInt(SYMPTOM_COUGH_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_COUGH_POS);
+						break;
+					case 1762:
+						insertStatement.setInt(SYMPTOM_NSWEAT_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_NSWEAT_POS);
+						break;
+					case 1763:
+						insertStatement.setInt(SYMPTOM_FEVER_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_FEVER_POS);
+						break;
+					case 1764:
+						insertStatement.setInt(SYMPTOM_WLOSS_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_WLOSS_POS);
+						break;
+					case 1765:
+						insertStatement.setInt(SYMPTOM_TBCONTACT_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_TBCONTACT_POS);
+						break;
+					case 23760:
+						insertStatement.setInt(SYMPTOM_ASTHENIA_POS, valueCoded);
+						positionsNotSet.remove(SYMPTOM_ASTHENIA_POS);
+						break;
+				}
+			} else if (resultConceptId == 23761) {
+				insertStatement.setInt(TB_DIAGNOSE_POS, valueCoded);
+				positionsNotSet.remove(TB_DIAGNOSE_POS);
+			} else if (resultConceptId == 1268) {
+				insertStatement.setInt(TB_TREATMENT_POS, valueCoded);
+				insertStatement.setTimestamp(TB_TREATMENTDATE_POS, scrollableResultSet.getTimestamp("obs_datetime"));
+				positionsNotSet.remove(TB_TREATMENT_POS);
+				positionsNotSet.remove(TB_TREATMENTDATE_POS);
 			}
-		} else if (resultConceptId == 23761) {
-			insertStatement.setInt(TB_DIAGNOSE_POS, valueCoded);
-			positionsNotSet.remove(TB_DIAGNOSE_POS);
-		} else if (resultConceptId == 1268) {
-			insertStatement.setInt(TB_TREATMENT_POS, valueCoded);
-			insertStatement.setTimestamp(TB_TREATMENTDATE_POS, scrollableResultSet.getTimestamp("obs_datetime"));
-			positionsNotSet.remove(TB_TREATMENT_POS);
-			positionsNotSet.remove(TB_TREATMENTDATE_POS);
 		}
 	}
 	
