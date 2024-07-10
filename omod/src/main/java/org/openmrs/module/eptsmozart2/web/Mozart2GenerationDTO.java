@@ -1,8 +1,5 @@
 package org.openmrs.module.eptsmozart2.web;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import org.openmrs.User;
 import org.openmrs.module.eptsmozart2.Mozart2Generation;
 
@@ -23,8 +20,6 @@ public class Mozart2GenerationDTO {
     private String dateEnded;
     private Integer batchSize;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_DISPLAY_PATTERN)
-    @JsonSerialize(using = LocalDateSerializer.class)
     private String endDateUsed;
 
     private Map<String, String> executor = new HashMap<>();

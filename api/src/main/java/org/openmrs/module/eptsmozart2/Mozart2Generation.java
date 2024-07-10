@@ -1,12 +1,8 @@
 package org.openmrs.module.eptsmozart2;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.openmrs.User;
@@ -27,9 +23,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
-import static org.openmrs.module.eptsmozart2.EPTSMozART2Config.DATETIME_DISPLAY_PATTERN;
-import static org.openmrs.module.eptsmozart2.EPTSMozART2Config.DATE_DISPLAY_PATTERN;
-
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 8/17/22.
  */
@@ -48,14 +41,10 @@ public class Mozart2Generation {
 	
 	@Column(name = "date_started", updatable = false)
 	@Type(type = "org.hibernate.type.LocalDateTimeType")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATETIME_DISPLAY_PATTERN)
-	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	private LocalDateTime dateStarted;
 	
 	@Column(name = "date_ended")
 	@Type(type = "org.hibernate.type.LocalDateTimeType")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATETIME_DISPLAY_PATTERN)
-	@JsonSerialize(using = LocalDateTimeSerializer.class)
 	private LocalDateTime dateEnded;
 	
 	@Column(name = "batch_size")
@@ -63,8 +52,6 @@ public class Mozart2Generation {
 	
 	@Column(name = "end_date_used")
 	@Type(type = "org.hibernate.type.LocalDateType")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_DISPLAY_PATTERN)
-	@JsonSerialize(using = LocalDateSerializer.class)
 	private LocalDate endDateUsed;
 	
 	@ManyToOne
