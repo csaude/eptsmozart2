@@ -521,6 +521,12 @@
                 </td>
             </tr>
             <tr>
+                <th><openmrs:message code="eptsmozart2.endDate.label"/></th>
+                <td id="recent-generation-end-date-used">
+                    <c:if test="${not empty lastGeneration}">${dateFormatter.format(lastGeneration.endDateUsed)}</c:if>
+                </td>
+            </tr>
+            <tr>
                 <th><openmrs:message code="eptsmozart2.generation.status.label"/></th>
                 <td id="recent-generation-status">
                     <c:if test="${not empty lastGeneration}">${lastGeneration.status}</c:if>
@@ -594,6 +600,7 @@
                     <th><openmrs:message code="eptsmozart2.date.started.label"/></th>
                     <th><openmrs:message code="eptsmozart2.date.completed.label"/></th>
                     <th><openmrs:message code="eptsmozart2.duration.label"/></th>
+                    <th><openmrs:message code="eptsmozart2.endDate.label"/></th>
                     <th><openmrs:message code="eptsmozart2.generation.status.label"/></th>
                     <th><openmrs:message code="eptsmozart2.generation.error.message.label"/></th>
                     <th><openmrs:message code="eptsmozart2.action.label"/></th>
@@ -627,6 +634,11 @@
                             </c:if>
                         </td>
                         <td>${generation.duration}</td>
+                        <td>
+                            <c:if test="${not empty generation.endDateUsed}">
+                                ${dateFormatter.format(generation.endDateUsed)}
+                            </c:if>
+                        </td>
                         <td>${generation.status}</td>
                         <td>${generation.errorMessage}</td>
                         <td>
