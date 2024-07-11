@@ -357,7 +357,7 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
 		        .append(ENCOUNTER_TYPE_ID).append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
 		        .append(inClause(COUNSELING_CONCEPT_IDS))
-		        .append(" GROUP BY e.encounter_id, e.encounter_datetime, e.uuid ORDER BY e.encounter_id");
+		        .append(" GROUP BY e.encounter_id, p.patient_uuid ORDER BY e.encounter_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

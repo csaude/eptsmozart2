@@ -1,6 +1,5 @@
 package org.openmrs.module.eptsmozart2;
 
-
 import org.openmrs.api.context.Context;
 import org.openmrs.module.eptsmozart2.etl.ClinicalConsultationTableGenerator;
 import org.openmrs.module.eptsmozart2.etl.CounselingTableGenerator;
@@ -40,20 +39,16 @@ import java.util.Observer;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/10/22.
- */
 public class GeneratorTask extends Observable implements Observer, Task, Callable<Void> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorTask.class);
-	private static final Integer NUMBER_OF_THREADS = 16;
-	private TaskDefinition taskDefinition;
-	private static ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
-
-	private static AtomicBoolean taskIsRunning = new AtomicBoolean(false);
-
-	public static final List<Generator> GENERATORS = new ArrayList<>(NUMBER_OF_THREADS);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorTask.class);
+    private static final Integer NUMBER_OF_THREADS = 16;
+    private TaskDefinition taskDefinition;
+    private static ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    private static AtomicBoolean taskIsRunning = new AtomicBoolean(false);
+    public static final List<Generator> GENERATORS = new ArrayList<>(NUMBER_OF_THREADS);
 
 	@Override
 	public void execute() {
@@ -85,10 +80,9 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			generator.addObserver(this);
 			toBeInvoked.add(generator);
 
-			GENERATORS.addAll(toBeInvoked);
-			service.invokeAll(toBeInvoked);
-
-			toBeInvoked.clear();
+            GENERATORS.addAll(toBeInvoked);
+            service.invokeAll(toBeInvoked);
+            toBeInvoked.clear();
 
 			generator = new ObservationTableGenerator();
 			generator.addObserver(this);
@@ -154,97 +148,114 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             generator.addObserver(this);
             toBeInvoked.add(generator);
 
-			GENERATORS.addAll(toBeInvoked);
+            GENERATORS.addAll(toBeInvoked);
+            service.invokeAll(toBeInvoked);
 
-			service.invokeAll(toBeInvoked);
+            notifyTaskCompletion("done");
+            createDumpFileAndNotify();
+        } catch (SQLException | IOException | InterruptedException e) {
+            LOGGER.error("An error occurred during generation", e);
+            if(e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            e.printStackTrace();
+        } finally {
+            shutdownService();
+            taskIsRunning.set(false);
+        }
+    }
 
-			service.shutdownNow();
+    private void notifyTaskCompletion(String status) {
+        Map<String, String> parameters = new LinkedHashMap<>();
+        parameters.put("name", "generatorTask");
+        parameters.put("status", status);
+        this.setChanged();
+        try {
+            Context.openSession();
+            this.notifyObservers(parameters);
+        } finally {
+            Context.closeSession();
+        }
+    }
 
-			taskIsRunning.set(false);
+    private void createDumpFileAndNotify() {
+        Map<String, String> parameters = new LinkedHashMap<>();
+        parameters.put("name", "generatorTask");
+        try {
+            File dumpFile = Utils.createMozart2SqlDump();
+            parameters.put("status", "dumpFileDone");
+            parameters.put("filename", dumpFile.getCanonicalPath());
+        } catch (IOException e) {
+            parameters.put("status", "dumpFileError");
+            parameters.put("errorMessage", e.getMessage());
+        } finally {
+            this.setChanged();
+            try {
+                Context.openSession();
+                this.notifyObservers(parameters);
+            } finally {
+                Context.closeSession();
+            }
+        }
+    }
 
-			Map<String, String> parameters = new LinkedHashMap<>();
-			parameters.put("name", "generatorTask");
-			parameters.put("status", "done");
-			this.setChanged();
-			try {
-				Context.openSession();
-				this.notifyObservers(parameters);
-			} finally {
-				Context.closeSession();
-			}
-			// Create the dumpfile
-			try {
-				File dumpFile  = Utils.createMozart2SqlDump();
-				parameters.replace("status",  "dumpFileDone");
-				parameters.put("filename", dumpFile.getCanonicalPath());
-				this.setChanged();
-				Context.openSession();
-				this.notifyObservers(parameters);
-			} catch (IOException e) {
-				parameters.replace("status", "dumpFileError");
-				parameters.put("errorMessage", e.getMessage());
-				this.setChanged();
-				Context.openSession();
-				this.notifyObservers(parameters);
-			} finally {
-				Context.closeSession();
-			}
-		}
-		catch (SQLException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			service.shutdownNow();
-			e.printStackTrace();
-		} finally {
-			if(service.isTerminated() || service.isShutdown()) {
-				taskIsRunning.set(false);
-			}
-		}
-	}
-	
-	@Override
-	public void initialize(TaskDefinition taskDefinition) {
-		this.taskDefinition = taskDefinition;
-	}
-	
-	@Override
-	public TaskDefinition getTaskDefinition() {
-		return taskDefinition;
-	}
-	
-	@Override
-	public boolean isExecuting() {
-		return taskIsRunning.get();
-	}
-	
-	@Override
-	public void shutdown() {
-		for(Generator generator: GENERATORS) {
-			try {
-				generator.cancel();
-			} catch (SQLException e) {
-				LOGGER.error("An error occurred while canceling generator for table: {}", generator.getTable(), e);
-			}
-		}
-		service.shutdownNow();
-		taskIsRunning.set(false);
-	}
-	
-	@Override
-	public Void call() throws Exception {
-		execute();
-		return Void.TYPE.newInstance();
-	}
+    private void shutdownService() {
+        try {
+            if (!service.isShutdown()) {
+                service.shutdown();
+                if (!service.awaitTermination(5, TimeUnit.MINUTES)) {
+                    service.shutdownNow();
+                }
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error("Service shutdown interrupted", e);
+            Thread.currentThread().interrupt();
+        }
+    }
 
-	public static void initializeVariables() {
+    @Override
+    public void initialize(TaskDefinition taskDefinition) {
+        this.taskDefinition = taskDefinition;
+    }
+
+    @Override
+    public TaskDefinition getTaskDefinition() {
+        return taskDefinition;
+    }
+
+    @Override
+    public boolean isExecuting() {
+        return taskIsRunning.get();
+    }
+
+    @Override
+    public void shutdown() {
+        for (Generator generator : GENERATORS) {
+            try {
+                generator.cancel();
+            } catch (SQLException e) {
+                LOGGER.error("Error canceling generator for table: {}", generator.getTable(), e);
+            }
+        }
+        shutdownService();
+        taskIsRunning.set(false);
+    }
+
+    @Override
+    public Void call() throws Exception {
+        execute();
+        return Void.TYPE.newInstance();
+    }
+
+    public static void initializeVariables() {
         GENERATORS.clear();
         service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
     }
 
-	@Override
-	public void update(Observable o, Object arg) {
-		LOGGER.debug("Notifying observers about a messsage from {}", o);
-		this.setChanged();
-		this.notifyObservers(arg);
-	}
+    @Override
+    public void update(Observable o, Object arg) {
+        LOGGER.debug("Notifying observers about a message from {}", o);
+        this.setChanged();
+        this.notifyObservers(arg);
+    }
 }

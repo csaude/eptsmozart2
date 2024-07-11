@@ -25,26 +25,39 @@ public class ConnectionPool {
 	
 	static {
 		ComboPooledDataSource cpds = new ComboPooledDataSource();
-		try {
-			cpds.setDriverClass("com.mysql.jdbc.Driver");
-		}
-		catch (PropertyVetoException pve) {
-			pve.printStackTrace();
-		}
 		cpds.setJdbcUrl(Mozart2Properties.getInstance().getJdbcUrl());
 		cpds.setUser(Mozart2Properties.getInstance().getDbUsername());
 		cpds.setPassword(Mozart2Properties.getInstance().getDbPassword());
-		cpds.setMinPoolSize(5);
+		cpds.setInitialPoolSize(10);
+		cpds.setMinPoolSize(10);
 		cpds.setAcquireIncrement(5);
 		cpds.setMaxPoolSize(MAX_CONNECTIONS);
+		cpds.setTestConnectionOnCheckin(false);
+		cpds.setTestConnectionOnCheckout(false);
+		cpds.setAcquireRetryAttempts(10);
+		cpds.setAcquireRetryDelay(1000);
+		cpds.setBreakAfterAcquireFailure(false);
 		pooledDataSource = cpds;
 	}
 	
 	public static synchronized Connection getConnection() throws SQLException {
+		Connection connection = null;
 		try {
-			return pooledDataSource.getConnection();
+			connection = pooledDataSource.getConnection();
+			return connection;
 		}
 		catch (SQLException sqle) {
+			Throwable cause = sqle.getCause();
+			if (cause instanceof InterruptedException) {
+				if (connection != null) {
+					return connection;
+				} else {
+					LOGGER.error("Error connecting to the database using url: {}, username: {} and password: {}",
+					    Mozart2Properties.getInstance().getJdbcUrl(), Mozart2Properties.getInstance().getDbUsername(),
+					    Mozart2Properties.getInstance().getDbPassword());
+					throw sqle;
+				}
+			}
 			LOGGER.error("Error connecting to the database using url: {}, username: {} and password: {}", Mozart2Properties
 			        .getInstance().getJdbcUrl(), Mozart2Properties.getInstance().getDbUsername(), Mozart2Properties
 			        .getInstance().getDbPassword());
