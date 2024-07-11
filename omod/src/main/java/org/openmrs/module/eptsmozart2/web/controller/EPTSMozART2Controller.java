@@ -75,6 +75,8 @@ public class EPTSMozART2Controller {
 		modalAndView.getModelMap().addAttribute("generations", moz2GenService.getAllMozart2Generations());
 		modalAndView.getModelMap().addAttribute("formatter",
 		    DateTimeFormatter.ofPattern(EPTSMozART2Config.DATETIME_DISPLAY_PATTERN));
+		modalAndView.getModelMap().addAttribute("dateFormatter",
+		    DateTimeFormatter.ofPattern(EPTSMozART2Config.DATE_DISPLAY_PATTERN));
 		modalAndView.getModelMap().addAttribute("lastGeneration", moz2GenService.getLastMozart2Generation());
 		return modalAndView;
 	}
