@@ -64,7 +64,7 @@ public class Utils {
 		}
 	}
 	
-	public static File createMozart2SqlDump() throws IOException, InterruptedException {
+	public static File createMozart2SqlDump() throws IOException {
 		StringBuilder cmd = new StringBuilder("mysqldump -u").append(Mozart2Properties.getInstance().getDbUsername())
 		        .append(" -p").append(Mozart2Properties.getInstance().getDbPassword()).append(" --host=")
 		        .append(Mozart2Properties.getInstance().getHost()).append(" --port=")
@@ -78,9 +78,15 @@ public class Utils {
 		ProcessBuilder processBuilder = new ProcessBuilder(cmd.toString().split(" "));
 		processBuilder.redirectOutput(file);
 		Process process = processBuilder.start();
-		int exitCode = process.waitFor();
-		
-		if (exitCode != 0) {
+        int exitCode = 0;
+        try {
+            exitCode = process.waitFor();
+        } catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+
+        if (exitCode != 0) {
 			try(BufferedReader buf = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
 				String line = "";
 				LOGGER.error("Error while creating the dump file when running: {}", cmd);
