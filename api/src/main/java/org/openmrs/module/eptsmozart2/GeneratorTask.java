@@ -1,27 +1,7 @@
 package org.openmrs.module.eptsmozart2;
 
 import org.openmrs.api.context.Context;
-import org.openmrs.module.eptsmozart2.etl.ClinicalConsultationTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.CounselingTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.DAHTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.DSDTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.FamilyPlanningTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.FormTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.Generator;
-import org.openmrs.module.eptsmozart2.etl.IdentifierTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.KeyVulnerablePopTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.LaboratoryTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.LocationTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.MedicationTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.ObservableGenerator;
-import org.openmrs.module.eptsmozart2.etl.ObservationLookupTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.ObservationTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.PatientStateTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.PatientTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.PrepTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.ProphylaxisTableGenerator;
-import org.openmrs.module.eptsmozart2.etl.STITableGenerator;
-import org.openmrs.module.eptsmozart2.etl.TBDataTableGenerator;
+import org.openmrs.module.eptsmozart2.etl.*;
 import org.openmrs.scheduler.Task;
 import org.openmrs.scheduler.TaskDefinition;
 import org.slf4j.Logger;
@@ -145,6 +125,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			toBeInvoked.add(generator);
 
 			generator = new PrepTableGenerator();
+            generator.addObserver(this);
+            toBeInvoked.add(generator);
+
+            generator = new CCUTableGenerator();
             generator.addObserver(this);
             toBeInvoked.add(generator);
 
