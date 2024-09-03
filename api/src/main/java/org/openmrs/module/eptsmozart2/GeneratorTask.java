@@ -132,6 +132,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             generator.addObserver(this);
             toBeInvoked.add(generator);
 
+            generator = new CCRTableGenerator();
+            generator.addObserver(this);
+            toBeInvoked.add(generator);
+
             GENERATORS.addAll(toBeInvoked);
             service.invokeAll(toBeInvoked);
 
