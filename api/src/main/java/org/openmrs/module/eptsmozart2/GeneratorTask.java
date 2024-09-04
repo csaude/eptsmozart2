@@ -136,6 +136,10 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             generator.addObserver(this);
             toBeInvoked.add(generator);
 
+            generator = new HomeVisitTableGenerator();
+            generator.addObserver(this);
+            toBeInvoked.add(generator);
+
             GENERATORS.addAll(toBeInvoked);
             service.invokeAll(toBeInvoked);
 
