@@ -143,7 +143,7 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 					if(currentConceptId == ENCTYPE_52_VALUEDATETIME_CONCEPT_ID) {
 						insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, results.getTimestamp("value_datetime"));
 					}
-					insertStatement.setString(MEDICATION_UUID_POS, results.getString("medication_uuid"));
+					insertStatement.setString(MEDICATION_UUID_POS, results.getString("obs_uuid"));
 					insertStatement.setNull(REGIMEN_ID_POS, Types.INTEGER);
 					setEmptyPositions(positionsNotSet);
 					insertStatement.addBatch();
@@ -161,7 +161,7 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 				}
 
 				insertStatement.setInt(REGIMEN_ID_POS, results.getInt("value_coded"));
-				insertStatement.setString(MEDICATION_UUID_POS, results.getString("medication_uuid"));
+				insertStatement.setString(MEDICATION_UUID_POS, results.getString("obs_uuid"));
 
 				fetchMedsDetailsStatement.clearParameters();
 				fetchMedsDetailsStatement.setInt(1, currentEncounterId);
@@ -280,7 +280,7 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 						insertStatement.setTimestamp(MEDICATION_PICKUP_DATE_POS, results.getTimestamp("encounter_datetime"));
 						
 						insertStatement.setInt(REGIMEN_ID_POS, results.getInt("value_coded"));
-						insertStatement.setString(MEDICATION_UUID_POS, results.getString("medication_uuid"));
+						insertStatement.setString(MEDICATION_UUID_POS, results.getString("obs_uuid"));
 
 						if(parameterCache.containsKey(NEXT_PICKUP_DATE_POS)) {
 							insertStatement.setDate(NEXT_PICKUP_DATE_POS, (Date) parameterCache.get(NEXT_PICKUP_DATE_POS));
@@ -370,49 +370,43 @@ public class MedicationTableGenerator extends AbstractNonScrollableResultSetGene
 	@Override
 	protected String countQuery() {
 		return new StringBuilder("SELECT COUNT(*) FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
-				.append(" AND e.location_id IN ")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.location_id IN ")
 				.append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-				.append("WHERE (e.encounter_type = 52 AND o.concept_id = ")
-				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND o.value_datetime <= '")
+				.append(" AND ((e.encounter_type = 52 AND e.concept_id = ")
+				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND e.value_datetime <= '")
 				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-				.append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
-				.append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-				.append("') OR (e.encounter_type IN (6,9,18) AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-				.append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("')").toString();
+				.append("') OR (e.encounter_type = 53 AND e.concept_id IN ")
+				.append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
+				.append(" AND e.obs_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') OR (e.encounter_type IN (6,9,18) AND e.concept_id IN ")
+				.append(inClause(REGIMEN_CONCEPT_IDS))
+				.append(" AND e.obs_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'))").toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder(
-		        "SELECT o.obs_id, o.obs_datetime, o.uuid as medication_uuid, o.obs_group_id, o.concept_id, ")
-		        .append(
-		            "o.value_coded, o.value_datetime, o.encounter_id, e.uuid as encounter_uuid, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_type, e.encounter_datetime, ")
-				.append("e.date_created as e_date_created, e.date_changed as e_date_changed, ")
-				.append("e.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ")
+		        .append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-				.append(".encounter e on o.encounter_id = e.encounter_id AND !o.voided AND !e.voided ")
-				.append(" AND e.location_id IN ")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.location_id IN ")
 				.append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+				.append(" AND ((e.encounter_type = 52 AND e.concept_id = ")
+				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND e.value_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') OR (e.encounter_type = 53 AND e.concept_id IN ")
+				.append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53)).append(" AND e.obs_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+				.append("') OR (e.encounter_type IN (6,9,18) AND e.concept_id IN ")
+				.append(inClause(REGIMEN_CONCEPT_IDS)).append(" AND e.obs_datetime <= '")
+				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'))")
 				.append(" JOIN ")
 				.append(Mozart2Properties.getInstance().getDatabaseName())
-				.append(".location l on l.location_id = e.location_id WHERE (e.encounter_type = 52 AND o.concept_id = ")
-				.append(ENCTYPE_52_VALUEDATETIME_CONCEPT_ID).append(" AND o.value_datetime <= '")
-				.append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("') OR (e.encounter_type = 53 AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS_ENCTYPE_53))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-				.append("') OR (e.encounter_type IN (6,9,18) AND o.concept_id IN ").append(inClause(REGIMEN_CONCEPT_IDS))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-				.append("') ORDER BY o.obs_id");
+				.append(".location l on l.location_id = e.location_id ORDER BY e.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

@@ -48,4 +48,15 @@ public class DbUtils {
             throw sqle;
         }
     }
+	
+	public  static void runSqlStatement(String sql, String databaseName) throws SQLException {
+        try (Connection connection = ConnectionPool.getConnection();
+             Statement s = connection.createStatement()) {
+            s.addBatch("USE ".concat(databaseName));
+            s.execute(sql);
+        } catch (SQLException sqle) {
+            LOGGER.error("An error occured while running sqls: {}", sql, sqle);
+            throw sqle;
+        }
+    }
 }

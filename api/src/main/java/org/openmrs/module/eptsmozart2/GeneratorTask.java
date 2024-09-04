@@ -45,6 +45,18 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			String[] sqls = Utils.readFileToString("type_id_lookup.sql").split(";");
 			DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getNewDatabaseName());
 
+            // Create encounter_obs for performance reasons
+//            String sql = new StringBuilder("CREATE TABLE encounter_obs ")
+//                    .append("SELECT e.encounter_id, encounter_type, patient_id, e.location_id, form_id, ")
+//                    .append("encounter_datetime, e.date_created e_date_created, e.date_changed e_date_changed, ")
+//                    .append("e.uuid encounter_uuid, obs_id, concept_id, obs_datetime, obs_group_id, value_coded, ")
+//                    .append("value_drug, value_datetime, value_numeric, value_text, comments, ")
+//                    .append("o.date_created o_date_created, o.uuid obs_uuid ")
+//                    .append("FROM encounter e JOIN obs o on e.encounter_id=o.encounter_id AND !e.voided AND !o.voided")
+//                    .toString();
+            sqls = Utils.readFileToString("encounter_obs.sql").split(";");
+            DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getDatabaseName());
+
 			initializeVariables();
 
 			List<Generator> toBeInvoked = new ArrayList<>(NUMBER_OF_THREADS);

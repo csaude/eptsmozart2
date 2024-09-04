@@ -101,34 +101,27 @@ public class HomeVisitTableGenerator extends AbstractScrollableResultSetGenerato
 	@Override
 	protected String countQuery() {
 		return new StringBuilder("SELECT COUNT(DISTINCT e.encounter_id) FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
 		        .append(ENCOUNTER_TYPE_ID).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(HOME_VISIT_CONCEPT_IDS)).toString();
+		        .append(" AND e.concept_id IN ").append(inClause(HOME_VISIT_CONCEPT_IDS)).toString();
 	}
 	
 	@Override
 	protected String fetchQuery() {
-		StringBuilder sb = new StringBuilder("SELECT e.encounter_datetime, e.uuid as encounter_uuid, ")
-		        .append("e.encounter_id as e_encounter_id, e.encounter_type, ")
-		        .append("e.date_created as e_date_created, e.date_changed as e_date_changed, ")
-		        .append("e.form_id, p.patient_uuid, l.uuid as loc_uuid, o.* FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
 		        .append(ENCOUNTER_TYPE_ID).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(HOME_VISIT_CONCEPT_IDS)).append(" ORDER BY o.encounter_id");
+		        .append(" AND e.concept_id IN ").append(inClause(HOME_VISIT_CONCEPT_IDS)).append(" JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id ORDER BY e.encounter_id");
 		return sb.toString();
 	}
 	

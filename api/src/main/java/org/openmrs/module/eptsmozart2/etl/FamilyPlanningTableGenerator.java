@@ -82,7 +82,7 @@ public class FamilyPlanningTableGenerator extends AbstractNonScrollableResultSet
 				insertStatement.setInt(FP_CONCEPT_ID_POS, results.getInt("concept_id"));
 				insertStatement.setDate(FP_DATE_POS, results.getDate("obs_datetime"));
 				insertStatement.setInt(FP_METHOD_POS, results.getInt("value_coded"));
-				insertStatement.setString(FP_UUID_POS, results.getString("uuid"));
+				insertStatement.setString(FP_UUID_POS, results.getString("obs_uuid"));
 				insertStatement.addBatch();
 				++count;
 			}
@@ -109,34 +109,26 @@ public class FamilyPlanningTableGenerator extends AbstractNonScrollableResultSet
 	@Override
 	protected String countQuery() {
 		return new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
+		        .append(".encounter_obs e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS))
-		        .append(" AND o.obs_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
-		        .append("'").toString();
+		        .append(" AND e.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" AND e.obs_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'").toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT o.*, e.uuid as encounter_uuid, e.encounter_datetime, ")
-		        .append("e.uuid as encounter_uuid, e.encounter_type, ")
-		        .append("e.date_created as e_date_created, e.date_changed as e_date_changed, ")
-		        .append("e.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(CONCEPT_IDS)).append(" AND o.obs_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY o.obs_id");
+		        .append(" AND e.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" AND e.obs_datetime <= '")
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id ORDER BY e.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

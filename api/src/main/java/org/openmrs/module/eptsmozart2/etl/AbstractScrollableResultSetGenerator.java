@@ -134,7 +134,7 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
 			if (!thereIsNext) {
 				thereIsNext = scrollableResultSet.next();
 				if (thereIsNext) {
-					encounterId = scrollableResultSet.getInt("e_encounter_id");
+					encounterId = scrollableResultSet.getInt("encounter_id");
 				}
 			}
 			Integer prevEncounterId = null;
@@ -143,7 +143,7 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
 				thereIsNext = scrollableResultSet.next();
 				if (thereIsNext) {
 					prevEncounterId = encounterId;
-					encounterId = scrollableResultSet.getInt("e_encounter_id");
+					encounterId = scrollableResultSet.getInt("encounter_id");
 					if (!Objects.equals(prevEncounterId, encounterId)) {
 						setEmptyPositions(positionsNotSet);
 						insertStatement.addBatch();

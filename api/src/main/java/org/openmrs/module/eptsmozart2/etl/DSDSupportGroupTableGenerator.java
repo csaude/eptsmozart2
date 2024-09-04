@@ -150,7 +150,6 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-		
 		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
@@ -206,31 +205,85 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 	protected String countQuery() {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
 		StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o1 JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e1 JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o2 on o1.obs_group_id = o2.obs_group_id AND o1.encounter_id = o2.encounter_id AND ")
-		        .append("o1.concept_id = 165174 AND o2.concept_id = 165322 AND !o1.voided AND !o2.voided JOIN ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o1.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o1.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(".encounter_obs e2 on e1.obs_group_id = e2.obs_group_id AND e1.encounter_id = e2.encounter_id AND ")
+		        .append("e1.concept_id = 165174 AND e2.concept_id = 165322 AND e1.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e1.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'");
+		        .append(" AND e1.encounter_datetime <= '").append(endDate).append("' JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e1.patient_id = p.patient_id");
+		return sb.toString();
+	}
+	
+	@Override
+	protected String fetchQuery(Integer start, Integer batchSize) {
+		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
+		StringBuilder sb = new StringBuilder("SELECT e1.encounter_id, e1.value_coded as dsd_supportgroup_id, ")
+		        .append("e2.value_coded as dsd_supportgroup_state, e1.o_date_created, ")
+		        .append("e1.encounter_uuid, e1.encounter_type, e1.e_date_created, ")
+		        .append("e1.e_date_changed, e1.patient_id, e1.encounter_datetime, e1.obs_uuid as dsd_supportgroup_uuid, ")
+		        .append("e1.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e1 JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".encounter_obs e2 on e1.obs_group_id = e2.obs_group_id AND e1.encounter_id = e2.encounter_id AND ")
+		        .append("e1.concept_id = 165174 AND e2.concept_id = 165322 AND e1.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e1.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e1.encounter_datetime <= '").append(endDate).append("' JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e1.patient_id = p.patient_id JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e1.location_id ORDER BY e1.obs_group_id");
+		
+		if (start != null) {
+			sb.append(" limit ?");
+		}
+		
+		if (batchSize != null) {
+			sb.append(", ?");
+		}
+		
 		return sb.toString();
 	}
 	
 	private String countQuerySupportGroup() {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
 		return new StringBuilder("SELECT COUNT(*) FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id ")
-		        .append("WHERE !o.voided AND !e.voided AND o.concept_id IN ").append(inClause(SUPPORT_GROUP_CONCEPTS))
-		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(".encounter_obs e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.concept_id IN ")
+		        .append(inClause(SUPPORT_GROUP_CONCEPTS)).append(" AND e.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
 		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'").toString();
+	}
+	
+	private String fetchQuerySupportGroup(Integer start, Integer batchSize) {
+		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
+		StringBuilder sb = new StringBuilder("SELECT e.encounter_id, e.concept_id as dsd_supportgroup_id, ")
+		        .append("e.value_coded as dsd_supportgroup_state, e.e_date_created, ")
+		        .append("e.encounter_uuid, e.encounter_type, e.e_date_created, ")
+		        .append("e.e_date_changed, e.patient_id, e.encounter_datetime, ")
+		        .append("e.obs_uuid as dsd_supportgroup_uuid, e.form_id, p.patient_uuid, ")
+		        .append("l.uuid as loc_uuid FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".encounter_obs e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.concept_id IN ")
+		        .append(inClause(SUPPORT_GROUP_CONCEPTS)).append(" AND e.encounter_type IN ")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(endDate).append("' JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(".location l on l.location_id = e.location_id");
+		
+		if (start != null) {
+			sb.append(" limit ?");
+		}
+		
+		if (batchSize != null) {
+			sb.append(", ?");
+		}
+		return sb.toString();
 	}
 	
 	private int[] etlSupportGroup(Integer start, Integer batchSize) throws SQLException {
@@ -267,67 +320,5 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 				resultSet.close();
 			}
 		}
-	}
-	
-	@Override
-	protected String fetchQuery(Integer start, Integer batchSize) {
-		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
-		StringBuilder sb = new StringBuilder("SELECT o1.encounter_id, o1.value_coded as dsd_supportgroup_id, ")
-		        .append("o2.value_coded as dsd_supportgroup_state, o1.date_created, ")
-		        .append("e.uuid as encounter_uuid, e.encounter_type, e.date_created as e_date_created, ")
-		        .append("e.date_changed as e_date_changed, o1.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_datetime, o1.uuid as dsd_supportgroup_uuid, ")
-		        .append("e.form_id, l.uuid as loc_uuid FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o1 JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o2 on o1.obs_group_id = o2.obs_group_id AND o1.encounter_id = o2.encounter_id AND ")
-		        .append("o1.concept_id = 165174 AND o2.concept_id = 165322 AND !o1.voided AND !o2.voided JOIN ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o1.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o1.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" AND e.encounter_datetime <= '").append(endDate).append("' JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id ORDER BY o1.obs_group_id");
-		
-		if (start != null) {
-			sb.append(" limit ?");
-		}
-		
-		if (batchSize != null) {
-			sb.append(", ?");
-		}
-		
-		return sb.toString();
-	}
-	
-	private String fetchQuerySupportGroup(Integer start, Integer batchSize) {
-		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
-		StringBuilder sb = new StringBuilder("SELECT o.encounter_id, o.concept_id as dsd_supportgroup_id, ")
-		        .append("o.value_coded as dsd_supportgroup_state, o.date_created, ")
-		        .append("e.uuid as encounter_uuid, e.encounter_type, e.date_created as e_date_created, ")
-		        .append("e.date_changed as e_date_changed, o.person_id as patient_id, ")
-		        .append("p.patient_uuid, e.encounter_datetime, o.uuid as dsd_supportgroup_uuid, ")
-		        .append("e.form_id, l.uuid as loc_uuid FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".obs o JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on o.encounter_id = e.encounter_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id ")
-		        .append("WHERE !o.voided AND !e.voided AND o.concept_id IN ").append(inClause(SUPPORT_GROUP_CONCEPTS))
-		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'");
-		
-		if (start != null) {
-			sb.append(" limit ?");
-		}
-		
-		if (batchSize != null) {
-			sb.append(", ?");
-		}
-		return sb.toString();
 	}
 }
