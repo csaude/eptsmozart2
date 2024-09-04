@@ -88,8 +88,9 @@ public class TBDataTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(TB_CONCEPT_IDS)).toString();
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(TB_CONCEPT_IDS)).toString();
 	}
 	
 	@Override
@@ -104,8 +105,9 @@ public class TBDataTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
 		        .append(inClause(TB_CONCEPT_IDS)).append(" ORDER BY o.encounter_id");
 		return sb.toString();

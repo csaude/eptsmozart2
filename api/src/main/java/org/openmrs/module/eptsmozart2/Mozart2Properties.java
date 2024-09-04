@@ -207,9 +207,6 @@ public class Mozart2Properties {
 		for(String locIdString: locIdStrings) {
 			try {
 				int locId = Integer.parseInt(locIdString.trim());
-				if(Context.getLocationService().getLocation(locId) == null) {
-					throw new IllegalStateException(String.format("Provided location.location_id %s value does not exist", locIdString));
-				}
 				locIds.add(locId);
 			} catch (NumberFormatException e) {
 				String em = String.format("The provided location Id %s is invalid, please use numbers", locIdString);

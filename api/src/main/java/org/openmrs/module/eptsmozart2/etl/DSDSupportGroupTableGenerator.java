@@ -30,7 +30,7 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 	public static final Integer[] SUPPORT_GROUP_CONCEPTS = new Integer[] { 23753, 23755, 23757, 23759, 24031, 165324, 165325 };
 	
 	private Boolean etlSupportGroupHasBeenCalledAtLeastOnce = false;
-	
+
 	@Override
 	public Void call() throws SQLException, IOException {
 		ResultSet rs1 = null, rs2 = null;
@@ -40,16 +40,17 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 			createTable();
 			rs1 = statement.executeQuery(countQuery());
 			rs1.next();
-			int dsdRecords = rs1.getInt(1);
+			toBeGenerated = rs1.getInt(1);
 			rs2 = statement.executeQuery(countQuerySupportGroup());
 			rs2.next();
 			int supportGroupRecords = rs2.getInt(1);
-			toBeGenerated = dsdRecords + supportGroupRecords;
+			toBeGenerated += supportGroupRecords;
 			if(toBeGenerated == 0) {
 				hasRecords = Boolean.FALSE;
 				return null;
 			}
 			int batchSize = Mozart2Properties.getInstance().getBatchSize();
+			int dsdRecords = toBeGenerated - supportGroupRecords;
 			int batchCount = 1;
 			if(dsdRecords > batchSize) {
 				LOGGER.debug("Generating {} DSD records for table {} in batches of {}", dsdRecords, getTable(), batchSize);
@@ -149,7 +150,8 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-			String insertSql = new StringBuilder("INSERT IGNORE INTO ")
+
+		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
 		            ".dsd_supportgroup (encounter_uuid, dsd_supportgroup_id, dsd_supportgroup_state, dsd_supportgroup_uuid, ")
@@ -212,7 +214,9 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append(".patient p ON o1.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o1.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.encounter_datetime <= '").append(endDate).append("'");
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'");
 		return sb.toString();
 	}
 	
@@ -224,7 +228,8 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON o.person_id = p.patient_id ")
 		        .append("WHERE !o.voided AND !e.voided AND o.concept_id IN ").append(inClause(SUPPORT_GROUP_CONCEPTS))
-		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
 		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'").toString();
 	}
 	
@@ -280,8 +285,10 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append(".patient p ON o1.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o1.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.encounter_datetime <= '").append(endDate)
-		        .append("' JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(endDate).append("' JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id ORDER BY o1.obs_group_id");
 		
 		if (start != null) {
@@ -310,7 +317,8 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id ")
 		        .append("WHERE !o.voided AND !e.voided AND o.concept_id IN ").append(inClause(SUPPORT_GROUP_CONCEPTS))
-		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS))
+		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
 		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'");
 		
 		if (start != null) {

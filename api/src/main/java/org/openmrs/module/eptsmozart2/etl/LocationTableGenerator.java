@@ -11,6 +11,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import static org.openmrs.module.eptsmozart2.Utils.inClause;
+
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 7/21/22.
  */
@@ -35,7 +37,10 @@ public class LocationTableGenerator extends InsertFromSelectGenerator {
         String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".location (location_id,location_uuid, name, province_name, province_district) ")
                 .append("SELECT location_id,uuid,name,state_province,county_district FROM ")
-                .append(Mozart2Properties.getInstance().getDatabaseName()).append(".location ORDER BY location_id").toString();
+                .append(Mozart2Properties.getInstance().getDatabaseName())
+				.append(".location WHERE location_id IN ")
+				.append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+				.append(" ORDER BY location_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();
             Statement statement = connection.createStatement()) {

@@ -46,7 +46,9 @@ public class KeyVulnerablePopTableGenerator extends InsertFromSelectGenerator {
 		        .append(".patient p ON o.person_id = p.patient_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.encounter_datetime <= '").append(endDate).append("'")
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'")
 		        .append(" AND !o.voided AND o.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id").toString();

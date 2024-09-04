@@ -339,8 +339,9 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
-		        .append(ENCOUNTER_TYPE_ID).append(" WHERE !o.voided AND o.concept_id IN ")
-		        .append(inClause(COUNSELING_CONCEPT_IDS)).toString();
+		        .append(ENCOUNTER_TYPE_ID).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" WHERE !o.voided AND o.concept_id IN ").append(inClause(COUNSELING_CONCEPT_IDS)).toString();
 	}
 	
 	@Override
@@ -354,7 +355,9 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on o.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
-		        .append(ENCOUNTER_TYPE_ID).append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
+		        .append(ENCOUNTER_TYPE_ID).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l on l.location_id = e.location_id WHERE !o.voided AND o.concept_id IN ")
 		        .append(inClause(COUNSELING_CONCEPT_IDS))
 		        .append(" GROUP BY e.encounter_id, p.patient_uuid ORDER BY e.encounter_id");

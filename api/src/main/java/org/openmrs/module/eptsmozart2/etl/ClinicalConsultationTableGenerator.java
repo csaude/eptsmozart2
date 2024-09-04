@@ -85,8 +85,10 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ")
 		        .append(inClause(CONCEPT_IDS)).append(" WHERE !e.voided AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.encounter_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'");
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+		        .append("'");
 		return sb.toString();
 	}
 	
@@ -104,8 +106,10 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ")
 		        .append(inClause(CONCEPT_IDS)).append(" WHERE !e.voided AND e.encounter_type IN ")
-		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.encounter_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' ORDER BY e_encounter_id");
+		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
+		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
+		        .append("' ORDER BY e_encounter_id");
 		return sb.toString();
 	}
 	
