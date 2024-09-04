@@ -24,8 +24,8 @@ public class ObservationTableGenerator extends AbstractNonScrollableResultSetGen
 	
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
-	public static final Integer[] CONCEPT_IDS = new Integer[] { 1406, 1190, 1255, 1369, 1465, 1982, 2015, 6300, 6332, 23753,
-	        23755, 23757, 23759, 23764, 23783, 23807, 23808, 23811, 24031, 165324, 165325 };
+	public static final Integer[] CONCEPT_IDS = new Integer[] { 1406, 1190, 1255, 1369, 1465, 1982, 2015, 6300, 6332, 23764,
+	        23783, 23807, 23808, 23811 };
 	
 	public static final int VALUE_DATETIME_CONCEPT = 1190;
 	
