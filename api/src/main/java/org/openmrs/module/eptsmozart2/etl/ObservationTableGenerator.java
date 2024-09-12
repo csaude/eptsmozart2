@@ -24,12 +24,13 @@ public class ObservationTableGenerator extends AbstractNonScrollableResultSetGen
 	
 	private static final String CREATE_TABLE_FILE_NAME = "observation.sql";
 	
-	public static final Integer[] CONCEPT_IDS = new Integer[] { 1406, 1190, 1255, 1369, 1465, 1982, 2015, 6300, 6332, 23764,
-	        23783, 23807, 23808, 23811 };
+	public static final Integer[] CONCEPT_IDS = new Integer[] { 204, 1190, 1255, 1294, 1369, 1383, 1406, 1406, 1465, 1748,
+	        1982, 2006, 2007, 2015, 2015, 2016, 2031, 2153, 2156, 2157, 5018, 5333, 5344, 6186, 6300, 6332, 6436, 6990,
+	        7180, 14579, 14656, 23761, 23764, 23783, 23807, 23808, 23811, 23944, 23945, 165332, 165354, 165371, 165416 };
 	
 	public static final int VALUE_DATETIME_CONCEPT = 1190;
 	
-	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 35, 51, 53 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 5, 6, 9, 18, 21, 35, 51, 53, 90 };
 	
 	protected final int ENCOUNTER_UUID_POS = 1;
 	
