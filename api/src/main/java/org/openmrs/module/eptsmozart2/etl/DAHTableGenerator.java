@@ -23,7 +23,7 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	private static final String CREATE_TABLE_FILE_NAME = "dah.sql";
 	
-	public static final Integer[] DAH_CONCEPT_IDS = new Integer[] { 1255, 21151, 1087, 5356, 165381 };
+	public static final Integer[] DAH_CONCEPT_IDS = new Integer[] { 1255, 21151, 1087, 5356, 165381, 1413, 507 };
 	
 	public static final Integer ENCOUNTER_TYPE_ID = 90;
 	
@@ -59,7 +59,11 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	protected final int LOC_UUID_POS = 16;
 	
-	protected final int SRC_DB_POS = 17;
+	protected final int SARCK_DIAGDATE_POS = 17;
+	
+	protected final int SARCK_STAGE_POS = 18;
+	
+	protected final int SRC_DB_POS = 19;
 	
 	@Override
 	public String getTable() {
@@ -107,14 +111,14 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	@Override
 	protected String insertSql() {
-		return new StringBuilder("INSERT INTO ")
-		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
+		return new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".dah (encounter_uuid, encounter_date, status_tarv, tarv_line, tarv_regimen, who_stage, ")
-		        .append(
-		            "exit_criteria_nocondition, exit_criteria_cvsupressed, exit_criteria_cd4, exit_criteria_nofluconazol, ")
-		        .append(
-		            "encounter_type, encounter_created_date, encounter_change_date, form_id, patient_uuid, location_uuid, source_database) ")
-		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("exit_criteria_nocondition, exit_criteria_cvsupressed, ")
+		        .append("exit_criteria_cd4, exit_criteria_nofluconazol, ")
+		        .append("encounter_type, encounter_created_date, encounter_change_date, form_id, ")
+		        .append("patient_uuid, location_uuid, sarcoma_kaposi_diagnosis_date, ")
+		        .append("sarcoma_kaposi_stage, source_database) ")
+		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 	}
 	
 	@Override
@@ -122,7 +126,7 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
         Set<Integer> positionsNotSet = new HashSet<>();
         positionsNotSet.addAll(Arrays.asList(STATUS_TARV_POS, TARV_LINE_POS, TARV_REGIMEN_POS, WHO_STAGE_POS,
 											 EXIT_NOCONDITION_POS, EXIT_CVSUPRESSED_POS, EXIT_CD4_POS,
-											 EXIT_NOFLUCONAZOL_POS));
+											 EXIT_NOFLUCONAZOL_POS, SARCK_DIAGDATE_POS, SARCK_STAGE_POS));
         return positionsNotSet;
     }
 	
@@ -151,6 +155,12 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 		} else if (resultConceptId == 5356) {
 			insertStatement.setInt(WHO_STAGE_POS, valueCoded);
 			positionsNotSet.remove(WHO_STAGE_POS);
+		} else if (resultConceptId == 1413) {
+			insertStatement.setTimestamp(SARCK_DIAGDATE_POS, scrollableResultSet.getTimestamp("value_datetime"));
+			positionsNotSet.remove(SARCK_DIAGDATE_POS);
+		} else if (resultConceptId == 507) {
+			insertStatement.setInt(SARCK_STAGE_POS, valueCoded);
+			positionsNotSet.remove(SARCK_STAGE_POS);
 		} else if (resultConceptId == 165381) {
 			switch (valueCoded) {
 				case 165384:
@@ -178,7 +188,12 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 		if (!positionsNotSet.isEmpty()) {
 			Iterator<Integer> iter = positionsNotSet.iterator();
 			while (iter.hasNext()) {
-				insertStatement.setNull(iter.next(), Types.INTEGER);
+				Integer pos = iter.next();
+				if (pos == SARCK_DIAGDATE_POS) {
+					insertStatement.setNull(pos, Types.TIMESTAMP);
+				} else {
+					insertStatement.setNull(pos, Types.INTEGER);
+				}
 			}
 		}
 	}

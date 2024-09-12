@@ -16,6 +16,8 @@ CREATE TABLE `dah` (
   `exit_criteria_cvsupressed` int(11) DEFAULT NULL,
   `exit_criteria_cd4` int(11) DEFAULT NULL,
   `exit_criteria_nofluconazol` int(11) DEFAULT NULL,
+  `sarcoma_kaposi_diagnosis_date` datetime DEFAULT NULL,
+  `sarcoma_kaposi_stage` int(11) DEFAULT NULL,
   `source_database` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `dah_encounter_uuid` (`encounter_uuid`)

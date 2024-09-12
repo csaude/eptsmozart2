@@ -30,7 +30,7 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 	public static final Integer[] SUPPORT_GROUP_CONCEPTS = new Integer[] { 23753, 23755, 23757, 23759, 24031, 165324, 165325 };
 	
 	private Boolean etlSupportGroupHasBeenCalledAtLeastOnce = false;
-
+	
 	@Override
 	public Void call() throws SQLException, IOException {
 		ResultSet rs1 = null, rs2 = null;
@@ -150,7 +150,7 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 	protected PreparedStatement prepareInsertStatement(ResultSet results, Integer batchSize) throws SQLException {
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
-
+		
 		String insertSql = new StringBuilder("INSERT IGNORE INTO ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(
