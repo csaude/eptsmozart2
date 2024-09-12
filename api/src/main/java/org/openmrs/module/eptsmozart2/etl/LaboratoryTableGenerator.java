@@ -56,7 +56,7 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 
 	public static final Integer FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID = 23722;
 
-	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 13, 51, 53 };
+	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 6, 9, 13, 51, 53, 90 };
 
 	public static final Map<Integer, String> CONCEPT_UNITS = new HashMap<>();
 
