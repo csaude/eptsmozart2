@@ -39,7 +39,7 @@ public class LocationTableGenerator extends InsertFromSelectGenerator {
                 .append("SELECT location_id,uuid,name,state_province,county_district FROM ")
                 .append(Mozart2Properties.getInstance().getDatabaseName())
 				.append(".location WHERE location_id IN ")
-				.append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+				.append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 				.append(" ORDER BY location_id").toString();
 
         try(Connection connection = ConnectionPool.getConnection();

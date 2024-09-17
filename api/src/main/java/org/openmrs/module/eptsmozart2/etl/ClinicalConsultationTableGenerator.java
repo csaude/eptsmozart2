@@ -83,7 +83,7 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id WHERE e.concept_id IN ").append(inClause(CONCEPT_IDS))
 		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.encounter_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 		        .append("'");
 		return sb.toString();
@@ -91,14 +91,12 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 	
 	@Override
 	protected String fetchQuery() {
-		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id WHERE e.concept_id IN ").append(inClause(CONCEPT_IDS))
 		        .append(" AND e.encounter_type IN ").append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.encounter_datetime <= '").append(Date.valueOf(Mozart2Properties.getInstance().getEndDate()))
 		        .append("' ORDER BY e.encounter_id");
 		return sb.toString();
@@ -134,7 +132,8 @@ public class ClinicalConsultationTableGenerator extends AbstractScrollableResult
 		insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, scrollableResultSet.getTimestamp("e_date_changed"));
 		insertStatement.setInt(FORM_ID_POS, scrollableResultSet.getInt("form_id"));
 		insertStatement.setString(PATIENT_UUID_POS, scrollableResultSet.getString("patient_uuid"));
-		insertStatement.setString(LOC_UUID_POS, scrollableResultSet.getString("loc_uuid"));
+		insertStatement.setString(LOC_UUID_POS,
+		    Mozart2Properties.getInstance().getLocationUuidById(scrollableResultSet.getInt("location_id")));
 		insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 		
 		Integer conceptId = scrollableResultSet.getInt("concept_id");

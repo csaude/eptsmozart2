@@ -1,16 +1,11 @@
 package org.openmrs.module.eptsmozart2.etl;
 
-import org.openmrs.module.eptsmozart2.ConnectionPool;
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Map;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
@@ -60,7 +55,7 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_program pg ON p.patient_id = pg.patient_id AND !pg.voided ")
 		        .append(" AND pg.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append("LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".location l ON l.location_id=pg.location_id INNER JOIN ")
@@ -86,7 +81,7 @@ public class PatientStateTableGenerator extends InsertFromSelectGenerator {
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter e on p.patient_id = e.patient_id AND !e.voided AND e.encounter_type IN ")
 		        .append(inClause(encounterTypes)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" INNER JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".obs o on e.encounter_id = o.encounter_id AND !o.voided AND o.concept_id IN ")
 		        .append(inClause(concepts)).append(" AND o.obs_datetime <= '")

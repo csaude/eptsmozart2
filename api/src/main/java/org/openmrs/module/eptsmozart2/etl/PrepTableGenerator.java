@@ -2,19 +2,14 @@ package org.openmrs.module.eptsmozart2.etl;
 
 import org.openmrs.module.eptsmozart2.Mozart2Properties;
 import org.openmrs.module.eptsmozart2.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
@@ -158,22 +153,20 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(PREP_CONCEPT_IDS)).toString();
 	}
 	
 	@Override
 	protected String fetchQuery() {
-		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" AND e.concept_id IN ").append(inClause(PREP_CONCEPT_IDS)).append(" JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id ORDER BY e.encounter_id");
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
+		        .append(" AND e.concept_id IN ").append(inClause(PREP_CONCEPT_IDS)).append(" ORDER BY e.encounter_id");
 		return sb.toString();
 	}
 	
@@ -227,7 +220,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, scrollableResultSet.getTimestamp("e_date_changed"));
 		insertStatement.setInt(FORM_ID_POS, scrollableResultSet.getInt("form_id"));
 		insertStatement.setString(PATIENT_UUID_POS, scrollableResultSet.getString("patient_uuid"));
-		insertStatement.setString(LOC_UUID_POS, scrollableResultSet.getString("loc_uuid"));
+		insertStatement.setString(LOC_UUID_POS, Mozart2Properties.getInstance().getLocationUuidById(scrollableResultSet.getInt("location_id")));
 		insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 		
 		int resultConceptId = scrollableResultSet.getInt("concept_id");

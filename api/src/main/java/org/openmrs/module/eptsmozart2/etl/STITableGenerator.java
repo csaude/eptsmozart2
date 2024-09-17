@@ -77,7 +77,8 @@ public class STITableGenerator extends AbstractNonScrollableResultSetGenerator {
 				insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
 				insertStatement.setInt(FORM_ID_POS, results.getInt("form_id"));
 				insertStatement.setString(PATIENT_UUID_POS, results.getString("patient_uuid"));
-				insertStatement.setString(LOC_UUID_POS, results.getString("loc_uuid"));
+				insertStatement.setString(LOC_UUID_POS,
+				    Mozart2Properties.getInstance().getLocationUuidById(results.getInt("location_id")));
 				insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				insertStatement.setInt(STI_CONCEPT_ID_POS, results.getInt("concept_id"));
 				insertStatement.setDate(STI_DATE_POS, results.getDate("obs_datetime"));
@@ -112,23 +113,21 @@ public class STITableGenerator extends AbstractNonScrollableResultSetGenerator {
 		        .append(".encounter_obs e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" AND e.obs_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'").toString();
 	}
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" AND e.obs_datetime <= '")
-		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'").append(" JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id ORDER BY e.obs_id");
+		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'").append(" ORDER BY e.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

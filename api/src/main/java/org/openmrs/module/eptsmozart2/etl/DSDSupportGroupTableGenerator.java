@@ -175,7 +175,8 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 				insertStatement.setTimestamp(7, results.getTimestamp("e_date_changed"));
 				insertStatement.setInt(8, results.getInt("form_id"));
 				insertStatement.setString(9, results.getString("patient_uuid"));
-				insertStatement.setString(10, results.getString("loc_uuid"));
+				insertStatement.setString(10,
+				    Mozart2Properties.getInstance().getLocationUuidById(results.getInt("location_id")));
 				insertStatement.setString(11, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				insertStatement.addBatch();
@@ -210,7 +211,7 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append(".encounter_obs e2 on e1.obs_group_id = e2.obs_group_id AND e1.encounter_id = e2.encounter_id AND ")
 		        .append("e1.concept_id = 165174 AND e2.concept_id = 165322 AND e1.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e1.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e1.encounter_datetime <= '").append(endDate).append("' JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e1.patient_id = p.patient_id");
@@ -224,18 +225,16 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append("e2.value_coded as dsd_supportgroup_state, e1.o_date_created, ")
 		        .append("e1.encounter_uuid, e1.encounter_type, e1.e_date_created, ")
 		        .append("e1.e_date_changed, e1.patient_id, e1.encounter_datetime, e1.obs_uuid as dsd_supportgroup_uuid, ")
-		        .append("e1.form_id, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		        .append("e1.form_id, e1.location_id, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e1 JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".encounter_obs e2 on e1.obs_group_id = e2.obs_group_id AND e1.encounter_id = e2.encounter_id AND ")
 		        .append("e1.concept_id = 165174 AND e2.concept_id = 165322 AND e1.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e1.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e1.encounter_datetime <= '").append(endDate).append("' JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON e1.patient_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e1.location_id ORDER BY e1.obs_group_id");
+		        .append(".patient p ON e1.patient_id = p.patient_id ORDER BY e1.obs_group_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");
@@ -255,7 +254,7 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.concept_id IN ")
 		        .append(inClause(SUPPORT_GROUP_CONCEPTS)).append(" AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'").toString();
 	}
 	
@@ -265,16 +264,14 @@ public class DSDSupportGroupTableGenerator extends AbstractNonScrollableResultSe
 		        .append("e.value_coded as dsd_supportgroup_state, e.e_date_created, ")
 		        .append("e.encounter_uuid, e.encounter_type, e.e_date_created, ")
 		        .append("e.e_date_changed, e.patient_id, e.encounter_datetime, ")
-		        .append("e.obs_uuid as dsd_supportgroup_uuid, e.form_id, p.patient_uuid, ")
-		        .append("l.uuid as loc_uuid FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter_obs e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
+		        .append("e.obs_uuid as dsd_supportgroup_uuid, e.form_id, e.location_id, p.patient_uuid FROM ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
+		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.concept_id IN ")
 		        .append(inClause(SUPPORT_GROUP_CONCEPTS)).append(" AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
-		        .append(" AND e.encounter_datetime <= '").append(endDate).append("' JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id");
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
+		        .append(" AND e.encounter_datetime <= '").append(endDate).append("'");
 		
 		if (start != null) {
 			sb.append(" limit ?");

@@ -92,7 +92,8 @@ public class ObservationTableGenerator extends AbstractNonScrollableResultSetGen
 				insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
 				insertStatement.setInt(FORM_ID_POS, results.getInt("form_id"));
 				insertStatement.setString(PATIENT_UUID_POS, results.getString("patient_uuid"));
-				insertStatement.setString(LOC_UUID_POS, results.getString("loc_uuid"));
+				insertStatement.setString(LOC_UUID_POS,
+				    Mozart2Properties.getInstance().getLocationUuidById(results.getInt("location_id")));
 				insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 				
 				String valueText = results.getString("value_text");
@@ -163,7 +164,7 @@ public class ObservationTableGenerator extends AbstractNonScrollableResultSetGen
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" AND CASE WHEN e.concept_id = ")
 		        .append(VALUE_DATETIME_CONCEPT).append(" THEN e.value_datetime <= '").append(endDate)
 		        .append("' ELSE e.obs_datetime <= '").append(endDate).append("' END");
@@ -173,17 +174,15 @@ public class ObservationTableGenerator extends AbstractNonScrollableResultSetGen
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
 		Date endDate = Date.valueOf(Mozart2Properties.getInstance().getEndDate());
-		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CONCEPT_IDS)).append(" AND CASE WHEN e.concept_id = ")
 		        .append(VALUE_DATETIME_CONCEPT).append(" THEN e.value_datetime <= '").append(endDate)
-		        .append("' ELSE e.obs_datetime <= '").append(endDate).append("' END").append(" JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id ORDER BY e.obs_id");
+		        .append("' ELSE e.obs_datetime <= '").append(endDate).append("' END").append(" ORDER BY e.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

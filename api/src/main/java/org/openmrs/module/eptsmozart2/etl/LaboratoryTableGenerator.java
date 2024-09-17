@@ -161,7 +161,8 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                     eighty561305Values.put(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
                     eighty561305Values.put(FORM_ID_POS, results.getInt("form_id"));
                     eighty561305Values.put(PATIENT_UUID_POS, results.getString("patient_uuid"));
-                    eighty561305Values.put(LOC_UUID_POS, results.getString("loc_uuid"));
+                    eighty561305Values.put(LOC_UUID_POS,
+                            Mozart2Properties.getInstance().getLocationUuidById(results.getInt("location_id")));
 
                     if(Arrays.asList(6, 9, 13, 51, 53).contains(encounterType)) {
                         eighty561305Values.put(RESULT_REPORT_DATE_POS, results.getTimestamp("obs_datetime"));
@@ -220,7 +221,8 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                 insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, results.getTimestamp("e_date_changed"));
                 insertStatement.setInt(FORM_ID_POS, results.getInt("form_id"));
                 insertStatement.setString(PATIENT_UUID_POS, results.getString("patient_uuid"));
-                insertStatement.setString(LOC_UUID_POS, results.getString("loc_uuid"));
+                insertStatement.setString(LOC_UUID_POS,
+                        Mozart2Properties.getInstance().getLocationUuidById(results.getInt("location_id")));
                 insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
                 insertStatement.setInt(LAB_TEST_ID_POS, conceptId);
                 insertStatement.setString(RESULT_COMMENT_POS, results.getString("comments"));
@@ -343,7 +345,7 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 		        .append(".encounter_obs e JOIN ").append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-                .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+                .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
                 .append(" AND ((e.concept_id = ")
                 .append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
                 .append(" AND e.value_coded IN ").append(inClause(FICHA_CLINICA_LAB_ANSWERS)).append(") OR e.concept_id IN ")
@@ -354,19 +356,18 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
 	
 	@Override
 	protected String fetchQuery(Integer start, Integer batchSize) {
-		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, l.uuid as loc_uuid FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
                 .append(Mozart2Properties.getInstance().getNewDatabaseName())
                 .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_type IN ")
                 .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-                .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+                .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
                 .append(" AND ((e.concept_id = ")
                 .append(FICHA_CLINICA_LAB_REQUEST_CONCEPT_ID)
                 .append(" AND e.value_coded IN ").append(inClause(FICHA_CLINICA_LAB_ANSWERS)).append(") OR e.concept_id IN ")
                 .append(inClause(LAB_CONCEPT_IDS)).append(") AND e.obs_datetime <= '")
                 .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("'")
-                .append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-                .append(".location l on l.location_id = e.location_id ORDER BY e.obs_id");
+                .append(" ORDER BY e.obs_id");
 		
 		if (start != null) {
 			sb.append(" limit ?");

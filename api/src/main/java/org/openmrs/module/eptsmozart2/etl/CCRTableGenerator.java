@@ -124,28 +124,26 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CCR_CONCEPT_IDS)).toString();
 	}
 	
 	@Override
 	protected String fetchQuery() {
-		StringBuilder sb = new StringBuilder(
-		        "SELECT e.*, p.patient_uuid, l.uuid as loc_uuid, pi.identifier as nid_ccr FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, pi.identifier as nid_ccr FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.person_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
-		        .append(inClause(Mozart2Properties.getInstance().getLocationsIds().toArray(new Integer[0])))
+		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CCR_CONCEPT_IDS)).append(" LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".relationship r ON e.patient_id = r.person_b AND !r.voided AND r.relationship = ")
 		        .append(RELATIONSHIP_TYPE_ID).append(" LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
 		        .append(".patient_identifier pi ON pi.patient_id = r.person_a AND !pi.voided AND pi.identifier_type = ")
-		        .append(NID_CCR_IDENTIFIER_TYPE).append(" JOIN ").append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".location l on l.location_id = e.location_id ORDER BY e.encounter_id");
+		        .append(NID_CCR_IDENTIFIER_TYPE).append(" ORDER BY e.encounter_id");
 		return sb.toString();
 	}
 	
@@ -189,7 +187,8 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 		insertStatement.setTimestamp(ENC_CHANGE_DATE_POS, scrollableResultSet.getTimestamp("e_date_changed"));
 		insertStatement.setInt(FORM_ID_POS, scrollableResultSet.getInt("form_id"));
 		insertStatement.setString(PATIENT_UUID_POS, scrollableResultSet.getString("patient_uuid"));
-		insertStatement.setString(LOC_UUID_POS, scrollableResultSet.getString("loc_uuid"));
+		insertStatement.setString(LOC_UUID_POS,
+		    Mozart2Properties.getInstance().getLocationUuidById(scrollableResultSet.getInt("location_id")));
 		insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 		int resultConceptId = scrollableResultSet.getInt("concept_id");
 		int valueCoded = scrollableResultSet.getInt("value_coded");
