@@ -6,9 +6,9 @@ import org.openmrs.api.AdministrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
@@ -38,6 +38,19 @@ public class ConnectionPool {
 		cpds.setAcquireRetryDelay(1000);
 		cpds.setBreakAfterAcquireFailure(false);
 		pooledDataSource = cpds;
+		
+		// Set timeout variables.
+		try (Connection connection = pooledDataSource.getConnection(); Statement statement = connection.createStatement()) {
+			statement.addBatch("SET SESSION connect_timeout=180");
+			statement.addBatch("SET SESSION interactive_timeout=28800");
+			statement.addBatch("SET SESSION wait_timeout=28800");
+			statement.addBatch("SET SESSION net_write_timeout=600");
+			statement.executeBatch();
+		}
+		catch (SQLException e) {
+			LOGGER.error("Error setting session variables to mysql instance", e);
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public static synchronized Connection getConnection() throws SQLException {
