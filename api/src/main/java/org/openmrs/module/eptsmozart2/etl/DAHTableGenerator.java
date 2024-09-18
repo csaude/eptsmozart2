@@ -78,7 +78,7 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 		return new StringBuilder("SELECT COUNT(DISTINCT e.encounter_id) FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON e.patient_id = p.patient_id WHERE e.encounter_datetime <= '")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
 		        .append(ENCOUNTER_TYPE_ID).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
@@ -90,14 +90,11 @@ public class DAHTableGenerator extends AbstractScrollableResultSetGenerator {
 		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON e.patient_id = p.patient_id JOIN ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".encounter e on e.encounter_id = e.encounter_id AND !e.voided AND e.encounter_datetime <= '")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type = ")
 		        .append(ENCOUNTER_TYPE_ID).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
-		        .append(" WHERE !e.voided AND e.concept_id IN ").append(inClause(DAH_CONCEPT_IDS))
-		        .append(" ORDER BY e.encounter_id");
+		        .append(" AND e.concept_id IN ").append(inClause(DAH_CONCEPT_IDS)).append(" ORDER BY e.encounter_id");
 		return sb.toString();
 	}
 	

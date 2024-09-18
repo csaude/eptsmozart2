@@ -75,7 +75,7 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 	@Override
 	protected String countQuery() {
 		return new StringBuilder("SELECT COUNT(DISTINCT e.encounter_id) FROM ")
-		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".obs o JOIN ")
+		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
