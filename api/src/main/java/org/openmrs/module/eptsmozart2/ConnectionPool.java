@@ -38,16 +38,16 @@ public class ConnectionPool {
 		cpds.setAcquireRetryDelay(1000);
 		cpds.setBreakAfterAcquireFailure(false);
 		pooledDataSource = cpds;
-		
+
 		// Set timeout variables.
-		try (Connection connection = pooledDataSource.getConnection(); Statement statement = connection.createStatement()) {
-			statement.addBatch("SET SESSION connect_timeout=180");
+        try(Connection connection = pooledDataSource.getConnection();
+			Statement statement = connection.createStatement()) {
+            statement.addBatch("SET SESSION connect_timeout=180");
 			statement.addBatch("SET SESSION interactive_timeout=28800");
 			statement.addBatch("SET SESSION wait_timeout=28800");
 			statement.addBatch("SET SESSION net_write_timeout=600");
 			statement.executeBatch();
-		}
-		catch (SQLException e) {
+		} catch (SQLException e) {
 			LOGGER.error("Error setting session variables to mysql instance", e);
 			throw new RuntimeException(e);
 		}
