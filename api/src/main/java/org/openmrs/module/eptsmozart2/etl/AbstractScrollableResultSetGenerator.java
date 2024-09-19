@@ -86,7 +86,8 @@ public abstract class AbstractScrollableResultSetGenerator extends AbstractGener
             LOGGER.debug("Done inserting {} records for table {}", toBeGenerated, getTable());
             return null;
         } catch (SQLException e) {
-            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(), insertStatement.getParameterMetaData().getParameterCount(), e);
+            LOGGER.error("An error has occured while inserting records to {} table, running SQL: {}", getTable(),
+                    insertStatement.getParameterMetaData().getParameterCount(), e);
             this.setChanged();
             Utils.notifyObserversAboutException(this, e);
             throw e;

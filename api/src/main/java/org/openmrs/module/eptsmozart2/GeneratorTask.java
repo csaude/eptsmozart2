@@ -39,6 +39,8 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 		taskIsRunning.set(true);
 
 		try {
+            Mozart2Properties.reInitializeMozart2Properties();
+            initializeVariables();
 			DbUtils.createNewDatabase();
 
 			// Create the lookup table
@@ -49,8 +51,6 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             sqls = Utils.readFileToString("encounter_obs.sql").split(";");
             DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getDatabaseName());
 
-            Mozart2Properties.initializeMozart2Properties();
-			initializeVariables();
 
 			List<Generator> toBeInvoked = new ArrayList<>(NUMBER_OF_THREADS);
 			ObservableGenerator generator = new PatientTableGenerator();

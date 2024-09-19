@@ -92,8 +92,13 @@ public class Mozart2Properties {
 	private Mozart2Properties() {
 	}
 	
-	public static void initializeMozart2Properties() {
+	public static void reInitializeMozart2Properties() {
+		// A hacky way to fix the overwriting of endDate once this method is called when the setter has already been
+		// called. If you want to overwrite the endDate always use the setter method.
+		// Maybe this property should not be handled here but anyway.
+		LocalDate existingEndDate = mozart2Properties != null ? mozart2Properties.getEndDate() : null;
 		mozart2Properties = new Mozart2Properties();
+		mozart2Properties.setEndDate(existingEndDate);
 		try {
 			String dataDirectory = OpenmrsUtil.getApplicationDataDirectory();
 			Path path = Paths.get(dataDirectory, MOZART2_PROPERTIES_FILENAME);
@@ -107,18 +112,22 @@ public class Mozart2Properties {
 			//Host and port
 			mozart2Properties.determineMysqlHostAndPortFromJdbcUrl();
 
-			if(StringUtils.isNotBlank(APP_PROPS.getProperty(END_DATE_PROP))) {
-				try {
-					String datePattern = APP_PROPS.getProperty(END_DATE_PATTERN_PROP, DEFAULT_END_DATE_PATTERN);
-					mozart2Properties.endDateFormatter = DateTimeFormatter.ofPattern(datePattern);
-					mozart2Properties.endDate = LocalDate.parse(APP_PROPS.getProperty(END_DATE_PROP), mozart2Properties.endDateFormatter);
-				} catch (DateTimeParseException | NullPointerException e) {
-					if (APP_PROPS.containsKey(END_DATE_PROP) && APP_PROPS.getProperty(END_DATE_PROP) != null) {
-						LOGGER.warn("Invalid value set for property {}, defaulting to current date", END_DATE_PROP);
-					} else {
-						LOGGER.info("{} property not set, defaulting to current date", END_DATE_PROP);
+			if(mozart2Properties.getEndDate() == null) {
+				if(StringUtils.isNotBlank(APP_PROPS.getProperty(END_DATE_PROP))) {
+					try {
+						String datePattern = APP_PROPS.getProperty(END_DATE_PATTERN_PROP, DEFAULT_END_DATE_PATTERN);
+						mozart2Properties.endDateFormatter = DateTimeFormatter.ofPattern(datePattern);
+						mozart2Properties.endDate = LocalDate.parse(APP_PROPS.getProperty(END_DATE_PROP), mozart2Properties.endDateFormatter);
+					} catch (DateTimeParseException | NullPointerException e) {
+						if (APP_PROPS.containsKey(END_DATE_PROP) && APP_PROPS.getProperty(END_DATE_PROP) != null) {
+							LOGGER.warn("Invalid value set for property {}, defaulting to current date", END_DATE_PROP);
+						} else {
+							LOGGER.info("{} property not set, defaulting to current date", END_DATE_PROP);
+						}
+						mozart2Properties.setEndDate(LocalDate.now());
 					}
-					mozart2Properties.endDate = LocalDate.now();
+				} else {
+					mozart2Properties.setEndDate(LocalDate.now());
 				}
 			}
 			try {
@@ -176,7 +185,7 @@ public class Mozart2Properties {
 	
 	public static Mozart2Properties getInstance() {
 		if (mozart2Properties == null) {
-			initializeMozart2Properties();
+			reInitializeMozart2Properties();
 		}
 		return mozart2Properties;
 	}

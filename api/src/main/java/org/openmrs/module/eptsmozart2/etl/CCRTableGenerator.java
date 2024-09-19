@@ -133,7 +133,7 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, pi.identifier as nid_ccr FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient p ON e.person_id = p.patient_id AND e.encounter_datetime <= '")
+		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
 		        .append(Date.valueOf(Mozart2Properties.getInstance().getEndDate())).append("' AND e.encounter_type IN ")
 		        .append(inClause(ENCOUNTER_TYPE_IDS)).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
