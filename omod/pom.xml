@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.openmrs.module</groupId>
 		<artifactId>eptsmozart2</artifactId>
-		<version>3.0.1-SNAPSHOT</version>
+		<version>3.1.0</version>
 	</parent>
 
 	<artifactId>eptsmozart2-omod</artifactId>
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>org.openmrs.module</groupId>
             <artifactId>eptsmozart2-api</artifactId>
-            <version>3.0.1-SNAPSHOT</version>
+            <version>3.1.0</version>
         </dependency>
 		<dependency>
 			<groupId>org.openmrs.web</groupId>
