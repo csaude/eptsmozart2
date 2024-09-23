@@ -228,7 +228,9 @@ public class LaboratoryTableGenerator extends AbstractNonScrollableResultSetGene
                 insertStatement.setString(RESULT_COMMENT_POS, results.getString("comments"));
                 if(conceptId == 23722) {
                     // request and order_date
-                    insertStatement.setInt(LAB_TEST_ID_POS, results.getInt("value_coded"));
+                    if(encounterType == 6) {
+                        insertStatement.setInt(LAB_TEST_ID_POS, results.getInt("value_coded"));
+                    }
                     insertStatement.setInt(REQUEST_POS, conceptId);
                     insertStatement.setTimestamp(ORDER_DATE_POS, results.getTimestamp("obs_datetime"));
                     positionsNotSet.remove(REQUEST_POS);
