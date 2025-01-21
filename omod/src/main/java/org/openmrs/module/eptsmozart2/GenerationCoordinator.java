@@ -33,7 +33,8 @@ public class GenerationCoordinator implements Observer {
 
     public static final GeneratorTask GENERATOR_TASK = new GeneratorTask();
     public static final Map<String, StatusInfo> INITIAL_STATUSES = new LinkedHashMap<>();
-    private static ExecutorService SINGLE_THREAD_EXECUTOR = Executors.newSingleThreadExecutor();
+    private static ExecutorService SINGLE_THREAD_EXECUTOR =
+            new ContextAwareExecutorService(Executors.newSingleThreadExecutor());
 
     static {
         INITIAL_STATUSES.put("patient", new StatusInfo("patient", 0, 0));

@@ -26,7 +26,7 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
     private static final Logger LOGGER = LoggerFactory.getLogger(GeneratorTask.class);
     private static final Integer NUMBER_OF_THREADS = 16;
     private TaskDefinition taskDefinition;
-    private static ExecutorService service = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+    private static ExecutorService service = new ContextAwareExecutorService(Executors.newFixedThreadPool(NUMBER_OF_THREADS));
     private static AtomicBoolean taskIsRunning = new AtomicBoolean(false);
     public static final List<Generator> GENERATORS = new ArrayList<>(NUMBER_OF_THREADS);
 
