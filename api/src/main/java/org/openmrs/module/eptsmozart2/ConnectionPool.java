@@ -1,21 +1,18 @@
 package org.openmrs.module.eptsmozart2;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.mchange.v2.c3p0.PooledDataSource;
-import org.openmrs.api.AdministrationService;
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.mchange.v2.c3p0.PooledDataSource;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/9/22.
  */
 public class ConnectionPool {
-	
-	private AdministrationService adminService;
 	
 	public static int MAX_CONNECTIONS = 100;
 	
@@ -32,11 +29,15 @@ public class ConnectionPool {
 		cpds.setMinPoolSize(10);
 		cpds.setAcquireIncrement(5);
 		cpds.setMaxPoolSize(MAX_CONNECTIONS);
-		cpds.setTestConnectionOnCheckin(false);
-		cpds.setTestConnectionOnCheckout(false);
+		cpds.setTestConnectionOnCheckin(true);
+		cpds.setTestConnectionOnCheckout(true);
+		cpds.setIdleConnectionTestPeriod(60);
+		cpds.setPreferredTestQuery("SELECT 1");
 		cpds.setAcquireRetryAttempts(10);
 		cpds.setAcquireRetryDelay(1000);
 		cpds.setBreakAfterAcquireFailure(false);
+		cpds.setMaxConnectionAge(3600);
+		cpds.setMaxIdleTime(1800);
 		pooledDataSource = cpds;
 	}
 	
@@ -44,6 +45,11 @@ public class ConnectionPool {
 		Connection connection = null;
 		try {
 			connection = pooledDataSource.getConnection();
+			if (!connection.isValid(1)) {
+				LOGGER.warn("Connection is invalid, attempting to reconnect...");
+				connection.close();
+				connection = pooledDataSource.getConnection();
+			}
 			return connection;
 		}
 		catch (SQLException sqle) {
