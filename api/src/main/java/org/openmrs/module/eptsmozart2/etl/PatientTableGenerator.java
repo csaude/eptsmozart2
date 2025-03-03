@@ -32,7 +32,7 @@ public class PatientTableGenerator extends AbstractNonScrollableResultSetGenerat
 		if (batchSize == null)
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = new StringBuilder("INSERT INTO ").append(Mozart2Properties.getInstance().getNewDatabaseName())
-		        .append(".patient (patient_id, patient_uuid, gender, birthdate, birthdate_estimated, ")
+		        .append(".patient (patient_id, patient_uuid, sex, birthdate, birthdate_estimated, ")
 		        .append("date_created, source_database) VALUES (?, ?, ?, ?, ?, ?, ?)").toString();
 		try {
 			if (insertStatement == null) {

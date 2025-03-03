@@ -81,7 +81,7 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
 	
 	protected final int PSY_TRANSPORT_POS = 24;
 	
-	protected final int PSY_GBV_POS = 25;
+	protected final int PSY_VM_POS = 25;
 	
 	protected final int PSY_CULTURAL_POS = 26;
 	
@@ -128,7 +128,7 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
                 .append("accept_date, psychosocial_refusal, psychosocial_sick, psychosocial_notbelieve, ")
                 .append("psychosocial_lotofpills, psychosocial_feelbetter, psychosocial_lackfood, psychosocial_lacksupport, ")
                 .append("psychosocial_depression, psychosocial_notreveal, psychosocial_toxicity, psychosocial_lostpills, ")
-                .append("psychosocial_stigma, psychosocial_transport, psychosocial_gbv, psychosocial_cultural, ")
+                .append("psychosocial_stigma, psychosocial_transport, psychosocial_vm, psychosocial_cultural, ")
                 .append("psychosocial_druguse, pp1, pp2, pp3, pp4, pp5, pp6, pp7, keypop_lubricants, ")
                 .append("encounter_type, encounter_created_date, encounter_change_date, form_id, patient_uuid, location_uuid, source_database) ")
                 .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
@@ -159,7 +159,7 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
                                                      ACCEPT_DATE_POS, PSY_REFUSAL_POS, PSY_SICK_POS, PSY_NOTBELIEVE_POS,
                                                      PSY_LOTOFPILLS_POS, PSY_FEELBETTER_POS, PSY_LACKFOOD_POS, PSY_LACKSUPPORT_POS,
                                                      PSY_DEPRESSION_POS, PSY_NOTREVEAL_POS, PSY_TOXICITY_POS, PSY_LOSTPILLS_POS,
-                                                     PSY_STIGMA_POS, PSY_TRANSPORT_POS, PSY_GBV_POS, PSY_CULTURAL_POS, PSY_DRUGUSE_POS,
+                                                     PSY_STIGMA_POS, PSY_TRANSPORT_POS, PSY_VM_POS, PSY_CULTURAL_POS, PSY_DRUGUSE_POS,
                                                      PP1_POS, PP2_POS, PP3_POS, PP4_POS, PP5_POS, PP6_POS, PP7_POS, KEYPOP_LUBS_POS
                 ));
 
@@ -261,8 +261,8 @@ public class CounselingTableGenerator extends AbstractNonScrollableResultSetGene
                                 positionsNotSet.remove(PSY_TRANSPORT_POS);
                                 break;
                             case 6303:
-                                insertStatement.setInt(PSY_GBV_POS, valueCoded);
-                                positionsNotSet.remove(PSY_GBV_POS);
+                                insertStatement.setInt(PSY_VM_POS, valueCoded);
+                                positionsNotSet.remove(PSY_VM_POS);
                                 break;
                             case 23769:
                                 insertStatement.setInt(PSY_CULTURAL_POS, valueCoded);
