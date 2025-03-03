@@ -73,67 +73,65 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	protected final int KEY_DRUG_POS = 23;
 	
-	protected final int KEY_TG_POS = 24;
+	protected final int KEY_SW_POS = 24;
 	
-	protected final int KEY_SW_POS = 25;
+	protected final int KEY_PRISON_POS = 25;
 	
-	protected final int KEY_PRISON_POS = 26;
+	protected final int KEY_AYR_POS = 26;
 	
-	protected final int KEY_AYR_POS = 27;
+	protected final int KEY_POLICE_POS = 27;
 	
-	protected final int KEY_POLICE_POS = 28;
+	protected final int KEY_MINER_POS = 28;
 	
-	protected final int KEY_MINER_POS = 29;
+	protected final int KEY_DRIVER_POS = 29;
 	
-	protected final int KEY_DRIVER_POS = 30;
+	protected final int KEY_SERODISC_POS = 30;
 	
-	protected final int KEY_SERODISC_POS = 31;
+	protected final int KEY_PREG_POS = 31;
 	
-	protected final int KEY_PREG_POS = 32;
+	protected final int KEY_LACT_POS = 32;
 	
-	protected final int KEY_LACT_POS = 33;
+	protected final int KEY_OTHER_POS = 33;
 	
-	protected final int KEY_OTHER_POS = 34;
+	protected final int RENAL_FAILURE_POS = 34;
 	
-	protected final int RENAL_FAILURE_POS = 35;
+	protected final int PILLS_LEFTOVER_POS = 35;
 	
-	protected final int PILLS_LEFTOVER_POS = 36;
+	protected final int ADH_COUNSELING_POS = 36;
 	
-	protected final int ADH_COUNSELING_POS = 37;
+	protected final int CONDOMS_POS = 37;
 	
-	protected final int CONDOMS_POS = 38;
+	protected final int LUBS_POS = 38;
 	
-	protected final int LUBS_POS = 39;
+	protected final int PREGNANT_POS = 39;
 	
-	protected final int PREGNANT_POS = 40;
+	protected final int LACTANT_POS = 40;
 	
-	protected final int LACTANT_POS = 41;
+	protected final int PREP_HIVPOS_POS = 41;
 	
-	protected final int PREP_HIVPOS_POS = 42;
+	protected final int PREP_SIDEEFFECT_POS = 42;
 	
-	protected final int PREP_SIDEEFFECT_POS = 43;
+	protected final int PREP_NORISK_POS = 43;
 	
-	protected final int PREP_NORISK_POS = 44;
+	protected final int PREP_USERREQ_POS = 44;
 	
-	protected final int PREP_USERREQ_POS = 45;
+	protected final int PREP_OTHER_POS = 45;
 	
-	protected final int PREP_OTHER_POS = 46;
+	protected final int NEXT_CONSULT_POS = 46;
 	
-	protected final int NEXT_CONSULT_POS = 47;
+	protected final int ENC_TYPE_POS = 47;
 	
-	protected final int ENC_TYPE_POS = 48;
+	protected final int ENC_CREATED_DATE_POS = 48;
 	
-	protected final int ENC_CREATED_DATE_POS = 49;
+	protected final int ENC_CHANGE_DATE_POS = 49;
 	
-	protected final int ENC_CHANGE_DATE_POS = 50;
+	protected final int FORM_ID_POS = 50;
 	
-	protected final int FORM_ID_POS = 51;
+	protected final int PATIENT_UUID_POS = 51;
 	
-	protected final int PATIENT_UUID_POS = 52;
+	protected final int LOC_UUID_POS = 52;
 	
-	protected final int LOC_UUID_POS = 53;
-	
-	protected final int SRC_DB_POS = 54;
+	protected final int SRC_DB_POS = 53;
 	
 	@Override
 	public String getTable() {
@@ -179,7 +177,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append("sti_diagnosis_gen, sti_diagnosis_pel, sti_diagnosis_inf, ")
 		        .append("sti_diagnosis_gra, sti_diagnosis_out, sti_start_date, ")
 		        .append("regimen_prophylaxis_prep, no_of_units, dsd_prep, key_vulnerable_msm, ")
-		        .append("key_vulnerable_drug, key_vulnerable_tg, key_vulnerable_sw, key_vulnerable_prison, ")
+		        .append("key_vulnerable_drug, key_vulnerable_sw, key_vulnerable_prison, ")
 		        .append("key_vulnerable_ayr, key_vulnerable_police, key_vulnerable_miner, ")
 		        .append("key_vulnerable_driver, key_vulnerable_serodiscordant, ")
 		        .append("key_vulnerable_pregnant, key_vulnerable_lactant, key_vulnerable_other, ")
@@ -191,7 +189,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append("form_id, patient_uuid, location_uuid, source_database) ")
 		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
 		        .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
-		        .append("?, ?, ?, ?, ?, ?, ?)").toString();
+		        .append("?, ?, ?, ?, ?, ?)").toString();
 	}
 	
 	@Override
@@ -201,7 +199,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 											 CREATINE_DATE_POS, HEPB_RES_POS, STI_SCREEN_POS, SIFILIS_RES_POS, STI_LEU_POS,
 											 STI_URE_POS, STI_GEN_POS, STI_PEL_POS, STI_INF_POS, STI_GRA_POS, STI_OUT_POS,
 											 STI_START_DATE_POS, REG_PROPHY_PREP_POS, NO_UNITS_POS, DSD_PREP_POS, KEY_MSM_POS,
-											 KEY_DRUG_POS, KEY_TG_POS, KEY_SW_POS, KEY_PRISON_POS, KEY_AYR_POS, KEY_POLICE_POS,
+											 KEY_DRUG_POS, KEY_SW_POS, KEY_PRISON_POS, KEY_AYR_POS, KEY_POLICE_POS,
 											 KEY_MINER_POS, KEY_DRIVER_POS, KEY_SERODISC_POS, KEY_PREG_POS, KEY_LACT_POS,
 											 KEY_OTHER_POS, RENAL_FAILURE_POS, PILLS_LEFTOVER_POS, ADH_COUNSELING_POS,
 											 CONDOMS_POS, LUBS_POS, PREGNANT_POS, LACTANT_POS, PREP_HIVPOS_POS,
@@ -320,10 +318,6 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 				case 20454:
 					insertStatement.setInt(KEY_DRUG_POS, valueCoded);
 					positionsNotSet.remove(KEY_DRUG_POS);
-					break;
-				case 165205:
-					insertStatement.setInt(KEY_TG_POS, valueCoded);
-					positionsNotSet.remove(KEY_TG_POS);
 					break;
 				case 1901:
 					insertStatement.setInt(KEY_SW_POS, valueCoded);

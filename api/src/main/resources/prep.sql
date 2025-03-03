@@ -29,7 +29,6 @@ CREATE TABLE `prep` (
   `dsd_prep` int(11) DEFAULT NULL,
   `key_vulnerable_msm` int(11) DEFAULT NULL,
   `key_vulnerable_drug` int(11) DEFAULT NULL,
-  `key_vulnerable_tg` int(11) DEFAULT NULL,
   `key_vulnerable_sw` int(11) DEFAULT NULL,
   `key_vulnerable_prison` int(11) DEFAULT NULL,
   `key_vulnerable_ayr` int(11) DEFAULT NULL,

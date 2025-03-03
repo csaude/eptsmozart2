@@ -30,7 +30,7 @@ CREATE TABLE `counseling` (
   `psychosocial_lostpills` int(11) DEFAULT NULL,
   `psychosocial_stigma` int(11) DEFAULT NULL,
   `psychosocial_transport` int(11) DEFAULT NULL,
-  `psychosocial_gbv` int(11) DEFAULT NULL,
+  `psychosocial_vm` int(11) DEFAULT NULL,
   `psychosocial_cultural` int(11) DEFAULT NULL,
   `psychosocial_druguse` int(11) DEFAULT NULL,
   `pp1` int(11) DEFAULT NULL,
