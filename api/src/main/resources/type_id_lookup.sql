@@ -451,7 +451,7 @@ VALUES('form','form_id',60,'LABORATORIO GERAL-V2008','LABORATORIO GERAL-V2008','
 ('counseling','psychosocial_lostpills',23768,'LOST / FORGOT / SHARED TABLETS','PERDEU/ESQUECEU/PARTILHOU COMPRIMIDOS',''),
 ('counseling','psychosocial_stigma',6436,'STIGMA','ESTIGMA',''),
 ('counseling','psychosocial_trasport',820,'TRANSPORT PROBLEMS','PROBLEMAS DE TRANSPORTE',''),
-('counseling','psychosocial_gbv',6303,'GENDER BASED VIOLENCE','VIOLÊNCIA BASEADA NO GÉNERO',''),
+('counseling','psychosocial_gbv',6303,'VIOLENCE','VIOLÊNCIA',''),
 ('counseling','psychosocial_cultural',23769,'CULTURAL OR TRADITIONAL ASPECTS','ASPECTOS CULTURAIS OU TRADICIONAIS',''),
 ('counseling','psychosocial_druguse',1603,'DRUG USE','CONSUMO DE DROGA OU ALCOOL',''),
 ('counseling','pp1',1065,'YES','SIM',''),
