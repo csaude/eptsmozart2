@@ -9,7 +9,7 @@
 
 	<groupId>org.openmrs.module</groupId>
 	<artifactId>eptsmozart2</artifactId>
-	<version>3.1.1-SNAPSHOT</version>
+	<version>3.2.0</version>
 	<packaging>pom</packaging>
 	<name>EPTS MozART 2</name>
 	<description>Generates EPTS flattened MozART 2 tables</description>
@@ -20,8 +20,8 @@
 		<connection>scm:git:git@github.com:openmrs/openmrs-module-eptsmozart2.git</connection>
 		<developerConnection>scm:git:git@github.com:openmrs/openmrs-module-eptsmozart2.git</developerConnection>
 		<url>https://github.com/openmrs/openmrs-module-eptsmozart2/</url>
-	  <tag>2.0.0</tag>
-  </scm>
+	  	<tag>2.0.0</tag>
+  	</scm>
 
 	<modules>
 		<module>api</module>
@@ -54,7 +54,7 @@
 
     <properties>
         <openmrsPlatformVersion>2.6.0</openmrsPlatformVersion>
-		<javaCompilerSource>11</javaCompilerSource>
-		<javaCompilerTarget>11</javaCompilerTarget>
+	<javaCompilerSource>11</javaCompilerSource>
+	<javaCompilerTarget>11</javaCompilerTarget>
     </properties>
 </project>
