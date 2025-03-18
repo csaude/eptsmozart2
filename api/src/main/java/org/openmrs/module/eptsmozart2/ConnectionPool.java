@@ -32,11 +32,15 @@ public class ConnectionPool {
 		cpds.setMinPoolSize(10);
 		cpds.setAcquireIncrement(5);
 		cpds.setMaxPoolSize(MAX_CONNECTIONS);
-		cpds.setTestConnectionOnCheckin(false);
-		cpds.setTestConnectionOnCheckout(false);
+		cpds.setTestConnectionOnCheckin(true);
+		cpds.setTestConnectionOnCheckout(true);
+		cpds.setIdleConnectionTestPeriod(60);
+		cpds.setPreferredTestQuery("SELECT 1");
 		cpds.setAcquireRetryAttempts(10);
 		cpds.setAcquireRetryDelay(1000);
 		cpds.setBreakAfterAcquireFailure(false);
+		cpds.setMaxConnectionAge(3600);
+		cpds.setMaxIdleTime(1800);
 		pooledDataSource = cpds;
 	}
 	

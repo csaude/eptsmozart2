@@ -149,6 +149,8 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             service.invokeAll(toBeInvoked);
 
             notifyTaskCompletion("done");
+            sqls = Utils.readFileToString("drop_encounter_obs_table.sql").split(";");
+            DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getDatabaseName());
             createDumpFileAndNotify();
         } catch (SQLException | IOException | InterruptedException e) {
             LOGGER.error("An error occurred during generation", e);
