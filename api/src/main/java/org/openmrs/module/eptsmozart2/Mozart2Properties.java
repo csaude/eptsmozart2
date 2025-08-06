@@ -89,6 +89,8 @@ public class Mozart2Properties {
 	
 	private String sourceOpenmrsInstance;
 	
+	private String mozart2DumpFilenameGPValue;
+	
 	private Mozart2Properties() {
 	}
 	
@@ -142,6 +144,8 @@ public class Mozart2Properties {
 
 			mozart2Properties.sourceOpenmrsInstance = Context.getAdministrationService()
 					.getGlobalProperty(OpenmrsConstants.GLOBAL_PROPERTY_DEFAULT_LOCATION_NAME);
+			mozart2Properties.mozart2DumpFilenameGPValue = Context.getAdministrationService().getGlobalProperty(
+					EPTSMozART2Config.MOZART2_DUMP_FILENAME_GP_NAME);
 			initializeLocationProperties();
 		} catch (Exception e) {
 			LOGGER.warn("An error occured during reading of app properties");
@@ -269,6 +273,10 @@ public class Mozart2Properties {
 	
 	public String getLocationUuidById(Integer locationId) {
 		return locationUuidMap.get(locationId);
+	}
+	
+	public String getMozart2DumpFilenameGPValue() {
+		return mozart2DumpFilenameGPValue;
 	}
 	
 	@Override

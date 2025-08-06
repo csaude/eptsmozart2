@@ -17,9 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Observable;
+import java.util.*;
 
 /**
  * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/13/22.
@@ -64,53 +62,58 @@ public class Utils {
 		}
 	}
 	
-	public static File createMozart2SqlDump() throws IOException {
-		StringBuilder cmd = new StringBuilder("mysqldump -u").append(Mozart2Properties.getInstance().getDbUsername())
-		        .append(" -p").append(Mozart2Properties.getInstance().getDbPassword()).append(" --host=")
-		        .append(Mozart2Properties.getInstance().getHost()).append(" --port=")
-		        .append(Mozart2Properties.getInstance().getPort()).append(" --protocol=").append("tcp")
-		        .append(" --compact ").append(Mozart2Properties.getInstance().getNewDatabaseName());
-		
+	public static File createMozart2SqlDump() throws Exception {
+		List<String> command = Arrays.asList(
+				"mysqldump",
+				"-u" + Mozart2Properties.getInstance().getDbUsername(),
+				"-p" + Mozart2Properties.getInstance().getDbPassword(),
+				"--host=" + Mozart2Properties.getInstance().getHost(),
+				"--port=" + Mozart2Properties.getInstance().getPort(),
+				"--protocol=tcp",
+				"--compact",
+				Mozart2Properties.getInstance().getNewDatabaseName()
+		);
 		File file = getDumpFilePath().toFile();
 
 		LOGGER.info("Creating SQL dump file {}", file.getName());
 		
-		ProcessBuilder processBuilder = new ProcessBuilder(cmd.toString().split(" "));
+		ProcessBuilder processBuilder = new ProcessBuilder(command);
 		processBuilder.redirectOutput(file);
 		Process process = processBuilder.start();
-        int exitCode = 0;
         try {
-            exitCode = process.waitFor();
-        } catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            int exitCode = process.waitFor();
+			if (exitCode == 0) {
+				LOGGER.info("SQL dump file generated successfully");
+				try(BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+					String line = "";
+					while ((line = buf.readLine()) != null) {
+						LOGGER.info(line);
+					}
+				}
+				return file;
+			} else {
+				try(BufferedReader buf = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+					String line = "";
+					LOGGER.error("Error while creating the dump file when running: {}", command);
+					LOGGER.error("Command exited with exit code {}", exitCode);
+					String errorMessage = "";
+					while ((line = buf.readLine()) != null) {
+						LOGGER.error(line);
+						errorMessage += line;
+					}
+					if(StringUtils.isBlank(errorMessage)) {
+						errorMessage = "Could not generate SQL dump file";
+					}
+					throw new IOException(errorMessage);
+				}
+			}
+        } catch (Exception e) {
+			if(e instanceof InterruptedException) {
+				Thread.currentThread().interrupt();
+				throw new Exception(e);
+			}
+            throw e;
         }
-
-        if (exitCode != 0) {
-			try(BufferedReader buf = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-				String line = "";
-				LOGGER.error("Error while creating the dump file when running: {}", cmd);
-				LOGGER.error("Command exited with exit code {}", exitCode);
-				String errorMessage = "";
-				while ((line = buf.readLine()) != null) {
-					LOGGER.error(line);
-					errorMessage += line;
-				}
-				if(StringUtils.isBlank(errorMessage)) {
-					errorMessage = "Could not generate SQL dump file";
-				}
-				throw new IOException(errorMessage);
-			}
-		} else {
-			LOGGER.info("SQL dump file generated successfully");
-			try(BufferedReader buf = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-				String line = "";
-				while ((line = buf.readLine()) != null) {
-					LOGGER.info(line);
-				}
-			}
-			return file;
-		}
 	}
 	
 	public static Path getDumpFilePath() {
@@ -120,8 +123,7 @@ public class Utils {
 	}
 	
 	public static String getDumpFilename() {
-		String filename = Context.getAdministrationService().getGlobalProperty(
-		    EPTSMozART2Config.MOZART2_DUMP_FILENAME_GP_NAME);
+		String filename = Mozart2Properties.getInstance().getMozart2DumpFilenameGPValue();
 		if (StringUtils.isNotBlank(filename)) {
 			String dateSuffix = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "");
 			filename = StringUtils.removeEnd(filename, ".sql");

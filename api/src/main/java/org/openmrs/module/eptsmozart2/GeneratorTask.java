@@ -184,7 +184,9 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             File dumpFile = Utils.createMozart2SqlDump();
             parameters.put("status", "dumpFileDone");
             parameters.put("filename", dumpFile.getCanonicalPath());
-        } catch (IOException e) {
+        } catch (Exception e) {
+            LOGGER.error("Error while creating the sql dump file: {}", e.getMessage());
+            e.printStackTrace();
             parameters.put("status", "dumpFileError");
             parameters.put("errorMessage", e.getMessage());
         } finally {
