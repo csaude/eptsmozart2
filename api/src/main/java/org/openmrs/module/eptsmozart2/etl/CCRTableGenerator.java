@@ -28,7 +28,7 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	public static final Integer NID_CCR_IDENTIFIER_TYPE = 9;
 	
-	public static final Integer RELATIONSHIP_TYPE_ID = 14;
+	public static final Integer RELATIONSHIP_TYPE_ID = 6;
 	
 	protected final int ENCOUNTER_UUID_POS = 1;
 	
@@ -68,7 +68,7 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	protected final int VR_OTHER_POS = 19;
 	
-	protected final int MOTHER_NID_POS = 37;
+	protected final int MOTHER_UUID_POS = 37;
 	
 	protected final int BIRTHWEIGHT_POS = 20;
 	
@@ -130,7 +130,7 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	@Override
 	protected String fetchQuery() {
-		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, pi.identifier as nid_ccr FROM ")
+		StringBuilder sb = new StringBuilder("SELECT e.*, p.patient_uuid, pe.uuid as mother_uuid FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
 		        .append(Mozart2Properties.getInstance().getNewDatabaseName())
 		        .append(".patient p ON e.patient_id = p.patient_id AND e.encounter_datetime <= '")
@@ -139,11 +139,10 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id IN ").append(inClause(CCR_CONCEPT_IDS)).append(" LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".relationship r ON e.patient_id = r.person_b AND !r.voided AND r.relationship = ")
+		        .append(".relationship r ON e.patient_id = r.person_a AND !r.voided AND r.relationship = ")
 		        .append(RELATIONSHIP_TYPE_ID).append(" LEFT JOIN ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName())
-		        .append(".patient_identifier pi ON pi.patient_id = r.person_a AND !pi.voided AND pi.identifier_type = ")
-		        .append(NID_CCR_IDENTIFIER_TYPE).append(" ORDER BY e.encounter_id");
+		        .append(".person pe ON pe.person_id = r.person_b ORDER BY e.encounter_id");
 		return sb.toString();
 	}
 	
@@ -160,7 +159,7 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append("current_feeding, ccr_discharge, ccr_discharge_date, ")
 		        .append("child_height, child_weight, pcr_sample_collection_date, pcr_result, ")
 		        .append("exclusive_breastfeeding, formula_feeding, ")
-		        .append("mixed_feeding, complementary_feeding, mother_nid, source_database) ")
+		        .append("mixed_feeding, complementary_feeding, mother_uuid, source_database) ")
 		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
 		        .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").toString();
 	}
@@ -192,11 +191,11 @@ public class CCRTableGenerator extends AbstractScrollableResultSetGenerator {
 		insertStatement.setString(SRC_DB_POS, Mozart2Properties.getInstance().getSourceOpenmrsInstance());
 		int resultConceptId = scrollableResultSet.getInt("concept_id");
 		int valueCoded = scrollableResultSet.getInt("value_coded");
-		String nidCcrIdentifierValue = scrollableResultSet.getString("nid_ccr");
+		String motherUuidValue = scrollableResultSet.getString("mother_uuid");
 		if (scrollableResultSet.wasNull()) {
-			insertStatement.setNull(MOTHER_NID_POS, Types.VARCHAR);
+			insertStatement.setNull(MOTHER_UUID_POS, Types.VARCHAR);
 		} else {
-			insertStatement.setString(MOTHER_NID_POS, nidCcrIdentifierValue);
+			insertStatement.setString(MOTHER_UUID_POS, motherUuidValue);
 		}
 		if (resultConceptId == 1874) {
 			switch (valueCoded) {

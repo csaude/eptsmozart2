@@ -19,7 +19,7 @@ CREATE TABLE `ccr` (
   `visit_reason_weaning` int(11) DEFAULT NULL,
   `visit_reason_family_move` int(11) DEFAULT NULL,
   `visit_reason_other` int(11) DEFAULT NULL,
-  `mother_nid` varchar(50) DEFAULT NULL,
+  `mother_uuid` varchar(38) DEFAULT NULL,
   `birthweight` double DEFAULT NULL,
   `gestational_age` double DEFAULT NULL,
   `arvs_mother` int(11) DEFAULT NULL,
