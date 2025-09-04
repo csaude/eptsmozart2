@@ -15,7 +15,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.MonthDay;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -128,14 +131,28 @@ public class Utils {
 			String dateSuffix = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE).replace("-", "");
 			filename = StringUtils.removeEnd(filename, ".sql");
 			if (filename.endsWith("_")) {
-				return filename.concat(dateSuffix).concat(".sql");
+				return filename.concat(dateSuffix + getQuarterForDate(LocalDate.now())).concat(".sql");
 			} else {
-				return filename.concat("_").concat(dateSuffix).concat(".sql");
+				return filename.concat("_").concat(dateSuffix + getQuarterForDate(LocalDate.now())).concat(".sql");
 			}
 		}
 		return new StringBuilder(Mozart2Properties.getInstance().getNewDatabaseName()).append(".")
-		        .append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace(':', '_')).append(".sql")
-		        .toString();
+		        .append(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME).replace(':', '_'))
+		        .append(getQuarterForDate(LocalDate.now())).append(".sql").toString();
+	}
+	
+	public static String getQuarterForDate(LocalDate date) {
+		MonthDay md = MonthDay.from(date);
+		
+		if (!md.isBefore(MonthDay.of(Month.DECEMBER, 20)) || md.isBefore(MonthDay.of(Month.MARCH, 21))) {
+			return "Q1";
+		} else if (!md.isBefore(MonthDay.of(Month.MARCH, 20)) && md.isBefore(MonthDay.of(Month.JUNE, 21))) {
+			return "Q2";
+		} else if (!md.isBefore(MonthDay.of(Month.JUNE, 20)) && md.isBefore(MonthDay.of(Month.SEPTEMBER, 21))) {
+			return "Q3";
+		} else {
+			return "Q4";
+		}
 	}
 	
 	public static String getMozart2Directory() {
