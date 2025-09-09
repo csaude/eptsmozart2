@@ -50,7 +50,7 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
             // Create the encounter_obs table.
             sqls = Utils.readFileToString("encounter_obs.sql").split(";");
             DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getDatabaseName());
-            DbUtils.insertEncounterObs(Mozart2Properties.getInstance().getDatabaseName());
+            //DbUtils.insertEncounterObs(Mozart2Properties.getInstance().getDatabaseName());
 
 
 			List<Generator> toBeInvoked = new ArrayList<>(NUMBER_OF_THREADS);
