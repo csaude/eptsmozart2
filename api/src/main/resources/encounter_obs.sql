@@ -1,3 +1,4 @@
+SET sql_log_bin = 0;
 DROP TABLE IF EXISTS `encounter_obs`;
 
 CREATE TABLE `encounter_obs` (
@@ -44,3 +45,5 @@ encounter_datetime, e.date_created e_date_created, e.date_changed e_date_changed
 obs_id, concept_id, obs_datetime, obs_group_id, value_coded,value_drug, value_datetime, value_numeric,
 value_text, comments, o.date_created o_date_created, o.uuid obs_uuid
 FROM encounter e JOIN obs o on e.encounter_id=o.encounter_id AND !e.voided AND !o.voided;
+
+SET sql_log_bin = 1;
