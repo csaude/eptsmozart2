@@ -96,7 +96,8 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 		        .append(FICHA_RESUMO_ENCTYPE).append(" AND e.location_id IN ")
 		        .append(inClause(Mozart2Properties.getInstance().getLocationIdsSet().toArray(new Integer[0])))
 		        .append(" AND e.concept_id = 23985 AND NOT EXISTS ")
-				.append("(SELECT 1 FROM encounter_obs e1 WHERE e.encounter_id = e1.encounter_id AND e1.concept_id = ")
+				.append("(SELECT 1 FROM ").append(Mozart2Properties.getInstance().getDatabaseName())
+				.append(".encounter_obs e1 WHERE e.encounter_id = e1.encounter_id AND e1.concept_id = ")
 				.append(PROPHYLAXIS_STATUS_CONCEPT).append(") UNION ")
 				.append("SELECT COUNT(e.encounter_id) AS conta FROM ")
 		        .append(Mozart2Properties.getInstance().getDatabaseName()).append(".encounter_obs e JOIN ")
@@ -218,7 +219,7 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 			batchSize = Integer.MAX_VALUE;
 		String insertSql = insertSql();
 		try {
-			if (insertStatement == null || insertStatement.isClosed()) {
+			if (insertStatement == null) {
 				insertStatement = ConnectionPool.getConnection().prepareStatement(insertSql);
 			} else {
 				insertStatement.clearParameters();
@@ -267,11 +268,14 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 			encType53Map.clear();
 			return outcomes.length;
 		}
-		catch (SQLException e) {
+		catch (Exception e) {
 			LOGGER.error("Error preparing insert statement for table {}", getTable());
 			this.setChanged();
 			Utils.notifyObserversAboutException(this, e);
-			throw e;
+			if(e instanceof SQLException) {
+				throw e;
+			}
+			throw new SQLException(e);
 		}
 	}
 	
@@ -331,6 +335,9 @@ public class ProphylaxisTableGenerator extends AbstractScrollableResultSetGenera
 			}
 		} catch (Exception e) {
 			LOGGER.error("An error has occured while inserting records to {} table", getTable(), e);
+			if(e instanceof SQLException) {
+				throw e;
+			}
 			throw new SQLException(e);
 		}
 	}

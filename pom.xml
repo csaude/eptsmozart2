@@ -9,7 +9,7 @@
 
 	<groupId>org.openmrs.module</groupId>
 	<artifactId>eptsmozart2</artifactId>
-	<version>3.2.0</version>
+	<version>3.2.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>EPTS MozART 2</name>
 	<description>Generates EPTS flattened MozART 2 tables</description>
