@@ -15,7 +15,7 @@ import java.util.Set;
 import static org.openmrs.module.eptsmozart2.Utils.inClause;
 
 /**
- * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22.
+ * @uthor Willa Mhawila<a.mhawila@gmail.com> on 6/29/22
  */
 public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	
@@ -23,7 +23,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	public static final Integer[] PREP_CONCEPT_IDS = new Integer[] { 1040, 165194, 165289, 790, 1322, 6258, 299, 1080,
 	        165210, 165213, 165217, 165174, 23703, 165196, 165294, 1713, 165221, 6317, 23771, 165223, 1982, 6332, 165225,
-	        165228 };
+	        165228, 165516 };
 	
 	public static final Integer[] ENCOUNTER_TYPE_IDS = new Integer[] { 80, 81 };
 	
@@ -133,6 +133,8 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 	
 	protected final int SRC_DB_POS = 53;
 	
+	protected final int PREP_TYPE_POS = 54;
+	
 	@Override
 	public String getTable() {
 		return "prep";
@@ -186,10 +188,10 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 		        .append("prep_interrupted_sideeffect, prep_interrupted_norisk, ")
 		        .append("prep_interrupted_userrequest, prep_interrupted_other, next_consult_prep, ")
 		        .append("encounter_type, encounter_created_date, encounter_change_date, ")
-		        .append("form_id, patient_uuid, location_uuid, source_database) ")
+		        .append("form_id, patient_uuid, location_uuid, source_database, prep_type) ")
 		        .append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
 		        .append("?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ")
-		        .append("?, ?, ?, ?, ?, ?)").toString();
+		        .append("?, ?, ?, ?, ?, ?, ?)").toString();
 	}
 	
 	@Override
@@ -204,7 +206,7 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 											 KEY_OTHER_POS, RENAL_FAILURE_POS, PILLS_LEFTOVER_POS, ADH_COUNSELING_POS,
 											 CONDOMS_POS, LUBS_POS, PREGNANT_POS, LACTANT_POS, PREP_HIVPOS_POS,
 											 PREP_SIDEEFFECT_POS, PREP_NORISK_POS, PREP_USERREQ_POS, PREP_OTHER_POS,
-											 NEXT_CONSULT_POS
+											 NEXT_CONSULT_POS, PREP_TYPE_POS
 		));
         return positionsNotSet;
     }
@@ -303,6 +305,9 @@ public class PrepTableGenerator extends AbstractScrollableResultSetGenerator {
 					// Ignore
 				}
 			}
+		} else if (resultConceptId == 165516) {
+			insertStatement.setInt(PREP_TYPE_POS, valueCoded);
+			positionsNotSet.remove(PREP_TYPE_POS);
 		} else if (resultConceptId == 165217) {
 			insertStatement.setDouble(NO_UNITS_POS, scrollableResultSet.getDouble("value_numeric"));
 			positionsNotSet.remove(NO_UNITS_POS);
