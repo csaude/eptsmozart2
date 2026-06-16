@@ -46,6 +46,7 @@ CREATE TABLE `prep` (
   `lubricants_offer` int(11) DEFAULT NULL,
   `pregnant` int(11) DEFAULT NULL,
   `lactant` int(11) DEFAULT NULL,
+  `prep_type` int(11) DEFAULT NULL,
   `prep_interrupted_hivpos` int(11) DEFAULT NULL,
   `prep_interrupted_sideeffect` int(11) DEFAULT NULL,
   `prep_interrupted_norisk` int(11) DEFAULT NULL,
