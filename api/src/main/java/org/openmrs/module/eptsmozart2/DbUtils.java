@@ -56,7 +56,7 @@ public class DbUtils {
         }
     }
 	
-	public static void insertEncounterObs(String databaseName) {
+	public static void insertEncounterObs(String databaseName, String[] sql) {
         try (Connection conn = ConnectionPool.getConnection()) {
 
             int maxObsId = getMaxObsId(conn, databaseName);
@@ -64,7 +64,7 @@ public class DbUtils {
 
             for (int start = 1; start <= maxObsId; start += batch_size) {
                 int end = start + batch_size - 1;
-                insertBatch(conn, start, end, databaseName);
+                insertBatchLoop(conn, start, end, databaseName, sql);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,6 +95,32 @@ public class DbUtils {
         return BATCH_SIZE;
 	}
 	
+	private static void insertBatchLoop(Connection conn, int start, int end, String databaseName, String[] sql) throws SQLException {
+	    try (
+	        Statement stmt = conn.createStatement();
+	        ResultSet rs = stmt.executeQuery("SELECT location_id FROM " + databaseName + ".location");
+	        PreparedStatement ps = conn.prepareStatement(sql[1]) // INSERT statement with 3 parameters
+	    ) {
+	        // Disable binlog
+	        try (Statement st = conn.createStatement()) {
+	            st.execute(sql[0]); // SET sql_log_bin = 0;
+	        }
+	            ps.setInt(1, start);
+	            ps.setInt(2, end);
+
+	            ps.executeUpdate();
+
+	        // Re-enable binlog
+	        try (Statement st = conn.createStatement()) {
+	            st.execute(sql[2]); // SET sql_log_bin = 1;
+	        }
+
+	    } catch (SQLException e) {
+	        LOGGER.error("Error running encounter_obs insert", e);
+	        throw e;
+	    }
+	}
+	
 	private static void insertBatch(Connection conn, int start, int end, String databaseName) throws SQLException {
 		StringBuilder sb = new StringBuilder();
 		sb.append("INSERT INTO encounter_obs (");
@@ -119,9 +145,45 @@ public class DbUtils {
 		try (PreparedStatement stmt = conn.prepareStatement(sb.toString())) {
 			 stmt.execute("USE " + databaseName); 
 			 stmt.execute("SET sql_log_bin = 0;");
-			 stmt.setInt(1, start); stmt.setInt(2, end);
+			 stmt.setInt(1, start); 
+			 stmt.setInt(2, end);
 			 stmt.executeUpdate();
 			 stmt.execute("SET sql_log_bin = 1;");
 		}
 	}
+	
+	public static boolean checkIfEncounterObsExist(String databaseName) {
+		try (Connection conn = ConnectionPool.getConnection()) {
+			String sqlExistEncounterObs = "SELECT COUNT(*) as matched FROM information_schema.tables WHERE table_schema = '" + databaseName +"' AND table_name = 'encounter_obs';";
+            int existEncounterObs = countData(conn, databaseName, sqlExistEncounterObs);
+            if(existEncounterObs == 1) {
+            	String sqlCountEncounterObs = "SELECT COUNT(*) FROM encounter_obs;";
+            	String sqlCountEncounterJoinObs = "SELECT COUNT(*) FROM encounter e JOIN obs o on e.encounter_id = o.encounter_id AND !e.voided AND !o.voided \n"
+            			+ " AND (o.obs_datetime NOT LIKE '%00-00-00 00:00:00%' OR e.encounter_datetime NOT LIKE '%00-00-00 00:00:00%')";
+            	int countEnconterObs = countData(conn, databaseName, sqlCountEncounterObs);
+            	int countEnconterJoinObs = countData(conn, databaseName, sqlCountEncounterJoinObs);
+            	if(countEnconterObs == countEnconterJoinObs) {
+            		return true;
+            	}else {
+            		return false;}
+            } else {
+            	return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		return false;
+	}
+	
+	private static int countData(Connection conn, String databaseName, String sql) throws SQLException {
+        
+        try (Statement stmt = conn.createStatement();) {
+        	stmt.execute("USE " + databaseName);
+        	ResultSet rs = stmt.executeQuery(sql);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
 }

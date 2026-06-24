@@ -47,11 +47,14 @@ public class GeneratorTask extends Observable implements Observer, Task, Callabl
 			String[] sqls = Utils.readFileToString("type_id_lookup.sql").split(";");
 			DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getNewDatabaseName());
 
-            // Create the encounter_obs table.
-            sqls = Utils.readFileToString("encounter_obs.sql").split(";");
-            DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getDatabaseName());
-            //DbUtils.insertEncounterObs(Mozart2Properties.getInstance().getDatabaseName());
-
+			if(!DbUtils.checkIfEncounterObsExist(Mozart2Properties.getInstance().getDatabaseName())) {
+	            // Create the encounter_obs table.
+	            sqls = Utils.readFileToString("encounter_obs.sql").split(";");
+	            DbUtils.runSqlStatements(sqls, Mozart2Properties.getInstance().getDatabaseName());
+	            
+	            sqls = Utils.readFileToString("insert_encounter_obs.sql").split(";");
+	            DbUtils.insertEncounterObs(Mozart2Properties.getInstance().getDatabaseName(), sqls);
+			}
 
 			List<Generator> toBeInvoked = new ArrayList<>(NUMBER_OF_THREADS);
 			ObservableGenerator generator = new PatientTableGenerator();
